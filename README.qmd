@@ -82,6 +82,18 @@ print(p["estimate"][0] - p["estimate"][3])
 predictions(fit, by = "Region", hypothesis = "reference")
 ```
 
+## `variables` argument
+
+```{python}
+comparisons(fit, variables = "Pop1831", comparison = "differenceavg")
+```
+```{python}
+comparisons(fit, variables = ["Pop1831", "Desertion"], comparison = "differenceavg")
+```
+```{python}
+comparisons(fit, variables = {"Pop1831": 1, "Desertion": 100}, comparison = "differenceavg")
+```
+
 # GLM
 
 ```{python}

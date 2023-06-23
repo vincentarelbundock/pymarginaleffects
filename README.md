@@ -80,7 +80,7 @@ comparisons(fit, variables = "Pop1831", value = 1, comparison = "ratio").head()
 comparisons(fit, variables = "Pop1831", value = 1, comparison = "difference", by = "Region")
 ```
 
-    /home/vincent/repos/pymarginaleffects/marginaleffects/comparisons.py:104: UserWarning: vcov is set to False because `by` or `hypothesis` is not None
+    /home/vincent/repos/pymarginaleffects/marginaleffects/comparisons.py:112: UserWarning: vcov is set to False because `by` or `hypothesis` is not None
       warn("vcov is set to False because `by` or `hypothesis` is not None")
 
 <small>shape: (6, 3)</small>
@@ -180,6 +180,46 @@ predictions(fit, by = "Region", hypothesis = "reference")
 | "Row 4 - Row 1" | -10.069649 | 2.214312  | -4.54753  | -14.47462  | -5.664678  |
 | "Row 5 - Row 1" | -2.021063  | 1.065328  | -1.897128 | -4.140339  | 0.098213   |
 | "Row 6 - Row 1" | -21.226729 | 4.989687  | -4.25412  | -31.152806 | -11.300651 |
+
+
+## `variables` argument
+
+``` python
+comparisons(fit, variables = "Pop1831", comparison = "differenceavg")
+```
+
+<small>shape: (1, 6)</small>
+
+| term      | estimate | std_error | statistic | conf_low  | conf_high |
+|-----------|----------|-----------|-----------|-----------|-----------|
+| str       | f64      | f64       | f64       | f64       | f64       |
+| "Pop1831" | 0.003717 | 0.011597  | 0.320485  | -0.019353 | 0.026786  |
+
+
+``` python
+comparisons(fit, variables = ["Pop1831", "Desertion"], comparison = "differenceavg")
+```
+
+<small>shape: (2, 6)</small>
+
+| term        | estimate | std_error | statistic | conf_low  | conf_high |
+|-------------|----------|-----------|-----------|-----------|-----------|
+| str         | f64      | f64       | f64       | f64       | f64       |
+| "Pop1831"   | 0.003717 | 0.011597  | 0.320485  | -0.019353 | 0.026786  |
+| "Desertion" | 0.25678  | 0.069297  | 3.705477  | 0.118925  | 0.394634  |
+
+
+``` python
+comparisons(fit, variables = {"Pop1831": 1, "Desertion": 100}, comparison = "differenceavg")
+```
+
+<small>shape: (2, 6)</small>
+
+| term        | estimate  | std_error | statistic | conf_low  | conf_high |
+|-------------|-----------|-----------|-----------|-----------|-----------|
+| str         | f64       | f64       | f64       | f64       | f64       |
+| "Pop1831"   | 0.003717  | 0.011597  | 0.320485  | -0.019353 | 0.026786  |
+| "Desertion" | 25.677952 | 6.929728  | 3.705478  | 11.892516 | 39.463389 |
 
 
 # GLM

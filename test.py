@@ -8,12 +8,13 @@ df = sm.datasets.get_rdataset("Guerry", "HistData").data
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
 fit = mod.fit()
 
+comparisons(fit, variables = {"Pop1831": 1, "Desertion": 100})
 
+comparisons(fit, variables = ["Pop1831", "Desertion"])
 df["bin"] = df["Literacy"] > df["Literacy"].median()
 df["bin"] = df["bin"].replace({True: 1, False: 0})
 
 
-comparisons(fit, comparison = "differenceavg", vcov = True)
 
 p = predictions(fit, by = "Region", hypothesis = "reference", vcov = False)
 

@@ -41,13 +41,21 @@ def get_variables(variables, fit, newdata):
     if variables is None:
         variables = fit.model.exog_names
         variables = [x for x in variables if x in newdata.columns]
+        variables = dict(zip(variables, [1] * len(variables)))
     elif isinstance(variables, str):
-        variables = [variables]
+        variables = {variables: 1}
+    elif isinstance(variables, list):
+        variables = dict(zip(variables, [1] * len(variables)))
     else:
-        assert isinstance(variables, list), "`variables` must be None, a string, or a list of strings"
-    bad = [x for x in variables if x not in newdata.columns]
-    if len(bad) > 0:
-        raise ValueError(f"Variable(s) {bad} not in newdata")
+        assert isinstance(variables, dict), "`variables` must be None, a dict, string, or list of strings"
+
+    for key in variables.keys():
+        if key not in newdata.columns:
+            del variables[key]
+            warn(f"Variable `{key}` not in newdata")
+
+    if not variables:
+        raise ValueError("There is no valid column name in `variables`.")
     return variables
 
 
@@ -90,7 +98,7 @@ def comparisons(
         variables = None,
         newdata = None,
         value = 1,
-        comparison = "difference",
+        comparison = "differenceavg",
         vcov = True,
         conf_int = 0.95,
         by = None,
@@ -111,12 +119,12 @@ def comparisons(
 
     # computation
     out = []
-    for variable in variables:
+    for v in variables:
         tmp = get_comparison(
             fit,
-            variable=variable,
+            variable=v,
+            value=variables.get(v),
             newdata=newdata,
-            value=value,
             comparison=comparison,
             vcov=vcov,
             conf_int=conf_int,
