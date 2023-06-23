@@ -3,7 +3,9 @@
 import pandas as pd
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
+import polars as pl
 from marginaleffects import comparisons
+pl.Config.set_tbl_formatting("ASCII_FULL")
 df = sm.datasets.get_rdataset("Guerry", "HistData").data
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
 fit = mod.fit()
@@ -11,12 +13,6 @@ fit = mod.fit()
 comparisons(fit, "Pop1831", value = 1, comparison = "differenceavg")
 ```
 
-<div><style>
-.dataframe > thead > tr > th,
-.dataframe > tbody > tr > td {
-  text-align: right;
-}
-</style>
 <small>shape: (1, 5)</small>
 
 | estimate | std_error | statistic | conf_low  | conf_high |
@@ -24,18 +20,11 @@ comparisons(fit, "Pop1831", value = 1, comparison = "differenceavg")
 | f64      | f64       | f64       | f64       | f64       |
 | 0.003717 | 0.011597  | 0.320485  | -0.019353 | 0.026786  |
 
-</div>
 
 ``` python
 comparisons(fit, "Pop1831", value = 1, comparison = "difference").head()
 ```
 
-<div><style>
-.dataframe > thead > tr > th,
-.dataframe > tbody > tr > td {
-  text-align: right;
-}
-</style>
 <small>shape: (5, 28)</small>
 
 | estimate  | std_error | statistic | conf_low  | conf_high | dept | Region | Department     | Crime_pers | Crime_prop | Literacy | Donations | Infants | Suicides | MainCity | Wealth | Commerce | Clergy | Crime_parents | Infanticide | Donation_clergy | Lottery | Desertion | Instruction | Prostitutes | Distance | Area | Pop1831 |
@@ -47,4 +36,3 @@ comparisons(fit, "Pop1831", value = 1, comparison = "difference").head()
 | 0.017379  | 0.012825  | 1.355129  | -0.008133 | 0.042891  | 4    | "E"    | "Basses-Alpes" | 12935      | 7289       | 46       | 2733      | 23018   | 14238    | "1:Sm"   | 76     | 49       | 5      | 70            | 12          | 37              | 80      | 32        | 29          | 2           | 351.399  | 6925 | 155.9   |
 | 0.013815  | 0.012195  | 1.132804  | -0.010445 | 0.038075  | 5    | "E"    | "Hautes-Alpes" | 17488      | 8174       | 69       | 6962      | 23076   | 16171    | "1:Sm"   | 83     | 65       | 10     | 22            | 23          | 64              | 79      | 35        | 7           | 1           | 320.28   | 5549 | 129.1   |
 
-</div>

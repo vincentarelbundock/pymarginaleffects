@@ -9,6 +9,9 @@ test: ## run pytest suite
 
 readme: ## render Quarto readme
 	poetry run quarto render README.qmd
+	sed -i '/<div><style>/,/<\/style>/d' README.md
+	sed -i '/<div><style>/,/<\/style>/d' README.md
+	sed -i '/<\/div>/d' README.md
 
 install: ## install in poetry venv
 	poetry install

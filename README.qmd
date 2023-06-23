@@ -6,7 +6,9 @@ format: gfm
 import pandas as pd
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
+import polars as pl
 from marginaleffects import comparisons
+pl.Config.set_tbl_formatting("ASCII_FULL")
 df = sm.datasets.get_rdataset("Guerry", "HistData").data
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
 fit = mod.fit()
