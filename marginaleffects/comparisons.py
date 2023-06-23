@@ -1,8 +1,8 @@
 # TODO: Sanitize data: pandas, polars, or numpy array
-
-from .uncertainty import *
 from .by import *
 from .utils import *
+from .hypothesis import *
+from .uncertainty import *
 import polars as pl
 import pandas as pd
 import numpy as np
@@ -10,14 +10,6 @@ import patsy
 import scipy.stats as stats
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
-
-
-def get_comparison_exog_numeric(fit, variable, value, data):
-    lo = data.clone().with_columns(pl.col(variable) - value/2)
-    hi = data.clone().with_columns(pl.col(variable) + value/2)
-    y, lo = patsy.dmatrices(fit.model.formula, lo)
-    y, hi = patsy.dmatrices(fit.model.formula, hi)
-    return hi, lo
 
 
 estimands = dict(
@@ -28,6 +20,14 @@ estimands = dict(
 )
 
 
+def get_comparison_exog_numeric(fit, variable, value, data):
+    lo = data.clone().with_columns(pl.col(variable) - value/2)
+    hi = data.clone().with_columns(pl.col(variable) + value/2)
+    y, lo = patsy.dmatrices(fit.model.formula, lo)
+    y, hi = patsy.dmatrices(fit.model.formula, hi)
+    return hi, lo
+
+
 def get_estimand(fit, params, hi, lo, comparison, df = None, by = None):
     p_hi = fit.model.predict(params, hi)
     p_lo = fit.model.predict(params, lo)
@@ -36,7 +36,7 @@ def get_estimand(fit, params, hi, lo, comparison, df = None, by = None):
     return out
 
 
-def comparisons(fit, variables, value = 1, comparison = "difference", conf_int = 0.95, by = None):
+def comparisons(fit, variables, value = 1, comparison = "difference", conf_int = 0.95, by = None, hypothesis = None):
     # predictors
     df = pl.from_pandas(fit.model.data.frame)
     hi, lo = get_comparison_exog_numeric(fit, variable=variables, value=value, data=df)
@@ -44,6 +44,7 @@ def comparisons(fit, variables, value = 1, comparison = "difference", conf_int =
     def fun(x):
         out = get_estimand(fit, x, hi, lo, comparison=comparison)
         out = get_by(fit, out, df=df, by=by)
+        out = get_hypothesis(out, hypothesis=hypothesis)
         return out
     out = fun(np.array(fit.params))
     # uncertainty

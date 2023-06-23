@@ -5,6 +5,7 @@ format: gfm
 # Linear model
 
 ```{python}
+import numpy as np
 import polars as pl
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
@@ -52,4 +53,27 @@ predictions(fit).head()
 
 ```{python}
 predictions(fit, by = "Region")
+```
+
+
+# `hypothesis` argument
+
+
+```{python}
+hyp = np.array([1, 0, -1, 0, 0, 0])
+predictions(fit, by = "Region", hypothesis = hyp)
+
+hyp = np.vstack([
+    [1, 0, -1, 0, 0, 0],
+    [1, 0, 0, -1, 0, 0]
+]).T
+predictions(fit, by = "Region", hypothesis = hyp)
+```
+
+Which corresponds to:
+
+```{python}
+p = predictions(fit, by = "Region")
+print(p["estimate"][0] - p["estimate"][2])
+print(p["estimate"][0] - p["estimate"][3])
 ```

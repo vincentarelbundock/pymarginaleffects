@@ -8,5 +8,6 @@ def get_by(fit, estimand, df = None, by = None):
     else:
         out = pl.DataFrame({"estimate" : estimand})
     if by is not None:
-        out = out.select([by, "estimate"]).groupby(by).mean()
+        # maintain_order is super important
+        out = out.select([by, "estimate"]).groupby(by, maintain_order=True).mean()
     return out
