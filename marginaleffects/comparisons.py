@@ -1,5 +1,6 @@
 # TODO: Sanitize data: pandas, polars, or numpy array
 from .by import *
+from warnings import warn
 from .utils import *
 from .hypothesis import *
 from .uncertainty import *
@@ -36,7 +37,15 @@ def get_estimand(fit, params, hi, lo, comparison, df = None, by = None):
     return out
 
 
-def comparisons(fit, variables, value = 1, comparison = "difference", conf_int = 0.95, by = None, hypothesis = None):
+def comparisons(fit, variables, value = 1, comparison = "difference", vcov = True, conf_int = 0.95, by = None, hypothesis = None):
+
+    # sanity checks
+    assert isinstance(vcov, bool), "`vcov` must be a boolean"
+
+    if vcov is True and (by is not None or hypothesis is not None):
+        vcov = False
+        warn("vcov is set to False because `by` or `hypothesis` is not None")
+
     # predictors
     df = pl.from_pandas(fit.model.data.frame)
     hi, lo = get_comparison_exog_numeric(fit, variable=variables, value=value, data=df)
@@ -47,11 +56,11 @@ def comparisons(fit, variables, value = 1, comparison = "difference", conf_int =
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
     out = fun(np.array(fit.params))
-    # uncertainty
-    J = get_jacobian(fun, fit.params.to_numpy())
-    V = fit.cov_params()
-    se = get_se(J, V)
-    out = out.with_columns(pl.Series(se).alias("std_error"))
-    out = get_z_p_ci(out, fit, conf_int=conf_int)
+    if vcov:
+        J = get_jacobian(fun, fit.params.to_numpy())
+        V = fit.cov_params()
+        se = get_se(J, V)
+        out = out.with_columns(pl.Series(se).alias("std_error"))
+        out = get_z_p_ci(out, fit, conf_int=conf_int)
     out = sort_columns(out, by = by)
     return out

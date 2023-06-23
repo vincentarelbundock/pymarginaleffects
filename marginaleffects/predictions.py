@@ -18,7 +18,11 @@ def get_exog(fit, newdata = None):
     y, out = patsy.dmatrices(fit.model.formula, newdata)
     return out
 
-def predictions(fit, conf_int = 0.95, vcov = False, by = None, newdata = None, hypothesis = None):
+def predictions(fit, conf_int = 0.95, vcov = True, by = None, newdata = None, hypothesis = None):
+
+    # sanity checks
+    assert isinstance(vcov, bool), "`vcov` must be a boolean"
+
     # predictors
     if newdata is None:
         newdata = pl.from_pandas(fit.model.data.frame)
