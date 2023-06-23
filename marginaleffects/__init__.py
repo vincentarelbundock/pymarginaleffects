@@ -1,1 +1,1 @@
-from .marginaleffects import comparisons
+from .comparisons import comparisons
