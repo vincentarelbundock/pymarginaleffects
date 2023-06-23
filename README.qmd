@@ -55,7 +55,6 @@ predictions(fit).head()
 predictions(fit, by = "Region")
 ```
 
-
 # `hypothesis` argument
 
 
@@ -76,4 +75,9 @@ Which corresponds to:
 p = predictions(fit, by = "Region")
 print(p["estimate"][0] - p["estimate"][2])
 print(p["estimate"][0] - p["estimate"][3])
+```
+
+
+```{python}
+predictions(fit, by = "Region", hypothesis = "reference")
 ```
