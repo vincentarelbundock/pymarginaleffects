@@ -81,3 +81,16 @@ print(p["estimate"][0] - p["estimate"][3])
 ```{python}
 predictions(fit, by = "Region", hypothesis = "reference")
 ```
+
+# GLM
+
+```{python}
+df = sm.datasets.get_rdataset("Guerry", "HistData").data
+mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
+fit = mod.fit()
+df["bin"] = df["Literacy"] > df["Literacy"].median()
+df["bin"] = df["bin"].replace({True: 1, False: 0})
+mod = smf.glm("bin ~ Pop1831 * Desertion", df, family = sm.families.Binomial())
+fit = mod.fit()
+comparisons(fit, comparison = "differenceavg")
+```
