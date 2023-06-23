@@ -7,16 +7,18 @@ from marginaleffects import *
 df = sm.datasets.get_rdataset("Guerry", "HistData").data
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
 fit = mod.fit()
+p = predictions(fit, by = "Region", hypothesis = "reference", vcov = False)
+
+p = predictions(fit, by = "Region")
+
+# hyp = np.vstack([
+#     [1, 0, -1, 0, 0, 0],
+#     [1, 0, 0, -1, 0, 0]
+# ]).T
+# predictions(fit, by = "Region", hypothesis = hyp)
 
 
 predictions(fit, by = "Region")
-
-hyp = np.vstack([
-    [1, 0, -1, 0, 0, 0],
-    [1, 0, 0, -1, 0, 0]
-]).T
-predictions(fit, by = "Region", hypothesis = hyp)
-
 
 # predictions(fit, newdata = pl.from_pandas(df).head(), hypothesis = np.array(range(5)))
 
@@ -25,7 +27,7 @@ predictions(fit, by = "Region", hypothesis = hyp)
 # comparisons(fit, "Pop1831", value = 1, comparison = "difference")
 
 # # TODO: estimates work but not standard errors
-comparisons(fit, "Pop1831", value = 1, comparison = "difference", by = "Region")
+# comparisons(fit, "Pop1831", value = 1, comparison = "difference", by = "Region")
 # predictions(fit, by = "Region")
 
 # # Hypothesis

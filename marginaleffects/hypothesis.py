@@ -22,9 +22,12 @@ def get_hypothesis(x, hypothesis):
             hypothesis = lincom_revpairwise(x)
         else:
             raise ValueError(msg)
-    elif isinstance(hypothesis, np.ndarray) is False:
+    elif isinstance(hypothesis, np.ndarray):
+        hypothesis = pl.DataFrame(hypothesis)
+    else:
         raise ValueError(msg)
-    out = lincom_multiply(x, hypothesis)
+    out = lincom_multiply(x, hypothesis.to_numpy())
+    out = out.with_columns(pl.Series(hypothesis.columns).alias("term"))
     return out
 
 
@@ -56,13 +59,13 @@ def lincom_revreference(x):
 
 def lincom_reference(x):
     lincom = np.identity(len(x))
-    lincom[0] = -1
+    lincom[0, :] = -1
     lab = get_hypothesis_row_labels(x)
     if len(lab) == 0 or len(set(lab)) != len(lab):
         lab = [f"Row {i+1} - Row 1" for i in range(len(lincom))]
     else:
         lab = [f"{l} - {lab[0]}" for l in lab]
-    lincom = pl.DataFrame(lincom, schema=lab)
+    lincom = pl.DataFrame(lincom.T, schema=lab)
     lincom = lincom.select(lab[1:])
     return lincom
 
@@ -76,7 +79,7 @@ def lincom_revsequential(x):
         lab = [f"{lab[i]} - {lab[i+1]}" for i in range(lincom.shape[1])]
     for i in range(lincom.shape[1]):
         lincom[i:i+2, i] = [1, -1]
-    lincom = pl.DataFrame(lincom, schema=lab)
+    lincom = pl.DataFrame(lincom.T, schema=lab)
     return lincom
 
 
@@ -89,7 +92,7 @@ def lincom_sequential(x):
         lab = [f"{lab[i+1]} - {lab[i]}" for i in range(lincom.shape[1])]
     for i in range(lincom.shape[1]):
         lincom[i:i+2, i] = [-1, 1]
-    lincom = pl.DataFrame(lincom, schema=lab)
+    lincom = pl.DataFrame(lincom.T, schema=lab)
     return lincom
 
 
@@ -110,7 +113,7 @@ def lincom_revpairwise(x):
                 else:
                     lab_col.append(f"{lab_row[j]} - {lab_row[i]}")
     lincom = np.hstack(mat)
-    lincom = pl.DataFrame(lincom, schema=lab_col)
+    lincom = pl.DataFrame(lincom.T, schema=lab_col)
     return lincom
 
 
@@ -131,5 +134,5 @@ def lincom_pairwise(x):
                 else:
                     lab_col.append(f"{lab_row[i]} - {lab_row[j]}")
     lincom = np.hstack(mat)
-    lincom = pl.DataFrame(lincom, schema=lab_col)
+    lincom = pl.DataFrame(lincom.T, schema=lab_col)
     return lincom
