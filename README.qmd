@@ -17,5 +17,5 @@ comparisons(fit, "Pop1831", value = 1, comparison = "differenceavg")
 ```
 
 ```{python}
-comparisons(fit, "Pop1831", value = 1, comparison = "difference").head()
+comparisons(fit, "Pop1831", value = 1, comparison = "difference")
 ```
