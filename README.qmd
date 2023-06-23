@@ -7,15 +7,49 @@ import pandas as pd
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
 import polars as pl
-from marginaleffects import comparisons
-pl.Config.set_tbl_formatting("ASCII_FULL")
+from marginaleffects import comparisons, predictions
+
+# load data and fit model
 df = sm.datasets.get_rdataset("Guerry", "HistData").data
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
 fit = mod.fit()
+```
 
-comparisons(fit, "Pop1831", value = 1, comparison = "differenceavg")
+# `comparisons()`
+
+## Difference
+
+```{python}
+comparisons(fit, variables = "Pop1831", value = 1, comparison = "differenceavg")
+```
+```{python}
+comparisons(fit, variables = "Pop1831", value = 1, comparison = "difference").head()
+```
+
+## Ratio
+
+```{python}
+comparisons(fit, variables = "Pop1831", value = 1, comparison = "ratioavg")
 ```
 
 ```{python}
-comparisons(fit, "Pop1831", value = 1, comparison = "difference")
+comparisons(fit, variables = "Pop1831", value = 1, comparison = "ratio").head()
+```
+
+## Group averages (SEs are broken)
+
+```{python}
+comparisons(fit, variables = "Pop1831", value = 1, comparison = "difference", by = "Region")
+```
+
+# `predictions()` 
+
+```{python}
+predictions(fit).head()
+```
+
+## Group averages (SEs are broken)
+
+```{python}
+predictions(fit, by = "Region")
 ```

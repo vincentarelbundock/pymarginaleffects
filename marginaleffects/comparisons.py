@@ -36,10 +36,10 @@ def get_estimand(fit, params, hi, lo, comparison, df = None, by = None):
     return out
 
 
-def comparisons(fit, variable, value = 1, comparison = "difference", conf_int = 0.95, by = None):
+def comparisons(fit, variables, value = 1, comparison = "difference", conf_int = 0.95, by = None):
     # predictors
     df = pl.from_pandas(fit.model.data.frame)
-    hi, lo = get_comparison_exog_numeric(fit, variable=variable, value=value, data=df)
+    hi, lo = get_comparison_exog_numeric(fit, variable=variables, value=value, data=df)
     # estimands
     def fun(x):
         out = get_estimand(fit, x, hi, lo, comparison=comparison)
