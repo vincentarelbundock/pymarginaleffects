@@ -5,13 +5,11 @@ format: gfm
 # Linear model
 
 ```{python}
-import pandas as pd
-import statsmodels.formula.api as smf
-import statsmodels.api as sm
 import polars as pl
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
 from marginaleffects import comparisons, predictions
 
-# load data and fit model
 df = sm.datasets.get_rdataset("Guerry", "HistData").data
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
 fit = mod.fit()
