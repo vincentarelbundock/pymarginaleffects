@@ -28,7 +28,7 @@ mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", df)
 fit = mod.fit()
 ```
 
-# Comparisons
+# `comparisons()`
 
 ``` python
 # `comparison`
@@ -80,5 +80,5 @@ df["bin"] = df["Literacy"] > df["Literacy"].median()
 df["bin"] = df["bin"].replace({True: 1, False: 0})
 mod = smf.glm("bin ~ Pop1831 * Desertion", df, family = sm.families.Binomial())
 fit = mod.fit()
-comparisons(fit, comparison = "differenceavg")
+comparisons(fit)
 ```

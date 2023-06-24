@@ -1,40 +1,26 @@
-from pytest import approx
-import polars as pl
-import pandas as pd
-import statsmodels.formula.api as smf
 import statsmodels.api as sm
-import rpy2.robjects as ro
-from rpy2.robjects.packages import importr
+import statsmodels.formula.api as smf
+from pytest import approx
 from marginaleffects import *
-from rpy2.robjects import r, pandas2ri
+from marginaleffects.testing import *
+from rpy2.robjects.packages import importr
 
+# R packages
+marginaleffects = importr("marginaleffects")
+stats = importr("stats")
 
-def rpy2_df_pandas_to_r(df):
-    with (ro.default_converter + ro.pandas2ri.converter).context():
-        out = ro.conversion.get_conversion().py2rpy(df)
-    return out
-
-
-def rpy2_df_r_to_pandas(df):
-    with (ro.default_converter + ro.pandas2ri.converter).context():
-        out = ro.conversion.get_conversion().rpy2py(df)
-    return out
-
+# Guerry Data
+df = sm.datasets.get_rdataset("Guerry", "HistData").data
+df_r = pandas_to_r(df)
 
 def test_interaction():
-    marginaleffects = importr("marginaleffects")
-    stats = importr("stats")
-    df = sm.datasets.get_rdataset("Guerry", "HistData").data
-    df_r = rpy2_df_pandas_to_r(df)
-    mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
-    fit = mod.fit()
-    tmp = stats.lm("Literacy ~ Pop1831 * Desertion", data = df_r)
-    cmp = marginaleffects.comparisons(tmp, variables = "Pop1831", newdata = df_r)
-    known = rpy2_df_r_to_pandas(cmp)
-    unknown = comparisons(fit, "Pop1831", value = 1, comparison = "difference")
-    a = pl.Series(known["estimate"].to_list()).to_numpy()
-    b = unknown["estimate"].to_numpy()
-    assert a == approx(b)
-    # a = pl.Series(known["std.error"].to_list()).to_numpy()
-    # b = unknown["std_error"].to_numpy()
-    # assert a == approx(b)
+    mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
+    mod_r = stats.lm("Literacy ~ Pop1831 * Desertion", data = df_r)
+    cmp_py = comparisons(mod_py, comparison = "differenceavg")
+    cmp_r = marginaleffects.comparisons(mod_r, comparison = "differenceavg")
+    cmp_r = r_to_polars(cmp_r)
+    cmp_r = cmp_r.sort(["term", "contrast"])
+    cmp_py = cmp_r.sort(["term", "contrast"])
+    for col in ["estimate", "std_error", "statistic", "conf_low", "conf_high"]:
+        if col in cmp_py.columns and col in cmp_r.columns:
+            assert cmp_r[col].to_numpy() == approx(cmp_py[col].to_numpy(), rel = 1e-5)
