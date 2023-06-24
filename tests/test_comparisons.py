@@ -36,3 +36,4 @@ def test_HC3():
     for col in ["estimate", "std_error", "statistic", "conf_low", "conf_high"]:
         if col in cmp_py.columns and col in cmp_r.columns:
             assert cmp_r[col].to_numpy() == approx(cmp_py[col].to_numpy(), rel = 1e-5)
+
