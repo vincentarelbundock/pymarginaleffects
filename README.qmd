@@ -84,6 +84,7 @@ comparisons(fit, vcov = "HC3", comparison = "differenceavg")
 comparisons(fit)
 comparisons(fit, variables = "Pop1831")
 comparisons(fit, variables = ["Pop1831", "Desertion"])
+comparisons(fit, variables = {"Char": "sequential"})
 comparisons(fit, variables = {"Pop1831": 1000, "Desertion": 2})
 comparisons(fit, variables = {"Pop1831": [100, 2000]})
 ```

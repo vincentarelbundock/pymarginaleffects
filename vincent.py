@@ -18,11 +18,10 @@ df = df.with_columns(pl.Series(np.random.choice(["a", "b", "c"], df.shape[0])).a
 # fit
 mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", df)
 fit = mod.fit()
+comparisons(fit, vcov = False, comparison = "differenceavg")
 
-hyp = hypotheses(fit, hypothesis = np.array([1, -1, 0, 0, 0, 0, 0, 0]))
-print(hyp)
-
-# comparisons(fit)
+# hyp = hypotheses(fit, hypothesis = np.array([1, -1, 0, 0, 0, 0, 0, 0]))
+# print(hyp)
 
 # comparisons(fit, variables = {"Pop1831": 100, "Desertion": [0, 3]})
 

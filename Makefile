@@ -1,4 +1,4 @@
-.PHONY: readme test help install
+.PHONY: readme test help install docs
 
 help:  ## Display this help screen
 	@echo -e "\033[1mAvailable commands:\033[0m\n"
@@ -15,3 +15,6 @@ readme: ## render Quarto readme
 
 install: ## install in poetry venv
 	poetry install
+
+docs: ## build docs
+	poetry run mkdocs build

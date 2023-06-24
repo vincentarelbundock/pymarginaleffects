@@ -30,7 +30,10 @@ def get_one_variable_hi_lo(variable, value, newdata):
     vartype = get_one_variable_type(variable, newdata)
 
     if value is None:
-        value = 1
+        if vartype == "character":
+            value = "reference"
+        else:
+            value = 1
 
     if vartype == "boolean":
         out = HiLo(variable=variable, hi=pl.Series([True]), lo=pl.Series([False]), lab="True - False", pad = None)
@@ -50,21 +53,16 @@ def get_one_variable_hi_lo(variable, value, newdata):
                 pad = None)
             return [out]
 
-        elif value == 1:  # default
-            uniqs = newdata[variable].unique()
-            out = []
-            for u in uniqs:
-                if u != uniqs[0]:
-                    hl = HiLo(
-                        variable=variable,
-                        hi=pl.Series([u]),
-                        lo=pl.Series([uniqs[0]]),
-                        lab=f"{u} - {uniqs[0]}",
-                        pad = uniqs)
-                    out.append(hl)
+        elif isinstance(value, str):
+            out = get_categorical_combinations(variable, newdata[variable].unique().sort(), value)
             return out
 
-    if isinstance(value, str):
+        else:
+            raise ValueError(msg)
+
+
+
+    if vartype == "numeric" and isinstance(value, str):
         if value == "sd":
             value = np.std(newdata[variable])
             lab = "sd"
@@ -154,3 +152,76 @@ def sanitize_variables(variables, fit, newdata):
         
 
 
+def get_categorical_combinations(variable, uniqs, combo="reference"):
+
+    if not isinstance(combo, str):
+        raise ValueError("The 'variables' value must be a string.")
+
+    if len(uniqs) > 25:
+        raise ValueError("There are too many unique categories to compute comparisons.")
+
+    out = []
+
+    if combo == "reference":
+        for u in uniqs:
+            if u != uniqs[0]:
+                hl = HiLo(
+                    variable=variable,
+                    hi=pl.Series([u]),
+                    lo=pl.Series([uniqs[0]]),
+                    lab=f"{u} - {uniqs[0]}",
+                    pad=uniqs)
+                out.append(hl)
+    elif combo == "revreference":
+        last_element = uniqs[-1]
+        for u in uniqs:
+            if u != last_element:
+                hl = HiLo(
+                    variable=variable,
+                    hi=pl.Series([u]),
+                    lo=pl.Series([last_element]),
+                    lab=f"{u} - {last_element}",
+                    pad=uniqs)
+                out.append(hl)
+    elif combo == "sequential":
+        for i in range(len(uniqs) - 1):
+            hl = HiLo(
+                variable=variable,
+                hi=pl.Series([uniqs[i + 1]]),
+                lo=pl.Series([uniqs[i]]),
+                lab=f"{uniqs[i + 1]} - {uniqs[i]}",
+                pad=uniqs)
+            out.append(hl)
+    elif combo == "revsequential":
+        for i in range(len(uniqs) - 1, 0, -1):
+            hl = HiLo(
+                variable=variable,
+                hi=pl.Series([uniqs[i - 1]]),
+                lo=pl.Series([uniqs[i]]),
+                lab=f"{uniqs[i - 1]} - {uniqs[i]}",
+                pad=uniqs)
+            out.append(hl)
+    elif combo == "pairwise":
+        for i in range(len(uniqs)):
+            for j in range(i + 1, len(uniqs)):
+                hl = HiLo(
+                    variable=variable,
+                    hi=pl.Series([uniqs[j]]),
+                    lo=pl.Series([uniqs[i]]),
+                    lab=f"{uniqs[j]} - {uniqs[i]}",
+                    pad=uniqs)
+                out.append(hl)
+    elif combo == "revpairwise":
+        for i in range(len(uniqs)):
+            for j in range(i + 1, len(uniqs)):
+                hl = HiLo(
+                    variable=variable,
+                    hi=pl.Series([uniqs[i]]),
+                    lo=pl.Series([uniqs[j]]),
+                    lab=f"{uniqs[i]} - {uniqs[j]}",
+                    pad=uniqs)
+                out.append(hl)
+    else:
+        raise ValueError(f"The supported comparisons are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', and 'revpairwise'.")
+
+    return out
