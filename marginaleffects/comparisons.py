@@ -55,11 +55,21 @@ estimands = {
 }
 
 
-def get_comparison_exog_numeric(fit, variable, value, data):
-    lo = data.clone().with_columns((value["lo"]).alias(variable))
-    hi = data.clone().with_columns((value["hi"]).alias(variable))
+def get_exog(fit, variable, newdata):
+    lo = newdata.clone().with_columns(variable.lo.alias(variable.variable))
+    hi = newdata.clone().with_columns(variable.hi.alias(variable.variable))
+    # pad for character predictors
+    if variable.pad is not None:
+        pad = pl.concat([newdata.slice(0, 1)] * variable.pad.len())
+        pad = pad.with_columns(variable.pad.alias(variable.variable))
+        lo = pl.concat([lo, pad])
+        hi = pl.concat([hi, pad])
     y, lo = patsy.dmatrices(fit.model.formula, lo)
     y, hi = patsy.dmatrices(fit.model.formula, hi)
+    # unpad
+    if variable.pad is not None:
+        lo = lo[pad.shape[0]:]
+        hi = hi[pad.shape[0]:]
     return hi, lo
 
 
@@ -83,7 +93,7 @@ def get_comparison(
         hypothesis = None):
 
     # predictors
-    hi, lo = get_comparison_exog_numeric(fit, variable=variable, value=value, data=newdata)
+    hi, lo = get_exog(fit, variable=variable, newdata=newdata)
 
     # estimands
     def fun(x):
@@ -101,8 +111,8 @@ def get_comparison(
         out = out.with_columns(pl.Series(se).alias("std_error"))
 
     # output
-    out = out.with_columns(pl.Series([variable]).alias("term"))
-    out = out.with_columns(pl.Series([value["lab"]]).alias("contrast"))
+    out = out.with_columns(pl.Series([variable.variable]).alias("term"))
+    out = out.with_columns(pl.Series([variable.lab]).alias("contrast"))
     return out
 
 
@@ -135,7 +145,6 @@ def comparisons(
         tmp = get_comparison(
             fit,
             variable=v,
-            value=variables.get(v),
             newdata=newdata,
             comparison=comparison,
             vcov=vcov,
