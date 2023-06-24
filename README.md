@@ -39,6 +39,10 @@ comparisons(fit, variables = "Pop1831", comparison = "ratio").head()
 # `by`
 comparisons(fit, variables = "Pop1831", comparison = "difference", by = "Region")
 
+# `vcov`
+comparisons(fit, vcov = False, comparison = "differenceavg")
+comparisons(fit, vcov = "HC3", comparison = "differenceavg")
+
 # `variables` argument
 comparisons(fit)
 comparisons(fit, variables = "Pop1831")
