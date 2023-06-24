@@ -1,6 +1,7 @@
 # TODO: Sanitize data: pandas, polars, or numpy array
 
 from .uncertainty import *
+from .sanity import *
 from .by import *
 from .utils import *
 from .hypothesis import *
@@ -24,13 +25,13 @@ def predictions(fit, conf_int = 0.95, vcov = True, by = None, newdata = None, hy
     assert isinstance(vcov, bool), "`vcov` must be a boolean"
 
     # predictors
-    if newdata is None:
-        newdata = pl.from_pandas(fit.model.data.frame)
+    newdata = sanitize_newdata(fit, newdata)
+
     exog = get_exog(fit, newdata = newdata)
     # estimands
     def fun(x):
         out = fit.model.predict(x, exog)
-        out = get_by(fit, out, df=newdata, by=by)
+        out = get_by(fit, out, newdata=newdata, by=by)
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
     out = fun(np.array(fit.params))

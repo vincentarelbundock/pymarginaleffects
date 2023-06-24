@@ -11,7 +11,7 @@ def get_one_variable_type(variable, newdata):
     if newdata[variable].dtype == pl.Utf8:
         return "character"
     elif newdata[variable].dtype == pl.Boolean:
-        return "binary"
+        return "boolean"
     elif newdata[variable].dtype in inttypes and newdata[variable].is_in([0, 1]).all():
         return "binary"
     elif newdata[variable].dtype in numtypes:
@@ -25,6 +25,9 @@ def get_one_variable_hi_lo(variable, value, newdata):
     vartype = get_one_variable_type(variable, newdata)
     if value is None:
         value = 1
+    if vartype == "boolean":
+        out = dict(hi = pl.Series([True]), lo = pl.Series([False]), lab = "True - False")
+        return out
     if vartype == "binary":
         out = dict(hi = pl.Series([1]), lo = pl.Series([0]), lab = "1 - 0")
         return out

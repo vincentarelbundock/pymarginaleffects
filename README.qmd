@@ -14,7 +14,9 @@ import statsmodels.formula.api as smf
 from marginaleffects import comparisons, predictions
 
 df = sm.datasets.get_rdataset("Guerry", "HistData").data
-mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
+df = pl.from_pandas(df)
+df = df.with_columns((pl.col("Area") > pl.col("Area").median()).alias("Area_Bin"))
+mod = smf.ols("Literacy ~ Pop1831 * Desertion + Area_Bin", df)
 fit = mod.fit()
 ```
 
@@ -22,6 +24,7 @@ fit = mod.fit()
 
 ```{python}
 # `comparison`
+comparisons(fit)
 comparisons(fit, variables = "Pop1831", comparison = "differenceavg")
 comparisons(fit, variables = "Pop1831", comparison = "difference").head()
 comparisons(fit, variables = "Pop1831", comparison = "ratio").head()

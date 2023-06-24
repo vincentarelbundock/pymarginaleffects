@@ -2,6 +2,7 @@
 from .by import *
 from warnings import warn
 from .utils import *
+from .sanity import *
 from .hypothesis import *
 from .uncertainty import *
 from .sanitize_variables import *
@@ -87,7 +88,7 @@ def get_comparison(
     # estimands
     def fun(x):
         out = get_estimand(fit, x, hi, lo, comparison=comparison)
-        out = get_by(fit, out, df=newdata, by=by)
+        out = get_by(fit, out, newdata=newdata, by=by)
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
     out = fun(np.array(fit.params))
@@ -123,8 +124,7 @@ def comparisons(
         vcov = False
         warn("vcov is set to False because `by` or `hypothesis` is not None")
 
-    if newdata is None:
-        newdata = pl.from_pandas(fit.model.data.frame)
+    newdata = sanitize_newdata(fit, newdata)
 
     # after newdata sanitation
     variables = sanitize_variables(variables=variables, fit=fit, newdata=newdata)
