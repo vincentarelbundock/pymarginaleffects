@@ -15,16 +15,16 @@ import statsmodels.api as sm
 
 
 estimands = {
-    "difference": lambda hi, lo: hi - lo,
-    "differenceavg": lambda hi, lo: np.array([np.mean(hi - lo)]),
+    "difference": lambda hi, lo, eps, x, y: hi - lo,
+    "differenceavg": lambda hi, lo, eps, x, y: np.array([np.mean(hi - lo)]),
     # "differenceavgwts": lambda hi, lo, w: (hi * w).sum() / w.sum() - (lo * w).sum() / w.sum(),
 
-    # "dydx": lambda hi, lo, eps: (hi - lo) / eps,
+    "dydx": lambda hi, lo, eps, x, y: (hi - lo) / eps,
     # "eyex": lambda hi, lo, eps, y, x: (hi - lo) / eps * (x / y),
     # "eydx": lambda hi, lo, eps, y, x: ((hi - lo) / eps) / y,
     # "dyex": lambda hi, lo, eps, x: ((hi - lo) / eps) * x,
 
-    # "dydxavg": lambda hi, lo, eps: ((hi - lo) / eps).mean(),
+    "dydxavg": lambda hi, lo, eps, x, y: ((hi - lo) / eps).mean(),
     # "eyexavg": lambda hi, lo, eps, y, x: ((hi - lo) / eps * (x / y)).mean(),
     # "eydxavg": lambda hi, lo, eps, y, x: (((hi - lo) / eps) / y).mean(),
     # "dyexavg": lambda hi, lo, eps, x: (((hi - lo) / eps) * x).mean(),
@@ -33,20 +33,20 @@ estimands = {
     # "eydxavgwts": lambda hi, lo, eps, y, x, w: ((((hi - lo) / eps) / y) * w).sum() / w.sum(),
     # "dyexavgwts": lambda hi, lo, eps, x, w: (((hi - lo) / eps) * x * w).sum() / w.sum(),
 
-    "ratio": lambda hi, lo: hi / lo,
-    "ratioavg": lambda hi, lo: np.array([np.mean(hi) / np.mean(lo)]),
+    "ratio": lambda hi, lo, eps, x, y: hi / lo,
+    "ratioavg": lambda hi, lo, eps, x, y: np.array([np.mean(hi) / np.mean(lo)]),
     # "ratioavgwts": lambda hi, lo, w: (hi * w).sum() / w.sum() / (lo * w).sum() / w.sum(),
 
-    "lnratio": lambda hi, lo: np.log(hi / lo),
-    "lnratioavg": lambda hi, lo: np.array([np.log(np.mean(hi) / np.mean(lo))]),
+    "lnratio": lambda hi, lo, eps, x, y: np.log(hi / lo),
+    "lnratioavg": lambda hi, lo, eps, x, y: np.array([np.log(np.mean(hi) / np.mean(lo))]),
     # "lnratioavgwts": lambda hi, lo, w: np.log((hi * w).sum() / w.sum() / (lo * w).sum() / w.sum()),
 
-    "lnor": lambda hi, lo: np.log((hi / (1 - hi)) / (lo / (1 - lo))),
-    "lnoravg": lambda hi, lo: np.log((np.mean(hi) / (1 - np.mean(hi))) / (np.mean(lo) / (1 - np.mean(lo)))),
+    "lnor": lambda hi, lo, eps, x, y: np.log((hi / (1 - hi)) / (lo / (1 - lo))),
+    "lnoravg": lambda hi, lo, eps, x, y: np.log((np.mean(hi) / (1 - np.mean(hi))) / (np.mean(lo) / (1 - np.mean(lo)))),
     # "lnoravgwts": lambda hi, lo, w: np.log(((hi * w).sum() / w.sum() / (1 - (hi * w).sum() / w.sum())) / ((lo * w).sum() / w.sum() / (1 - (lo * w).sum() / w.sum()))),
 
-    "lift": lambda hi, lo: (hi - lo) / lo,
-    "liftavg": lambda hi, lo: np.array([(np.mean(hi) - np.mean(lo)) / np.mean(lo)]),
+    "lift": lambda hi, lo, eps, x, y: (hi - lo) / lo,
+    "liftavg": lambda hi, lo, eps, x, y: np.array([(np.mean(hi) - np.mean(lo)) / np.mean(lo)]),
 
     # "expdydx": lambda hi, lo, eps: ((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps,
     # "expdydxavg": lambda hi, lo, eps: (((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps).mean(),
@@ -72,11 +72,14 @@ def get_exog(fit, variable, newdata):
     return hi, lo
 
 
-def get_estimand(fit, params, hi, lo, comparison, df = None, by = None):
+def get_estimand(fit, params, hi, lo, comparison, variabletype = "numeric", eps = None, df = None, by = None, x = None, y = None):
     p_hi = fit.model.predict(params, hi)
     p_lo = fit.model.predict(params, lo)
-    fun = estimands[comparison]
-    out = fun(p_hi, p_lo)
+    if variabletype != "numeric" and comparison in ["dydx", "eyex", "eydx", "dyex", "dydxavg", "eyexavg", "eydxavg", "dyexavg"]:
+        fun = estimands["difference"]
+    else:
+        fun = estimands[comparison]
+    out = fun(hi = p_hi, lo = p_lo, eps = eps, x = None, y = None)
     return out
 
 
@@ -88,14 +91,17 @@ def get_comparison(
         vcov,
         conf_int,
         by,
-        hypothesis):
+        hypothesis,
+        eps):
 
     # predictors
     hi, lo = get_exog(fit, variable=variable, newdata=newdata)
 
+    variabletype = get_one_variable_type(variable = variable.variable, newdata = newdata)
+
     # estimands
     def fun(x):
-        out = get_estimand(fit, x, hi, lo, comparison=comparison)
+        out = get_estimand(fit, x, hi, lo, comparison=comparison, variabletype = variabletype, eps = eps, x = None, y = None)
         out = get_by(fit, out, newdata=newdata, by=by)
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
@@ -121,7 +127,8 @@ def comparisons(
         vcov = True,
         conf_int = 0.95,
         by = None,
-        hypothesis = None):
+        hypothesis = None,
+        eps = 1e-4):
     """
     Comparisons Between Predictions Made With Different Regressor Values
 
@@ -157,7 +164,8 @@ def comparisons(
             vcov=V,
             conf_int=conf_int,
             by=by,
-            hypothesis=hypothesis)
+            hypothesis=hypothesis,
+            eps=eps)
         out.append(tmp)
     out = pl.concat(out)
 

@@ -20,6 +20,8 @@ mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", df)
 fit = mod.fit()
 comparisons(fit, vcov = False, comparison = "differenceavg")
 
+comparisons(fit, comparison = "dydx", eps = 1e-4)
+
 # hyp = hypotheses(fit, hypothesis = np.array([1, -1, 0, 0, 0, 0, 0, 0]))
 # print(hyp)
 
