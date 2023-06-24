@@ -24,11 +24,11 @@ def predictions(fit, conf_int = 0.95, vcov = True, by = None, newdata = None, hy
 
     Parameters
     ----------
-    model : `statsmodels.formula.api` fitted model
-    conf_int : float
-    vcov : bool or string which corresponds to one of the attributes in `fit`. "HC3" looks for an attributed named `cov_HC3`.
-    newdata : None, DataFrame or `datagrid()` call.
-    hypothesis : Numpy array for linear combinations. 
+    - model : `statsmodels.formula.api` fitted model
+    - conf_int : float
+    - vcov : bool or string which corresponds to one of the attributes in `fit`. "HC3" looks for an attributed named `cov_HC3`.
+    - newdata : None, DataFrame or `datagrid()` call.
+    - hypothesis : Numpy array for linear combinations. 
     """
 
     # sanity checks

@@ -1,0 +1,4 @@
+# `predictions`
+
+::: marginaleffects.predictions
+    :docstring:

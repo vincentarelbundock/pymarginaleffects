@@ -1,0 +1,4 @@
+# `comparisons`
+
+::: marginaleffects.comparisons
+    :docstring:

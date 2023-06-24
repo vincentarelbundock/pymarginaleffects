@@ -1,9 +1,11 @@
 site_name: marginaleffects for Python
 nav:
   - Home: index.md
-  - Documentation:
-    - Getting Started: getting_started/index.html
-    - Reference (API): reference/index.html
+  - Getting Started: getting_started.md
+  - Functions API:
+    - predictions: api/predictions.md
+    - comparisons: api/comparisons.md
+    - hypotheses: api/hypotheses.md
 
 theme:
   name: "material"

@@ -1,0 +1,4 @@
+# `hypotheses`
+
+::: marginaleffects.hypotheses
+    :docstring:
