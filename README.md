@@ -1,3 +1,33 @@
+# Install
+
+``` sh
+git clone https://github.com/vincentarelbundock/pymarginaleffects
+cd pymarginaleffects
+pip install .
+```
+
+# Dev environment + Test suite
+
+Install poetry and dependencies:
+
+``` sh
+pip install poetry
+cd pymarginaleffects
+poetry install
+```
+
+Make file help:
+
+``` sh
+make help
+```
+
+Run test suite:
+
+``` sh
+make test
+```
+
 # Linear model
 
 ``` python
