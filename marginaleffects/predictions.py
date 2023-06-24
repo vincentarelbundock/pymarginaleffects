@@ -36,7 +36,7 @@ def predictions(fit, conf_int = 0.95, vcov = True, by = None, newdata = None, hy
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
     out = fun(np.array(fit.params))
-    if vcov is True:
+    if vcov is not None:
         J = get_jacobian(fun, fit.params.to_numpy())
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))

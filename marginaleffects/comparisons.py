@@ -1,6 +1,5 @@
 # TODO: Sanitize data: pandas, polars, or numpy array
 from .by import *
-from warnings import warn
 from .utils import *
 from .sanity import *
 from .hypothesis import *
