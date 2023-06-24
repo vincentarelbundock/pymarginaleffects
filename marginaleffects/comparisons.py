@@ -63,8 +63,8 @@ def get_exog(fit, variable, newdata):
         pad = pad.with_columns(variable.pad.alias(variable.variable))
         lo = pl.concat([lo, pad])
         hi = pl.concat([hi, pad])
-    y, lo = patsy.dmatrices(fit.model.formula, lo)
-    y, hi = patsy.dmatrices(fit.model.formula, hi)
+    y, lo = patsy.dmatrices(fit.model.formula, lo.to_pandas())
+    y, hi = patsy.dmatrices(fit.model.formula, hi.to_pandas())
     # unpad
     if variable.pad is not None:
         lo = lo[pad.shape[0]:]
