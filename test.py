@@ -16,6 +16,7 @@ comparisons(fit, variables = {"Desertion": 100})
 
 p = predictions(fit, by = "Region")
 p = predictions(fit, by = "Region", hypothesis = "reference", vcov = False)
+p = predictions(fit, by = "Region", hypothesis = "pairwise", vcov = False)
 
 
 

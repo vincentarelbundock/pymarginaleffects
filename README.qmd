@@ -1,5 +1,7 @@
 ---
 format: gfm
+execute:
+    eval: false
 ---
 
 # Linear model
@@ -16,49 +18,30 @@ mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
 fit = mod.fit()
 ```
 
-# `comparisons()`
-
-## Difference
+# Comparisons
 
 ```{python}
-comparisons(fit, variables = "Pop1831", value = 1, comparison = "differenceavg")
-```
-```{python}
-comparisons(fit, variables = "Pop1831", value = 1, comparison = "difference").head()
-```
+# `comparison`
+comparisons(fit, variables = "Pop1831", comparison = "differenceavg")
+comparisons(fit, variables = "Pop1831", comparison = "difference").head()
+comparisons(fit, variables = "Pop1831", comparison = "ratio").head()
 
-## Ratio
+# `by`
+comparisons(fit, variables = "Pop1831", comparison = "difference", by = "Region")
 
-```{python}
-comparisons(fit, variables = "Pop1831", value = 1, comparison = "ratioavg")
-```
-
-```{python}
-comparisons(fit, variables = "Pop1831", value = 1, comparison = "ratio").head()
-```
-
-## Group averages (SEs are broken)
-
-```{python}
-comparisons(fit, variables = "Pop1831", value = 1, comparison = "difference", by = "Region")
+# `variables` argument
+comparisons(fit, variables = "Pop1831", comparison = "differenceavg")
+comparisons(fit, variables = ["Pop1831", "Desertion"], comparison = "differenceavg")
+comparisons(fit, variables = {"Pop1831": 1, "Desertion": 100}, comparison = "differenceavg")
 ```
 
 # `predictions()` 
 
 ```{python}
 predictions(fit).head()
-```
-
-## Group averages (SEs are broken)
-
-```{python}
 predictions(fit, by = "Region")
-```
 
-# `hypothesis` argument
-
-
-```{python}
+# `hypothesis` lincome matrices
 hyp = np.array([1, 0, -1, 0, 0, 0])
 predictions(fit, by = "Region", hypothesis = hyp)
 
@@ -67,31 +50,10 @@ hyp = np.vstack([
     [1, 0, 0, -1, 0, 0]
 ]).T
 predictions(fit, by = "Region", hypothesis = hyp)
-```
-
-Which corresponds to:
-
-```{python}
 p = predictions(fit, by = "Region")
 print(p["estimate"][0] - p["estimate"][2])
 print(p["estimate"][0] - p["estimate"][3])
-```
 
-
-```{python}
-predictions(fit, by = "Region", hypothesis = "reference")
-```
-
-## `variables` argument
-
-```{python}
-comparisons(fit, variables = "Pop1831", comparison = "differenceavg")
-```
-```{python}
-comparisons(fit, variables = ["Pop1831", "Desertion"], comparison = "differenceavg")
-```
-```{python}
-comparisons(fit, variables = {"Pop1831": 1, "Desertion": 100}, comparison = "differenceavg")
 ```
 
 # GLM

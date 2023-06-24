@@ -14,12 +14,44 @@ import statsmodels.formula.api as smf
 import statsmodels.api as sm
 
 
-estimands = dict(
-    difference=lambda hi, lo: hi - lo,
-    differenceavg=lambda hi, lo: np.array([np.mean(hi - lo)]),
-    ratio=lambda hi, lo: hi / lo,
-    ratioavg=lambda hi, lo: np.array([np.mean(hi / lo)])
-)
+estimands = {
+    "difference": lambda hi, lo: hi - lo,
+    "differenceavg": lambda hi, lo: np.array([np.mean(hi - lo)]),
+    # "differenceavgwts": lambda hi, lo, w: (hi * w).sum() / w.sum() - (lo * w).sum() / w.sum(),
+
+    # "dydx": lambda hi, lo, eps: (hi - lo) / eps,
+    # "eyex": lambda hi, lo, eps, y, x: (hi - lo) / eps * (x / y),
+    # "eydx": lambda hi, lo, eps, y, x: ((hi - lo) / eps) / y,
+    # "dyex": lambda hi, lo, eps, x: ((hi - lo) / eps) * x,
+
+    # "dydxavg": lambda hi, lo, eps: ((hi - lo) / eps).mean(),
+    # "eyexavg": lambda hi, lo, eps, y, x: ((hi - lo) / eps * (x / y)).mean(),
+    # "eydxavg": lambda hi, lo, eps, y, x: (((hi - lo) / eps) / y).mean(),
+    # "dyexavg": lambda hi, lo, eps, x: (((hi - lo) / eps) * x).mean(),
+    # "dydxavgwts": lambda hi, lo, eps, w: (((hi - lo) / eps) * w).sum() / w.sum(),
+    # "eyexavgwts": lambda hi, lo, eps, y, x, w: (((hi - lo) / eps) * (x / y) * w).sum() / w.sum(),
+    # "eydxavgwts": lambda hi, lo, eps, y, x, w: ((((hi - lo) / eps) / y) * w).sum() / w.sum(),
+    # "dyexavgwts": lambda hi, lo, eps, x, w: (((hi - lo) / eps) * x * w).sum() / w.sum(),
+
+    "ratio": lambda hi, lo: hi / lo,
+    "ratioavg": lambda hi, lo: np.array([np.mean(hi) / np.mean(lo)]),
+    # "ratioavgwts": lambda hi, lo, w: (hi * w).sum() / w.sum() / (lo * w).sum() / w.sum(),
+
+    "lnratio": lambda hi, lo: np.log(hi / lo),
+    "lnratioavg": lambda hi, lo: np.array([np.log(np.mean(hi) / np.mean(lo))]),
+    # "lnratioavgwts": lambda hi, lo, w: np.log((hi * w).sum() / w.sum() / (lo * w).sum() / w.sum()),
+
+    "lnor": lambda hi, lo: np.log((hi / (1 - hi)) / (lo / (1 - lo))),
+    "lnoravg": lambda hi, lo: np.log((np.mean(hi) / (1 - np.mean(hi))) / (np.mean(lo) / (1 - np.mean(lo)))),
+    # "lnoravgwts": lambda hi, lo, w: np.log(((hi * w).sum() / w.sum() / (1 - (hi * w).sum() / w.sum())) / ((lo * w).sum() / w.sum() / (1 - (lo * w).sum() / w.sum()))),
+
+    "lift": lambda hi, lo: (hi - lo) / lo,
+    "liftavg": lambda hi, lo: np.array([(np.mean(hi) - np.mean(lo)) / np.mean(lo)]),
+
+    # "expdydx": lambda hi, lo, eps: ((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps,
+    # "expdydxavg": lambda hi, lo, eps: (((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps).mean(),
+    # "expdydxavgwts": lambda hi, lo, eps, w: ((((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps) * w).sum() / w.sum(),
+}
 
 
 def get_comparison_exog_numeric(fit, variable, value, data):
