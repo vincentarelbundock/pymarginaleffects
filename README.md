@@ -1,7 +1,5 @@
 # Linear model
 
-### `Python`
-
 ``` python
 import numpy as np
 import polars as pl
