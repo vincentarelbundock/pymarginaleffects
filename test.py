@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import polars as pl # I know these transformations are costly, but I hate pandas and am trying to learn polars
+import polars as pl
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
 from marginaleffects import *
@@ -8,27 +8,23 @@ df = sm.datasets.get_rdataset("Guerry", "HistData").data
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
 fit = mod.fit()
 
-comparisons(fit, variables = {"Pop1831": 1, "Desertion": 100})
+comparisons(fit, variables = {"Pop1831": 100, "Desertion": [0, 3]})
+
 
 comparisons(fit, variables = ["Pop1831", "Desertion"])
-df["bin"] = df["Literacy"] > df["Literacy"].median()
-df["bin"] = df["bin"].replace({True: 1, False: 0})
-
-
-
-p = predictions(fit, by = "Region", hypothesis = "reference", vcov = False)
+comparisons(fit, variables = {"Desertion": 100})
 
 p = predictions(fit, by = "Region")
+p = predictions(fit, by = "Region", hypothesis = "reference", vcov = False)
 
 
-# hyp = np.vstack([
-#     [1, 0, -1, 0, 0, 0],
-#     [1, 0, 0, -1, 0, 0]
-# ]).T
-# predictions(fit, by = "Region", hypothesis = hyp)
 
+hyp = np.vstack([
+    [1, 0, -1, 0, 0, 0],
+    [1, 0, 0, -1, 0, 0]
+]).T
+predictions(fit, by = "Region", hypothesis = hyp)
 
-predictions(fit, by = "Region")
 
 # predictions(fit, newdata = pl.from_pandas(df).head(), hypothesis = np.array(range(5)))
 

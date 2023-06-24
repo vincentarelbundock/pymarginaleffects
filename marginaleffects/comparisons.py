@@ -4,6 +4,7 @@ from warnings import warn
 from .utils import *
 from .hypothesis import *
 from .uncertainty import *
+from .sanitize_variables import *
 import polars as pl
 import pandas as pd
 import numpy as np
@@ -22,8 +23,8 @@ estimands = dict(
 
 
 def get_comparison_exog_numeric(fit, variable, value, data):
-    lo = data.clone().with_columns(pl.col(variable) - value/2)
-    hi = data.clone().with_columns(pl.col(variable) + value/2)
+    lo = data.clone().with_columns((value["lo"]).alias(variable))
+    hi = data.clone().with_columns((value["hi"]).alias(variable))
     y, lo = patsy.dmatrices(fit.model.formula, lo)
     y, hi = patsy.dmatrices(fit.model.formula, hi)
     return hi, lo
@@ -35,28 +36,6 @@ def get_estimand(fit, params, hi, lo, comparison, df = None, by = None):
     fun = estimands[comparison]
     out = fun(p_hi, p_lo)
     return out
-
-
-def get_variables(variables, fit, newdata):
-    if variables is None:
-        variables = fit.model.exog_names
-        variables = [x for x in variables if x in newdata.columns]
-        variables = dict(zip(variables, [1] * len(variables)))
-    elif isinstance(variables, str):
-        variables = {variables: 1}
-    elif isinstance(variables, list):
-        variables = dict(zip(variables, [1] * len(variables)))
-    else:
-        assert isinstance(variables, dict), "`variables` must be None, a dict, string, or list of strings"
-
-    for key in variables.keys():
-        if key not in newdata.columns:
-            del variables[key]
-            warn(f"Variable `{key}` not in newdata")
-
-    if not variables:
-        raise ValueError("There is no valid column name in `variables`.")
-    return variables
 
 
 def get_comparison(
@@ -90,6 +69,7 @@ def get_comparison(
 
     # output
     out = out.with_columns(pl.Series([variable]).alias("term"))
+    out = out.with_columns(pl.Series([value["lab"]]).alias("contrast"))
     return out
 
 
@@ -115,7 +95,7 @@ def comparisons(
         newdata = pl.from_pandas(fit.model.data.frame)
 
     # after newdata sanitation
-    variables = get_variables(variables=variables, fit=fit, newdata=newdata)
+    variables = sanitize_variables(variables=variables, fit=fit, newdata=newdata)
 
     # computation
     out = []
