@@ -15,7 +15,7 @@ def hypotheses(fit, conf_int = 0.95, vcov = True, hypothesis = None):
     V = sanitize_vcov(vcov, fit)
     # estimands
     def fun(x):
-        out = pl.DataFrame({"estimate": fit.params})
+        out = pl.DataFrame({"estimate": x})
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
     out = fun(np.array(fit.params))
