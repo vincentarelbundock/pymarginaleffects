@@ -1,5 +1,3 @@
-# TODO: Sanitize data: pandas, polars, or numpy array
-
 from .uncertainty import *
 from .sanity import *
 from .by import *
@@ -14,21 +12,18 @@ import statsmodels.formula.api as smf
 import statsmodels.api as sm
 
 def get_exog(fit, newdata = None):
-    if newdata is None:
-        newdata = fit.model.data.frame
     y, out = patsy.dmatrices(fit.model.formula, newdata)
     return out
 
 def predictions(fit, conf_int = 0.95, vcov = True, by = None, newdata = None, hypothesis = None):
 
     # sanity checks
-    assert isinstance(vcov, bool), "`vcov` must be a boolean"
     V = sanitize_vcov(vcov, fit)
-
-    # predictors
     newdata = sanitize_newdata(fit, newdata)
 
+    # predictors
     exog = get_exog(fit, newdata = newdata)
+
     # estimands
     def fun(x):
         out = fit.model.predict(x, exog)

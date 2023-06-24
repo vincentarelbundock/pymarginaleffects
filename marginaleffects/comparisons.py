@@ -127,7 +127,7 @@ def comparisons(
     V = sanitize_vcov(vcov, fit)
     newdata = sanitize_newdata(fit, newdata)
 
-    # after newdata sanitation
+    # after sanitize_newdata() 
     variables = sanitize_variables(variables=variables, fit=fit, newdata=newdata)
 
     # computation

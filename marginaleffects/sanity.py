@@ -1,5 +1,16 @@
 import polars as pl
 
+
+def sanitize_newdata(fit, newdata):
+    if newdata is None:
+        out = fit.model.data.frame
+    try:
+        out = pl.from_pandas(out)
+    except:
+        pass
+    return out
+
+
 def sanitize_vcov(vcov, fit):
     if isinstance(vcov, bool):
         if vcov is True:
