@@ -85,12 +85,11 @@ def get_comparison(
         fit,
         variable,
         newdata,
-        value = 1,
-        comparison = "difference",
-        vcov = True,
-        conf_int = 0.95,
-        by = None,
-        hypothesis = None):
+        comparison,
+        vcov,
+        conf_int,
+        by,
+        hypothesis):
 
     # predictors
     hi, lo = get_exog(fit, variable=variable, newdata=newdata)
@@ -104,10 +103,9 @@ def get_comparison(
     out = fun(np.array(fit.params))
 
     # uncetainty
-    if vcov:
+    if vcov is not None:
         J = get_jacobian(fun, fit.params.to_numpy())
-        V = fit.cov_params()
-        se = get_se(J, V)
+        se = get_se(J, vcov)
         out = out.with_columns(pl.Series(se).alias("std_error"))
 
     # output
@@ -120,7 +118,6 @@ def comparisons(
         fit,
         variables = None,
         newdata = None,
-        value = 1,
         comparison = "differenceavg",
         vcov = True,
         conf_int = 0.95,
@@ -128,12 +125,7 @@ def comparisons(
         hypothesis = None):
 
     # sanity
-    assert isinstance(vcov, bool), "`vcov` must be a boolean"
-
-    if vcov is True and (by is not None or hypothesis is not None):
-        vcov = False
-        warn("vcov is set to False because `by` or `hypothesis` is not None")
-
+    V = sanitize_vcov(vcov, fit)
     newdata = sanitize_newdata(fit, newdata)
 
     # after newdata sanitation
@@ -147,7 +139,7 @@ def comparisons(
             variable=v,
             newdata=newdata,
             comparison=comparison,
-            vcov=vcov,
+            vcov=V,
             conf_int=conf_int,
             by=by,
             hypothesis=hypothesis)

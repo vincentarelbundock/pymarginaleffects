@@ -2,7 +2,6 @@
 
 ``` python
 import numpy as np
-import pandas as pd
 import polars as pl
 import statsmodels.formula.api as smf
 import statsmodels.api as sm

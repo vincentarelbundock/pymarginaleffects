@@ -23,6 +23,7 @@ def predictions(fit, conf_int = 0.95, vcov = True, by = None, newdata = None, hy
 
     # sanity checks
     assert isinstance(vcov, bool), "`vcov` must be a boolean"
+    V = sanitize_vcov(vcov, fit)
 
     # predictors
     newdata = sanitize_newdata(fit, newdata)
@@ -37,7 +38,6 @@ def predictions(fit, conf_int = 0.95, vcov = True, by = None, newdata = None, hy
     out = fun(np.array(fit.params))
     if vcov is True:
         J = get_jacobian(fun, fit.params.to_numpy())
-        V = fit.cov_params()
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, fit, conf_int=conf_int)
