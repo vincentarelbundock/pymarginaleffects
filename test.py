@@ -6,13 +6,13 @@ import statsmodels.api as sm
 from marginaleffects import *
 df = sm.datasets.get_rdataset("Guerry", "HistData").data
 df = pl.from_pandas(df)
-df = df.with_columns((pl.col("Area") > pl.col("Area").median()).alias("Area_Bin"))
-mod = smf.ols("Literacy ~ Pop1831 * Desertion + Area_Bin", df)
-fit = mod.fit()
-mod = smf.ols("Literacy ~ Pop1831 * Desertion", df)
+df = df.with_columns((pl.col("Area") > pl.col("Area").median()).alias("Bool"))
+df = df.with_columns((pl.col("Distance") > pl.col("Distance").median()).alias("Bin"))
+df = df.with_columns(df['Bin'].apply(lambda x: int(x), return_dtype=pl.Int32).alias('Bin'))
+mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Region", df)
 fit = mod.fit()
 
-comparisons(fit, variables = "Area_Bin")
+comparisons(fit)
 
 comparisons(fit, variables = {"Pop1831": 100, "Desertion": [0, 3]})
 
