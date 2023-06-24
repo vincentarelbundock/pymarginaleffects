@@ -1,5 +1,7 @@
 # Linear model
 
+### `Python`
+
 ``` python
 import numpy as np
 import polars as pl
@@ -71,6 +73,13 @@ predictions(fit, by = "Region", hypothesis = hyp)
 p = predictions(fit, by = "Region")
 print(p["estimate"][0] - p["estimate"][2])
 print(p["estimate"][0] - p["estimate"][3])
+```
+
+# `hypotheses()`
+
+``` python
+hyp = np.array([0, 0, 1, -1, 0, 0, 0, 0])
+hypotheses(fit, hypothesis = hyp)
 ```
 
 # GLM
