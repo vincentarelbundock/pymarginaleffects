@@ -24,9 +24,11 @@ comparisons(fit, variables = "Pop1831", comparison = "ratio").head()
 comparisons(fit, variables = "Pop1831", comparison = "difference", by = "Region")
 
 # `variables` argument
-comparisons(fit, variables = "Pop1831", comparison = "differenceavg")
-comparisons(fit, variables = ["Pop1831", "Desertion"], comparison = "differenceavg")
-comparisons(fit, variables = {"Pop1831": 1, "Desertion": 100}, comparison = "differenceavg")
+comparisons(fit)
+comparisons(fit, variables = "Pop1831")
+comparisons(fit, variables = ["Pop1831", "Desertion"])
+comparisons(fit, variables = {"Pop1831": 1000, "Desertion": 2})
+comparisons(fit, variables = {"Pop1831": [100, 2000]})
 ```
 
 # `predictions()`
@@ -44,6 +46,8 @@ hyp = np.vstack([
     [1, 0, 0, -1, 0, 0]
 ]).T
 predictions(fit, by = "Region", hypothesis = hyp)
+
+# equivalent to:
 p = predictions(fit, by = "Region")
 print(p["estimate"][0] - p["estimate"][2])
 print(p["estimate"][0] - p["estimate"][3])
