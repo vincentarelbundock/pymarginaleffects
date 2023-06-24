@@ -16,6 +16,20 @@ def get_exog(fit, newdata = None):
     return out
 
 def predictions(fit, conf_int = 0.95, vcov = True, by = None, newdata = None, hypothesis = None):
+    """
+    Predictions
+
+    Outcome predicted by a fitted model on a specified scale for a given combination of values of the predictor variables,
+    such as their observed values, their means, or factor levels (a.k.a. "reference grid").
+
+    Parameters
+    ----------
+    model : `statsmodels.formula.api` fitted model
+    conf_int : float
+    vcov : bool or string which corresponds to one of the attributes in `fit`. "HC3" looks for an attributed named `cov_HC3`.
+    newdata : None, DataFrame or `datagrid()` call.
+    hypothesis : Numpy array for linear combinations. 
+    """
 
     # sanity checks
     V = sanitize_vcov(vcov, fit)

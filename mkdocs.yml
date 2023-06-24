@@ -1,0 +1,14 @@
+site_name: marginaleffects for Python
+nav:
+  - Home: index.md
+  - Documentation:
+    - Getting Started: getting_started/index.html
+    - Reference (API): reference/index.html
+
+theme:
+  name: "material"
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - mkautodoc

@@ -122,6 +122,22 @@ def comparisons(
         conf_int = 0.95,
         by = None,
         hypothesis = None):
+    """
+    Comparisons Between Predictions Made With Different Regressor Values
+
+    Predict the outcome variable at different regressor values (e.g., college graduates vs. others), and compare those predictions by computing a difference, ratio, or some other function. `comparisons()` can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, 
+
+    Parameters
+    ----------
+    model : `statsmodels.formula.api` fitted model
+    conf_int : float
+    vcov : bool or string which corresponds to one of the attributes in `fit`. "HC3" looks for an attributed named `cov_HC3`.
+    newdata : None, DataFrame or `datagrid()` call.
+    hypothesis : Numpy array for linear combinations. 
+    comparison : "difference", "differenceavg", "ratio", "ratioavg", "lnratio", "lnratioavg", "lnor", "lnoravg", "lift", "liftavg", "expdydx", "expdydxavg", "expdydxavgwts"
+    by : None, string, or list of strings
+    """
+
 
     # sanity
     V = sanitize_vcov(vcov, fit)

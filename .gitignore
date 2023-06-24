@@ -4,6 +4,7 @@ __pycache__/
 *.pyd
 __pypackages__/
 *.ipynb
+site/
 
 # Poetry files
 /dist/
