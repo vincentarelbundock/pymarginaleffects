@@ -26,12 +26,12 @@ df = df.with_columns(pl.Series(np.random.choice(["a", "b", "c"], df.shape[0])).a
 def test_basic():
     mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
     mod_r = stats.lm("Literacy ~ Pop1831 * Desertion", data = df_r)
-    slo_py = comparisons(mod_py, comparison = "dydx")
+    cmp_py = comparisons(mod_py, comparison = "dydx")
     slo_r = marginaleffects.comparisons(mod_r, comparison = "dydx", eps = 1e-4)
     slo_r = r_to_polars(slo_r)
-    slo_py = slo_py.sort(["term", "contrast"])
+    cmp_py = cmp_py.sort(["term", "contrast"])
     slo_r = slo_r.sort(["term", "contrast"])
     for col_py in ["estimate"]:#, "std_error", "statistic", "conf_low", "conf_high"]:
         col_r = re.sub("_", ".", col_py) 
-        if col_py in slo_py.columns and col_r in slo_r.columns:
-            assert slo_r[col_r].to_numpy() == approx(slo_py[col_py].to_numpy(), rel = 1e-2)
+        if col_py in cmp_py.columns and col_r in slo_r.columns:
+            assert slo_r[col_r].to_numpy() == approx(cmp_py[col_py].to_numpy(), rel = 1e-2)
