@@ -34,4 +34,10 @@ def sanitize_newdata(model, newdata):
         out = pl.from_pandas(newdata)
     except:
         out = newdata
+    
+    if "rowid" in out.columns:
+        raise ValueError("The newdata has a column named 'rowid', which is not allowed.")
+    else:
+        out = out.with_columns(pl.Series(range(out.height)).alias("rowid"))
+
     return out

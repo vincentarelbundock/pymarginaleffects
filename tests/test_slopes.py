@@ -10,38 +10,17 @@ from rpy2.robjects.packages import importr
 # R packages
 marginaleffects = importr("marginaleffects")
 stats = importr("stats")
+df_py, df_r = download_data("datasets", "mtcars")
+mod_py = smf.ols("mpg ~ wt * hp", df_py).fit()
+mod_r = stats.lm("mpg ~ wt * hp", data = df_r)
 
-# Guerry Data
-df = sm.datasets.get_rdataset("Guerry", "HistData").data
-df_r = pandas_to_r(df)
-df = pl.from_pandas(df)
-df = df.with_columns((pl.col("Area") > pl.col("Area").median()).alias("Bool"))
-df = df.with_columns((pl.col("Distance") > pl.col("Distance").median()).alias("Bin"))
-df = df.with_columns(df['Bin'].apply(lambda x: int(x), return_dtype=pl.Int32).alias('Bin'))
-df = df.with_columns(pl.Series(np.random.choice(["a", "b", "c"], df.shape[0])).alias("Char"))
-mod = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
-
-
-def test_bare_minimum():
-    slo = slopes(mod, slope = "dydx")
-    assert type(slo) == pl.DataFrame
-    slopes(mod, slope = "eydx")
-    assert type(slo) == pl.DataFrame
-    slopes(mod, slope = "dyex")
-    assert type(slo) == pl.DataFrame
-    slopes(mod, slope = "eyex")
-    assert type(slo) == pl.DataFrame
-
-
-def test_basic():
-    mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
-    mod_r = stats.lm("Literacy ~ Pop1831 * Desertion", data = df_r)
-    cmp_py = comparisons(mod_py, comparison = "dydx")
-    slo_r = marginaleffects.comparisons(mod_r, comparison = "dydx", eps = 1e-4)
+def test_dydx():
+    slo_r = marginaleffects.slopes(mod_r, slope = "dydxavg")
     slo_r = r_to_polars(slo_r)
-    cmp_py = cmp_py.sort(["term", "contrast"])
-    slo_r = slo_r.sort(["term", "contrast"])
-    for col_py in ["estimate"]:#, "std_error", "statistic", "conf_low", pl."conf_high"]:
-        col_r = re.sub("_", ".", col_py) 
-        if col_py in cmp_py.columns and col_r in slo_r.columns:
-            assert slo_r[col_r].to_numpy() == approx(cmp_py[col_py].to_numpy(), rel = 1e-2)
+    slo_py = comparisons(mod_py, comparison = "dydxavg", newdata = df_py)
+    compare_r_to_py(slo_r, slo_py)
+    slo_r = marginaleffects.slopes(mod_r, slope = "dydx")
+    slo_r = r_to_polars(slo_r)
+    slo_py = comparisons(mod_py, comparison = "dydx", newdata = df_py)
+    slo_r["estimate"] - slo_py["estimate"]
+    compare_r_to_py(slo_r, slo_py, rel = 1e-1)

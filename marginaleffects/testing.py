@@ -1,3 +1,4 @@
+import re
 from marginaleffects import *
 import polars as pl
 from rpy2.robjects.packages import importr
@@ -10,20 +11,30 @@ def pandas_to_r(df):
         out = ro.conversion.get_conversion().py2rpy(df)
     return out
 
+def polars_to_r(df):
+    return pandas_to_r(df.to_pandas())
 
 def r_to_pandas(df):
     with (ro.default_converter + ro.pandas2ri.converter).context():
         out = ro.conversion.get_conversion().rpy2py(df)
     return out
 
-
 def r_to_polars(df):
     return pl.from_pandas(r_to_pandas(df))
 
+def download_data(package, dataset):
+    url = f"https://vincentarelbundock.github.io/Rdatasets/csv/{package}/{dataset}.csv"
+    dat_py = pl.read_csv(url)
+    dat_py = dat_py.rename({"": "rownames"})
+    dat_r = pandas_to_r(dat_py.to_pandas())
+    return dat_py, dat_r
 
-def compare_r_to_py(r_obj, py_obj):
-    r_df = rpy2_df_r_to_pandas(r_obj)
-    for i in range(len(r_df.columns)):
-        a = r_df[r_df.columns[i]].to_numpy()
-        b = py_obj[r_df.columns[i]].to_numpy()
-        assert a == approx(b)
+def compare_r_to_py(r_obj, py_obj, rel = 1e-2):
+    cols = ["rowid", "term", "contrast"]
+    r_obj = r_obj.sort([x for x in cols if x in r_obj.columns])
+    py_obj = py_obj.sort([x for x in cols if x in py_obj.columns])
+    # dont' compare other statistics because degrees of freedom don't match
+    for col_py in ["estimate", "std_error", "statistic"]:#, "conf_low", "conf_high"]:
+        col_r = re.sub("_", ".", col_py) 
+        if col_py in py_obj.columns and col_r in r_obj.columns:
+            assert r_obj[col_r].to_numpy() == approx(py_obj[col_py].to_numpy(), rel = rel)

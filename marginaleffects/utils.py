@@ -1,7 +1,7 @@
 import polars as pl
 
 def sort_columns(df, by = None):
-    cols = ["term", "contrast", "estimate", "std_error", "statistic", "p_value", "conf_low", "conf_high"] + df.columns
+    cols = ["rowid", "term", "contrast", "estimate", "std_error", "statistic", "p_value", "conf_low", "conf_high"] + df.columns
     if by is not None:
         if isinstance(by, list):
             cols = by + cols
