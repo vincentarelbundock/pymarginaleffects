@@ -119,12 +119,12 @@ def comparisons(
     res = []
     for v in variables:
         tmp = fun(model.params, v)
-        res.append(tmp)
         if vcov is not None and vcov is not False:
             g = lambda x: fun(x, v)
-            J = get_jacobian(g, model.params.to_numpy())
-            se = get_se(J, vcov)
-            out = out.with_columns(pl.Series(se).alias("std_error"))
+            J = get_jacobian(func = g, coefs = model.params.to_numpy())
+            se = get_se(J, V)
+            tmp = tmp.with_columns(pl.Series(se).alias("std_error"))
+        res.append(tmp)
     for i, r in enumerate(res):
         for col in res[0].columns:
             if r[col].dtype is pl.Categorical:

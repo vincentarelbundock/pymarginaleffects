@@ -24,7 +24,7 @@ mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", df)
 mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin", df)
 fit = mod.fit()
 
-print(comparisons(fit, comparison = "differenceavg", vcov = False))
+print(comparisons(fit, comparison = "differenceavg", vcov = "HC3"))
 
 # hyp = hypotheses(fit, hypothesis = np.array([1, -1, 0, 0, 0, 0, 0, 0]))
 # print(hyp)

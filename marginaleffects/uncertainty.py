@@ -4,13 +4,13 @@ import polars as pl
 import patsy
 import scipy.stats as stats
 
-def get_jacobian(func, x):
+def get_jacobian(func, coefs):
     # forward finite difference (faster)
-    eps = max(1e-8, 1e-4 * np.min(np.abs(x)))
-    baseline = func(x)["estimate"]
-    out = np.empty((len(baseline), len(x)), dtype=np.float64)
-    for i, xi in enumerate(x):
-        dx = x.copy()
+    eps = max(1e-8, 1e-4 * np.min(np.abs(coefs)))
+    baseline = func(coefs)["estimate"]
+    out = np.empty((len(baseline), len(coefs)), dtype=np.float64)
+    for i, xi in enumerate(coefs):
+        dx = coefs.copy()
         dx[i] = dx[i] + eps
         out[:, i] = (func(dx)["estimate"] - baseline) / eps
     return out
