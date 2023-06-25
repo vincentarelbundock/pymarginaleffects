@@ -8,9 +8,11 @@ from marginaleffects.testing import *
 from rpy2.robjects.packages import importr
 from marginaleffects.comparisons import estimands
 
+
 # R packages
 marginaleffects = importr("marginaleffects")
 stats = importr("stats")
+
 
 # Guerry Data
 df, df_r = rdatasets("HistData", "Guerry", r = True)
@@ -24,6 +26,7 @@ df = df \
 mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
 mod_r = stats.lm("Literacy ~ Pop1831 * Desertion", data = df_r)
 
+
 def test_difference():
     cmp_py = comparisons(mod_py, comparison = "differenceavg")
     cmp_r = marginaleffects.comparisons(mod_r, comparison = "differenceavg")
@@ -35,12 +38,22 @@ def test_difference():
     compare_r_to_py(cmp_r, cmp_py)
 
 
-# def test_comparison():
-#     for e in estimands:
-#         cmp_py = comparisons(mod_py, comparison = e)
-#         cmp_r = marginaleffects.comparisons(mod_r, comparison = e, eps = 1e-4)
-#         cmp_r = r_to_polars(cmp_r)
-#         compare_r_to_py(cmp_r, cmp_py, msg = e, tola = 1e-2)
+def test_comparison_simple():
+    est = [k for k in estimands.keys() if not re.search("x", k)]
+    for e in est:
+        cmp_py = comparisons(mod_py, comparison = e)
+        cmp_r = marginaleffects.comparisons(mod_r, comparison = e, eps = 1e-4)
+        cmp_r = r_to_polars(cmp_r)
+        compare_r_to_py(cmp_r, cmp_py, msg = e, tola = 1e-2)
+
+
+def test_comparison_derivatives():
+    est = [k for k in estimands.keys() if re.search("x", k) is not None]
+    for e in est:
+        cmp_py = comparisons(mod_py, comparison = e)
+        cmp_r = marginaleffects.comparisons(mod_r, comparison = e, eps = 1e-4)
+        cmp_r = r_to_polars(cmp_r)
+        compare_r_to_py(cmp_r, cmp_py, msg = e, tola = 1e-2)
 
 
 def test_by():
