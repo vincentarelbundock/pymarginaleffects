@@ -1,12 +1,57 @@
+import re
 import numpy as np
 import polars as pl
 
+def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.DataFrame:
+    hypothesis = re.sub("=", "-(", hypothesis) + ")"
+    if re.search(r'\bb\d+\b', hypothesis):
+        bmax = max([int(re.sub('b', '', match.group())) for match in re.finditer(r'\bb\d+\b', lab)], default=0)
+        if bmax > x.shape[0]:
+            msg = f"b{bmax} cannot be used in `hypothesis` because the call produced just {x.shape[0]} estimate(s). Try executing the exact same command without the `hypothesis` argument to see which estimates are available for hypothesis testing."
+            raise ValueError(msg)
+
+        for i in range(x.shape[0]):
+            tmp = f"marginaleffects__{i + 1}"
+            hypothesis = re.sub(f"b{i + 1}", tmp, hypothesis)
+
+        rowlabels = [f"marginaleffects__{i + 1}" for i in range(x.shape[0])]
+    else:
+        if 'term' not in x.columns or x['term'].count() != x['term'].unique().count():
+            msg = (
+                'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b1`, `b2`, etc. indices instead of term names in the `hypotheses` string Ex: "b1 + b2 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
+            )
+            raise ValueError(msg)
+
+        rowlabels = x['term'].to_list()
+
+    def eval_string_function(vec, hypothesis, rowlabels):
+        env = {rowlabel: vec[i] for i, rowlabel in enumerate(rowlabels)}
+        hypothesis = hypothesis.replace("=", "==")
+        out = eval(hypothesis, env)
+        return out
+
+    out = eval_string_function(
+        x['estimate'].to_numpy(),
+        hypothesis=hypothesis,
+        rowlabels=rowlabels
+    )
+
+    out = pl.DataFrame(
+        {
+            "term": [re.sub(r'\s+', '', lab)],
+            "estimate": [out]
+        }
+    )
+
+    return out
 
 # function extracts the estimate column from a data frame and sets it to x. If `hypothesis` argument is a numpy array, it feeds it directly to lincome_multiply. If lincome is a string, it checks if the string is valid, and then calls the corresponding function.
 def get_hypothesis(x, hypothesis):
     msg = f"Invalid hypothesis argument: {hypothesis}. Valid arguments are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', 'revpairwise' or a numpy array."
     if hypothesis is None:
         return(x)
+    if isinstance(hypothesis, str) and re.search("=", hypothesis) is not None:
+        out = eval_string_hypothesis(x, hypothesis, lab=hypothesis)
     if isinstance(hypothesis, str):
         if hypothesis == "reference":
             hypothesis = lincom_reference(x)
@@ -22,12 +67,12 @@ def get_hypothesis(x, hypothesis):
             hypothesis = lincom_revpairwise(x)
         else:
             raise ValueError(msg)
+        out = lincom_multiply(x, hypothesis.to_numpy())
+        out = out.with_columns(pl.Series(hypothesis.columns).alias("term"))
     elif isinstance(hypothesis, np.ndarray):
-        hypothesis = pl.DataFrame(hypothesis)
+        out = pl.DataFrame(hypothesis)
     else:
         raise ValueError(msg)
-    out = lincom_multiply(x, hypothesis.to_numpy())
-    out = out.with_columns(pl.Series(hypothesis.columns).alias("term"))
     return out
 
 
