@@ -18,7 +18,6 @@ df = df.with_columns(pl.Series(np.random.choice(["a", "b", "c"], df.shape[0])).a
 # fit
 mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", df)
 fit = mod.fit()
-comparisons(fit, vcov = False, comparison = "differenceavg")
 
 comparisons(fit, comparison = "dydx", eps = 1e-4)
 

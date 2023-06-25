@@ -25,7 +25,7 @@ def get_one_variable_type(variable, newdata):
         raise ValueError(f"Unknown type for `{variable}`: {newdata[variable].dtype}")
 
 
-def get_one_variable_hi_lo(variable, value, newdata):
+def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
     msg = "`value` must be a numeric, a list of length two, or 'sd'"
     vartype = get_one_variable_type(variable, newdata)
 
@@ -33,7 +33,10 @@ def get_one_variable_hi_lo(variable, value, newdata):
         if vartype == "character":
             value = "reference"
         else:
-            value = 1
+            if comparison in ["eyexavg", "dyexavg", "eydxavg", "dydxavg", "eyex", "dyex", "eydx", "dydx"]:
+                value = eps
+            else:
+                value = 1
 
     if vartype == "boolean":
         out = HiLo(variable=variable, hi=pl.Series([True]), lo=pl.Series([False]), lab="True - False", pad = None)
@@ -59,8 +62,6 @@ def get_one_variable_hi_lo(variable, value, newdata):
 
         else:
             raise ValueError(msg)
-
-
 
     if vartype == "numeric" and isinstance(value, str):
         if value == "sd":
@@ -117,13 +118,13 @@ def get_variables_names(variables, fit, newdata):
     return variables
 
 
-def sanitize_variables(variables, fit, newdata):
+def sanitize_variables(variables, fit, newdata, comparison, eps):
     out = []
 
     if variables is None:
         vlist = get_variables_names(variables, fit, newdata)
         for v in vlist:
-            out.append(get_one_variable_hi_lo(v, None, newdata))
+            out.append(get_one_variable_hi_lo(v, None, newdata, comparison, eps))
 
     elif isinstance(variables, dict):
         for v in variables:
@@ -131,19 +132,19 @@ def sanitize_variables(variables, fit, newdata):
                 del variables[v]
                 warn(f"Variable {v} is not in newdata.")
             else:
-                out.append(get_one_variable_hi_lo(v, variables[v], newdata))
+                out.append(get_one_variable_hi_lo(v, variables[v], newdata, comparison, eps))
 
     elif isinstance(variables, str):
         if variables not in newdata.columns:
             raise ValueError(f"Variable {variables} is not in newdata.")
-        out.append(get_one_variable_hi_lo(variables, None, newdata))
+        out.append(get_one_variable_hi_lo(variables, None, newdata, comparison, eps))
 
     elif isinstance(variables, list):
         for v in variables:
             if v not in newdata.columns:
                 warn(f"Variable {v} is not in newdata.")
             else:
-                out.append(get_one_variable_hi_lo(v, None, newdata))
+                out.append(get_one_variable_hi_lo(v, None, newdata, comparison, eps))
 
     # unnest list of list of HiLo
     out = [item for sublist in out for item in sublist]

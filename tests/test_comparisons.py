@@ -1,3 +1,4 @@
+import re
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import numpy as np
@@ -27,9 +28,11 @@ def test_basic():
     cmp_r = r_to_polars(cmp_r)
     cmp_r = cmp_r.sort(["term", "contrast"])
     cmp_py = cmp_r.sort(["term", "contrast"])
-    for col in ["estimate", "std_error", "statistic", "conf_low", "conf_high"]:
-        if col in cmp_py.columns and col in cmp_r.columns:
-            assert cmp_r[col].to_numpy() == approx(cmp_py[col].to_numpy(), rel = 1e-5)
+    for col_py in ["estimate", "std_error", "statistic", "conf_low", "conf_high"]:
+        col_r = re.sub("_", ".", col_py)
+        if col_py in cmp_py.columns and col_r in cmp_r.columns:
+            assert cmp_r[col_r].to_numpy() == approx(cmp_py[col_py].to_numpy(), rel = 1e-5)
+
 
 def test_HC3():
     mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
@@ -39,9 +42,10 @@ def test_HC3():
     cmp_r = r_to_polars(cmp_r)
     cmp_r = cmp_r.sort(["term", "contrast"])
     cmp_py = cmp_r.sort(["term", "contrast"])
-    for col in ["estimate", "std_error", "statistic", "conf_low", "conf_high"]:
-        if col in cmp_py.columns and col in cmp_r.columns:
-            assert cmp_r[col].to_numpy() == approx(cmp_py[col].to_numpy(), rel = 1e-5)
+    for col_py in ["estimate", "std_error", "statistic", "conf_low", "conf_high"]:
+        col_r = re.sub("_", ".", col_py)
+        if col_py in cmp_py.columns and col_r in cmp_r.columns:
+            assert cmp_r[col_r].to_numpy() == approx(cmp_py[col_py].to_numpy(), rel = 1e-5)
 
 
 

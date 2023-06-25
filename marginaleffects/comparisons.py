@@ -151,7 +151,7 @@ def comparisons(
     newdata = sanitize_newdata(fit, newdata)
 
     # after sanitize_newdata() 
-    variables = sanitize_variables(variables=variables, fit=fit, newdata=newdata)
+    variables = sanitize_variables(variables=variables, fit=fit, newdata=newdata, comparison=comparison, eps=eps)
 
     # computation
     out = []
