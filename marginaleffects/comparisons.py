@@ -54,78 +54,15 @@ estimands = {
 }
 
 
-def get_exog(model, variable, newdata):
-    lo = newdata.clone().with_columns(variable.lo.alias(variable.variable))
-    hi = newdata.clone().with_columns(variable.hi.alias(variable.variable))
-    # pad for character predictors
-    if variable.pad is not None:
-        pad = pl.concat([newdata.slice(0, 1)] * variable.pad.len())
-        pad = pad.with_columns(variable.pad.alias(variable.variable))
-        lo = pl.concat([lo, pad])
-        hi = pl.concat([hi, pad])
-    y, lo = patsy.dmatrices(model.model.formula, lo.to_pandas())
-    y, hi = patsy.dmatrices(model.model.formula, hi.to_pandas())
-    # unpad
-    if variable.pad is not None:
-        lo = lo[pad.shape[0]:]
-        hi = hi[pad.shape[0]:]
+
+def get_comparison_df(model, variable, newdata):
+    tmp = newdata.with_columns(
+        pl.Series([variable.variable]).alias("term"),
+        pl.Series([variable.lab]).alias("contrast")
+    )
+    lo = tmp.clone().with_columns(variable.lo.cast(tmp[variable.variable].dtype).alias(variable.variable))
+    hi = tmp.clone().with_columns(variable.hi.cast(tmp[variable.variable].dtype).alias(variable.variable))
     return hi, lo
-
-
-def get_estimand(model, params, hi, lo, comparison, variabletype = "numeric", eps = None, df = None, by = None, x = None, y = None):
-    p_hi = model.model.predict(params, hi)
-    p_lo = model.model.predict(params, lo)
-    if variabletype != "numeric" and comparison in ["dydx", "eyex", "eydx", "dyex"]:
-        fun = estimands["difference"]
-    elif variabletype != "numeric" and comparison in ["dydxavg", "eyexavg", "eydxavg", "dyexavg"]:
-        fun = estimands["differenceavg"]
-    else:
-        fun = estimands[comparison]
-    out = fun(hi = p_hi, lo = p_lo, eps = eps, x = x, y = y)
-    return out
-
-
-def get_comparison(
-        model,
-        variable,
-        newdata,
-        comparison,
-        vcov,
-        conf_int,
-        by,
-        hypothesis,
-        eps):
-
-    # predictors
-    hi, lo = get_exog(model, variable=variable, newdata=newdata)
-
-    variabletype = get_one_variable_type(variable = variable.variable, newdata = newdata)
-
-    if comparison in ["dydx", "eyex", "eydx", "dyex", "dydxavg", "eyexavg", "eydxavg", "dyexavg"]:
-        xvar = newdata[variable.variable].to_numpy()
-        yvar = model.predict(newdata.to_pandas())
-    else:
-        xvar = None
-        yvar = None
-
-    # estimands
-    def fun(x):
-        out = get_estimand(model, x, hi, lo, comparison=comparison, variabletype = variabletype, eps = eps, x = xvar, y = yvar)
-        out = get_by(model, out, newdata=newdata, by=by)
-        out = get_hypothesis(out, hypothesis=hypothesis)
-        return out
-    out = fun(np.array(model.params))
-
-    # uncetainty
-    if vcov is not None:
-        J = get_jacobian(fun, model.params.to_numpy())
-        se = get_se(J, vcov)
-        out = out.with_columns(pl.Series(se).alias("std_error"))
-
-    # output
-    out = out.with_columns(pl.Series([variable.variable]).alias("term"))
-    out = out.with_columns(pl.Series([variable.lab]).alias("contrast"))
-    return out
 
 
 def comparisons(
@@ -162,23 +99,54 @@ def comparisons(
     # after sanitize_newdata() 
     variables = sanitize_variables(variables=variables, model=model, newdata=newdata, comparison=comparison, eps=eps)
 
-    # computation
+    # combined data frame
+    hi = []
+    lo = []
     out = []
     for v in variables:
-        tmp = get_comparison(
-            model,
-            variable=v,
-            newdata=newdata,
-            comparison=comparison,
-            vcov=V,
-            conf_int=conf_int,
-            by=by,
-            hypothesis=hypothesis,
-            eps=eps)
-        out.append(tmp)
-
+        tmp_hi, tmp_lo = get_comparison_df(model, variable=v, newdata=newdata)
+        hi.append(tmp_hi)
+        lo.append(tmp_lo)
+        out.append(newdata)
+    lo = pl.concat(lo)
+    hi = pl.concat(hi)
     out = pl.concat(out)
+    out = out.with_columns(
+        pl.Series(model.predict(out).to_numpy()).alias("predicted"),
+        pl.Series(model.predict(hi).to_numpy()).alias("predicted_hi"),
+        pl.Series(model.predict(lo).to_numpy()).alias("predicted_lo"),
+    )
 
+#### TODO: 
+# get_jacobian requires estimands to be data frame with estimate column
+# need to make sure that out has the same number of rows a estimate
+# otherwise build my own data frame.
+
+
+    # estimate
+    def fun(x):
+        p_hi = model.model.predictx, hi)
+        p_lo = model.model.predict(x, lo)
+        tmp = pl.Series(estimands[comparison](hi = hi, lo = lo, eps = eps, x = xvar, y = yvar))
+        return tmp
+    y, lo = patsy.dmatrices(model.model.formula, lo.to_pandas())
+    y, hi = patsy.dmatrices(model.model.formula, hi.to_pandas())
+    xvar = None
+    yvar = None
+    out = out.with_columns(fun(model.params).alias("estimate"))
+
+    # if variabletype != "numeric" and comparison in ["dydx", "eyex", "eydx", "dyex"]:
+    #     fun = estimands["difference"]
+    # elif variabletype != "numeric" and comparison in ["dydxavg", "eyexavg", "eydxavg", "dyexavg"]:
+    #     fun = estimands["differenceavg"]
+    # else:
+    #     fun = estimands[comparison]
+
+    # uncetainty
+    if vcov is not None:
+        J = get_jacobian(fun, model.params.to_numpy())
+        se = get_se(J, vcov)
+        out = out.with_columns(pl.Series(se).alias("std_error"))
 
     # uncertainty
     out = get_z_p_ci(out, model, conf_int=conf_int)
