@@ -101,9 +101,18 @@ def comparisons(
         pad = pl.concat(pad).unique()
         newdata_pad = pl.concat([pad, newdata])
 
-    xvar = None
-    yvar = None
+    elasticities = ["eyexavg", "dyexavg", "eydxavg", "dydxavg", "eyex", "dyex", "eydx", "dydx"]
+
     def fun(coefs, v):
+        # elasticities
+        if v.comparison in elasticities:
+            xvar = newdata[v.variable].to_numpy()
+            yvar = newdata[model.model.endog_names].to_numpy()
+        else:
+            xvar = None
+            yvar = None
+
+        # padding for categorical variables
         if pad.shape[0] > 0:
             padval = pad[v.variable]
             lo_values = pl.concat([padval, v.lo.cast(padval.dtype)])
@@ -113,15 +122,20 @@ def comparisons(
             hi_values = v.hi
         lo = newdata_pad.with_columns(lo_values.alias(v.variable))
         hi = newdata_pad.with_columns(hi_values.alias(v.variable))
-        
+
+        # model matrices
         n, X_lo = patsy.dmatrices(model.model.formula, lo.to_pandas())
         n, X_hi = patsy.dmatrices(model.model.formula, hi.to_pandas())
+
+        # unpad
         if pad.shape[0] > 0:
-            X_lo = X_lo[(pad.shape[0] + 1):]
-            X_hi = X_hi[(pad.shape[0] + 1):]
+            X_lo = X_lo[pad.shape[0]:]
+            X_hi = X_hi[pad.shape[0]:]
+
+        # estimates
         lo = model.model.predict(coefs, X_lo)
         hi = model.model.predict(coefs, X_hi)
-        est = estimands[comparison](hi = hi, lo = lo, eps = eps, x = xvar, y = yvar)
+        est = estimands[v.comparison](hi = hi, lo = lo, eps = eps, x = xvar, y = yvar)
         if len(est) == newdata.shape[0]:
             out = newdata_pad.with_columns(
                 pl.Series(lo).alias("predicted_lo"),

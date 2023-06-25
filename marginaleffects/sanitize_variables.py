@@ -4,7 +4,7 @@ import polars as pl
 from warnings import warn
 from collections import namedtuple
 
-HiLo = namedtuple('HiLo', ['variable', 'hi', 'lo', 'lab', "pad"])
+HiLo = namedtuple('HiLo', ['variable', 'hi', 'lo', 'lab', "pad", "comparison"])
 
 
 def get_one_variable_type(variable, newdata):
@@ -41,9 +41,15 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
     vartype = get_one_variable_type(variable, newdata)
     clean = lambda k: clean_global(k, newdata.shape[0])
 
+    # default
     if value is None:
-        if vartype == "character":
+        # derivatives are not supported for character or boolean variables
+        if vartype in ["character", "boolean"]:
             value = "reference"
+            if comparison in ["eyexavg", "dyexavg", "eydxavg", "dydxavg"]:
+                comparison = "differenceavg"
+            elif comparison in ["eyex", "dyex", "eydx", "dydx"]:
+                comparison = "difference"
         else:
             if comparison in ["eyexavg", "dyexavg", "eydxavg", "dydxavg", "eyex", "dyex", "eydx", "dydx"]:
                 value = eps
@@ -56,6 +62,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
             hi=clean(True),
             lo=clean(False),
             lab="True - False",
+            comparison = comparison,
             pad = None)
         return [out]
 
@@ -65,6 +72,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
             hi=clean(1),
             lo=clean(0),
             lab="1 - 0",
+            comparison = comparison,
             pad = None)
         return [out]
 
@@ -75,6 +83,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
                 hi=clean([value[1]]),
                 lo=clean([value[0]]),
                 lab=f"{value[1]} - {value[0]}",
+                comparison = comparison,
                 pad = None)
             return [out]
 
@@ -83,7 +92,8 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
                 variable = variable,
                 uniqs = newdata[variable].unique().sort(),
                 newdata = newdata,
-                combo = value)
+                combo = value,
+                comparison = comparison)
             return out
 
         else:
@@ -125,7 +135,14 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
         hi = clean(np.repeat[hi[0]])
         lab = lab[0]
 
-    out = [HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad = None)]
+    out = [HiLo(
+        variable=variable,
+        lo=lo,
+        hi=hi,
+        lab=lab,
+        pad = None,
+        comparison = comparison
+        )]
     return out
 
 
@@ -149,7 +166,7 @@ def get_variables_names(variables, model, newdata):
     return variables
 
 
-def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
+def get_categorical_combinations(variable, uniqs, newdata, comparison, combo="reference"):
     clean = lambda k: clean_global(k, newdata.shape[0])
 
     if not isinstance(combo, str):
@@ -163,12 +180,14 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
     if combo == "reference":
         for u in uniqs:
             if u != uniqs[0]:
+                hi = [u]
                 hl = HiLo(
                     variable=variable,
                     hi=clean([u]),
                     lo=clean([uniqs[0]]),
                     lab=f"{u} - {uniqs[0]}",
-                    pad=uniqs)
+                    pad=uniqs,
+                    comparison = comparison)
                 out.append(hl)
     elif combo == "revreference":
         last_element = uniqs[-1]
@@ -179,6 +198,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                     hi=clean([u]),
                     lo=clean([last_element]),
                     lab=f"{u} - {last_element}",
+                    comparison=comparison,
                     pad=uniqs)
                 out.append(hl)
     elif combo == "sequential":
@@ -188,6 +208,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                 hi=clean([uniqs[i + 1]]),
                 lo=clean([uniqs[i]]),
                 lab=f"{uniqs[i + 1]} - {uniqs[i]}",
+                comparison=comparison,
                 pad=uniqs)
             out.append(hl)
     elif combo == "revsequential":
@@ -197,6 +218,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                 hi=clean([uniqs[i - 1]]),
                 lo=clean([uniqs[i]]),
                 lab=f"{uniqs[i - 1]} - {uniqs[i]}",
+                comparison=comparison,
                 pad=uniqs)
             out.append(hl)
     elif combo == "pairwise":
@@ -207,6 +229,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                     hi=clean([uniqs[j]]),
                     lo=clean([uniqs[i]]),
                     lab=f"{uniqs[j]} - {uniqs[i]}",
+                    comparison=comparison,
                     pad=uniqs)
                 out.append(hl)
     elif combo == "revpairwise":
@@ -217,6 +240,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                     hi=clean([uniqs[i]]),
                     lo=clean([uniqs[j]]),
                     lab=f"{uniqs[i]} - {uniqs[j]}",
+                    comparison=comparison,
                     pad=uniqs)
                 out.append(hl)
     else:

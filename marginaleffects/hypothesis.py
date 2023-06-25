@@ -50,27 +50,29 @@ def get_hypothesis(x, hypothesis):
     msg = f"Invalid hypothesis argument: {hypothesis}. Valid arguments are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', 'revpairwise' or a numpy array."
     if hypothesis is None:
         return(x)
-    if isinstance(hypothesis, str) and re.search("=", hypothesis) is not None:
+    if isinstance(hypothesis, np.ndarray):
+        out = lincom_multiply(x, hypothesis)
+        lab = [f"H{i + 1}" for i in range(out.shape[1])]
+        out = out.with_columns(pl.Series(lab).alias("term"))
+    elif isinstance(hypothesis, str) and re.search("=", hypothesis) is not None:
         out = eval_string_hypothesis(x, hypothesis, lab=hypothesis)
-    if isinstance(hypothesis, str):
+    elif isinstance(hypothesis, str):
         if hypothesis == "reference":
-            hypothesis = lincom_reference(x)
+            hypmat = lincom_reference(x)
         elif hypothesis == "revreference":
-            hypothesis = lincom_revreference(x)
+            hypmat = lincom_revreference(x)
         elif hypothesis == "sequential":
-            hypothesis = lincom_sequential(x)
+            hypmat = lincom_sequential(x)
         elif hypothesis == "revsequential":
-            hypothesis = lincom_revsequential(x)
+            hypmat = lincom_revsequential(x)
         elif hypothesis == "pairwise":
-            hypothesis = lincom_pairwise(x)
+            hypmat = lincom_pairwise(x)
         elif hypothesis == "revpairwise":
-            hypothesis = lincom_revpairwise(x)
+            hypmat = lincom_revpairwise(x)
         else:
             raise ValueError(msg)
-        out = lincom_multiply(x, hypothesis.to_numpy())
+        out = lincom_multiply(x, hypmat.to_numpy())
         out = out.with_columns(pl.Series(hypothesis.columns).alias("term"))
-    elif isinstance(hypothesis, np.ndarray):
-        out = pl.DataFrame(hypothesis)
     else:
         raise ValueError(msg)
     return out

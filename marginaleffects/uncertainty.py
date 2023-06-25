@@ -7,7 +7,8 @@ import scipy.stats as stats
 def get_jacobian(func, coefs):
     # forward finite difference (faster)
     eps = max(1e-8, 1e-4 * np.min(np.abs(coefs)))
-    baseline = func(coefs)["estimate"]
+    baseline = func(coefs)
+    baseline = baseline["estimate"]
     out = np.empty((len(baseline), len(coefs)), dtype=np.float64)
     for i, xi in enumerate(coefs):
         dx = coefs.copy()
