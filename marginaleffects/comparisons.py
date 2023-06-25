@@ -107,7 +107,7 @@ def comparisons(
         # elasticities
         if v.comparison in elasticities:
             xvar = newdata[v.variable].to_numpy()
-            yvar = newdata[model.model.endog_names].to_numpy()
+            yvar = model.predict(newdata)
         else:
             xvar = None
             yvar = None

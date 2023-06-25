@@ -1,5 +1,3 @@
-#v TODO: bad tolerance
-
 import re
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
@@ -41,14 +39,14 @@ def test_dydx():
 
 
 # def test_eydx():
-#     slo_r = marginaleffects.slopes(mod_r, slope = "eydxavg", eps = 1e-4)
-#     slo_r = r_to_polars(slo_r)
-#     slo_py = comparisons(mod_py, comparison = "eydxavg", newdata = df_py, eps = 1e-4)
-#     compare_r_to_py(slo_r, slo_py, rel = 2e-2)
-#     slo_r = marginaleffects.slopes(mod_r, slope = "eydx", eps = 1e-4)
-#     slo_r = r_to_polars(slo_r)
-#     slo_py = comparisons(mod_py, comparison = "eydx", newdata = df_py, eps = 1e-4)
-#     compare_r_to_py(slo_r, slo_py, rel = 2e-2)
+    # slo_r = marginaleffects.slopes(mod_r, slope = "eydxavg", eps = 1e-4)
+    # slo_r = r_to_polars(slo_r)
+    # slo_py = comparisons(mod_py, comparison = "eydxavg", newdata = df_py, eps = 1e-4)
+    # compare_r_to_py(slo_r, slo_py, rel = 2e-2)
+    # slo_r = marginaleffects.slopes(mod_r, slope = "eydx", eps = 1e-4)
+    # slo_r = r_to_polars(slo_r)
+    # slo_py = comparisons(mod_py, comparison = "eydx", newdata = df_py, eps = 1e-4)
+    # compare_r_to_py(slo_r, slo_py, rel = 2e-2)
 
 
 def test_dyex():

@@ -3,20 +3,20 @@ import pandas as pd
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
-np.random.seed(1024)
+from marginaleffects.testing import *
+from rpy2.robjects.packages import importr
 
-# download and recode data
-df = rdatasets("HistData", "Guerry") \
-    .with_columns(
-        (pl.col("Area") > pl.col("Area").median()).alias("Bool"),
-        (pl.col("Distance") > pl.col("Distance").median()).alias("Bin")) \
-    .with_columns(
-        pl.col('Bin').apply(lambda x: int(x), return_dtype=pl.Int32).alias('Bin'),
-        pl.Series(np.random.choice(["a", "b", "c"], df.shape[0])).alias("Char"))
+marginaleffects = importr("marginaleffects")
+stats = importr("stats")
+df_py, df_r = rdatasets("datasets", "mtcars", r = True)
+mod_py = smf.ols("mpg ~ wt * hp", df_py).fit()
+mod_py = comparisons(mod_py, comparison = "dyex").sort(["term", "contrast", "rowid"])
+mod_r = stats.lm("mpg ~ wt * hp", data = df_r)
+mod_r = marginaleffects.comparisons(mod_r, comparison = "dyex", data = df_r)
+mod_r = r_to_polars(mod_r).sort(["term", "contrast", "rowid"])
 
-# fit linear model with interaction
-mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin * Char", df).fit()
+compare_r_to_py(mod_r, mod_py, rel = 2e-2)
 
-print(hypotheses(fit, hypothesis = np.array([1, -1, 0, 0, 0, 0, 0, 0])))
-print(hypotheses(fit, hypothesis = "b1 = b2 * 3"))
-print(comparisons(fit, comparison = "dyexavg"))
+
+print()
+print(comparisons(mod, comparison = "dyex"))
