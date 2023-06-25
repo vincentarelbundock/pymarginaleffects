@@ -15,7 +15,7 @@ mod_r = stats.lm("mpg ~ wt * hp", data = df_r)
 mod_r = marginaleffects.comparisons(mod_r, comparison = "dyex", data = df_r)
 mod_r = r_to_polars(mod_r).sort(["term", "contrast", "rowid"])
 
-compare_r_to_py(mod_r, mod_py, rel = 2e-2)
+compare_r_to_py(mod_r, mod_py, tolr = 2e-2)
 
 
 print()

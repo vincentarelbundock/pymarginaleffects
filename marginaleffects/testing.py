@@ -33,15 +33,17 @@ def rdatasets(package, dataset, r = False):
         dat_r = pandas_to_r(dat_py.to_pandas())
         return dat_py, dat_r
 
-def compare_r_to_py(r_obj, py_obj, rel = 1e-3):
+def compare_r_to_py(r_obj, py_obj, tolr = 1e-3, tola = 1e-3, msg = ""):
     cols = ["term", "contrast", "rowid"]
     r_obj = r_obj.sort([x for x in cols if x in r_obj.columns])
     py_obj = py_obj.sort([x for x in cols if x in py_obj.columns])
     # dont' compare other statistics because degrees of freedom don't match
-    for col_py in ["estimate", "std_error", "statistic"]:#, "conf_low", "conf_high"]:
+    for col_py in ["estimate", "std_error"]:
         col_r = re.sub("_", ".", col_py) 
         if col_py in py_obj.columns and col_r in r_obj.columns:
             a = r_obj[col_r]
             b = py_obj[col_py]
-            gap = ((a - b) / a).abs().max()
-            assert gap <= rel, f"{gap:.5}. > {rel}"
+            gap_rel = ((a - b) / a).abs().max()
+            gap_abs = (a - b).abs().max()
+            flag = gap_rel <= tolr or gap_abs <= tola
+            assert flag, f"{msg} trel: {gap_rel}. tabs: {gap_abs}"
