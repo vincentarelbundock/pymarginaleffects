@@ -75,8 +75,10 @@ def get_exog(model, variable, newdata):
 def get_estimand(model, params, hi, lo, comparison, variabletype = "numeric", eps = None, df = None, by = None, x = None, y = None):
     p_hi = model.model.predict(params, hi)
     p_lo = model.model.predict(params, lo)
-    if variabletype != "numeric" and comparison in ["dydx", "eyex", "eydx", "dyex", "dydxavg", "eyexavg", "eydxavg", "dyexavg"]:
+    if variabletype != "numeric" and comparison in ["dydx", "eyex", "eydx", "dyex"]:
         fun = estimands["difference"]
+    elif variabletype != "numeric" and comparison in ["dydxavg", "eyexavg", "eydxavg", "dyexavg"]:
+        fun = estimands["differenceavg"]
     else:
         fun = estimands[comparison]
     out = fun(hi = p_hi, lo = p_lo, eps = eps, x = x, y = y)
@@ -99,8 +101,12 @@ def get_comparison(
 
     variabletype = get_one_variable_type(variable = variable.variable, newdata = newdata)
 
-    xvar = newdata[variable.variable]
-    yvar = newdata[model.model.endog_names]
+    if comparison in ["dydx", "eyex", "eydx", "dyex", "dydxavg", "eyexavg", "eydxavg", "dyexavg"]:
+        xvar = newdata[variable.variable].to_numpy()
+        yvar = model.predict(newdata.to_pandas())
+    else:
+        xvar = None
+        yvar = None
 
     # estimands
     def fun(x):
@@ -170,7 +176,9 @@ def comparisons(
             hypothesis=hypothesis,
             eps=eps)
         out.append(tmp)
+
     out = pl.concat(out)
+
 
     # uncertainty
     out = get_z_p_ci(out, model, conf_int=conf_int)

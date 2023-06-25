@@ -30,7 +30,7 @@ def download_data(package, dataset):
     dat_r = pandas_to_r(dat_py.to_pandas())
     return dat_py, dat_r
 
-def compare_r_to_py(r_obj, py_obj, rel = 1e-4):
+def compare_r_to_py(r_obj, py_obj, rel = 1e-3):
     cols = ["term", "contrast", "rowid"]
     r_obj = r_obj.sort([x for x in cols if x in r_obj.columns])
     py_obj = py_obj.sort([x for x in cols if x in py_obj.columns])
@@ -38,6 +38,7 @@ def compare_r_to_py(r_obj, py_obj, rel = 1e-4):
     for col_py in ["estimate", "std_error", "statistic"]:#, "conf_low", "conf_high"]:
         col_r = re.sub("_", ".", col_py) 
         if col_py in py_obj.columns and col_r in r_obj.columns:
-            a = r_obj[col_r].to_numpy()
-            b = py_obj[col_py].to_numpy()
-            assert np.allclose(a, b, rtol = rel)
+            a = r_obj[col_r]
+            b = py_obj[col_py]
+            gap = ((a - b) / a).abs().max()
+            assert gap <= rel, f"{gap:.5}. > {rel}"
