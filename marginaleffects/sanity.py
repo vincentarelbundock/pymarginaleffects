@@ -1,9 +1,9 @@
 import polars as pl
 
 
-def sanitize_newdata(fit, newdata):
+def sanitize_newdata(model, newdata):
     if newdata is None:
-        out = fit.model.data.frame
+        out = model.model.data.frame
     try:
         out = pl.from_pandas(out)
     except:
@@ -11,25 +11,25 @@ def sanitize_newdata(fit, newdata):
     return out
 
 
-def sanitize_vcov(vcov, fit):
+def sanitize_vcov(vcov, model):
     if isinstance(vcov, bool):
         if vcov is True:
-            V = fit.cov_params()
+            V = model.cov_params()
         else:
             V = None
     elif isinstance(vcov, str):
         lab = f"cov_{vcov}"
-        if (hasattr(fit, lab)):
-            V = getattr(fit, lab)
+        if (hasattr(model, lab)):
+            V = getattr(model, lab)
         else:
-            raise ValueError(f"The fit object has no {lab} attribute.")
+            raise ValueError(f"The model object has no {lab} attribute.")
     else:
-        raise ValueError('`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the fit object such as "vcov_HC3".')
+        raise ValueError('`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".')
     return V
 
-def sanitize_newdata(fit, newdata):
+def sanitize_newdata(model, newdata):
     if newdata is None:
-        newdata = fit.model.data.frame
+        newdata = model.model.data.frame
     try:
         out = pl.from_pandas(newdata)
     except:

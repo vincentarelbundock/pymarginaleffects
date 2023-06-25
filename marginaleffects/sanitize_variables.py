@@ -98,9 +98,9 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
     return out
 
 
-def get_variables_names(variables, fit, newdata):
+def get_variables_names(variables, model, newdata):
     if variables is None:
-        variables = fit.model.exog_names
+        variables = model.model.exog_names
         variables = [re.sub("\[.*\]", "", x) for x in variables]
         variables = [x for x in variables if x in newdata.columns]
         variables = pl.Series(variables).unique().to_list()
@@ -118,11 +118,11 @@ def get_variables_names(variables, fit, newdata):
     return variables
 
 
-def sanitize_variables(variables, fit, newdata, comparison, eps):
+def sanitize_variables(variables, model, newdata, comparison, eps):
     out = []
 
     if variables is None:
-        vlist = get_variables_names(variables, fit, newdata)
+        vlist = get_variables_names(variables, model, newdata)
         for v in vlist:
             out.append(get_one_variable_hi_lo(v, None, newdata, comparison, eps))
 

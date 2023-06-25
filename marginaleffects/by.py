@@ -1,6 +1,6 @@
 import polars as pl
 
-def get_by(fit, estimand, newdata, by = None):
+def get_by(model, estimand, newdata, by = None):
     if len(estimand) == len(newdata):
         out = newdata.with_columns(pl.Series(estimand).alias("estimate"))
     else:

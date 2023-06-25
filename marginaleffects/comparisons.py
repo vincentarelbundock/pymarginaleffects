@@ -54,7 +54,7 @@ estimands = {
 }
 
 
-def get_exog(fit, variable, newdata):
+def get_exog(model, variable, newdata):
     lo = newdata.clone().with_columns(variable.lo.alias(variable.variable))
     hi = newdata.clone().with_columns(variable.hi.alias(variable.variable))
     # pad for character predictors
@@ -63,8 +63,8 @@ def get_exog(fit, variable, newdata):
         pad = pad.with_columns(variable.pad.alias(variable.variable))
         lo = pl.concat([lo, pad])
         hi = pl.concat([hi, pad])
-    y, lo = patsy.dmatrices(fit.model.formula, lo.to_pandas())
-    y, hi = patsy.dmatrices(fit.model.formula, hi.to_pandas())
+    y, lo = patsy.dmatrices(model.model.formula, lo.to_pandas())
+    y, hi = patsy.dmatrices(model.model.formula, hi.to_pandas())
     # unpad
     if variable.pad is not None:
         lo = lo[pad.shape[0]:]
@@ -72,9 +72,9 @@ def get_exog(fit, variable, newdata):
     return hi, lo
 
 
-def get_estimand(fit, params, hi, lo, comparison, variabletype = "numeric", eps = None, df = None, by = None, x = None, y = None):
-    p_hi = fit.model.predict(params, hi)
-    p_lo = fit.model.predict(params, lo)
+def get_estimand(model, params, hi, lo, comparison, variabletype = "numeric", eps = None, df = None, by = None, x = None, y = None):
+    p_hi = model.model.predict(params, hi)
+    p_lo = model.model.predict(params, lo)
     if variabletype != "numeric" and comparison in ["dydx", "eyex", "eydx", "dyex", "dydxavg", "eyexavg", "eydxavg", "dyexavg"]:
         fun = estimands["difference"]
     else:
@@ -84,7 +84,7 @@ def get_estimand(fit, params, hi, lo, comparison, variabletype = "numeric", eps 
 
 
 def get_comparison(
-        fit,
+        model,
         variable,
         newdata,
         comparison,
@@ -95,21 +95,21 @@ def get_comparison(
         eps):
 
     # predictors
-    hi, lo = get_exog(fit, variable=variable, newdata=newdata)
+    hi, lo = get_exog(model, variable=variable, newdata=newdata)
 
     variabletype = get_one_variable_type(variable = variable.variable, newdata = newdata)
 
     # estimands
     def fun(x):
-        out = get_estimand(fit, x, hi, lo, comparison=comparison, variabletype = variabletype, eps = eps, x = None, y = None)
-        out = get_by(fit, out, newdata=newdata, by=by)
+        out = get_estimand(model, x, hi, lo, comparison=comparison, variabletype = variabletype, eps = eps, x = None, y = None)
+        out = get_by(model, out, newdata=newdata, by=by)
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
-    out = fun(np.array(fit.params))
+    out = fun(np.array(model.params))
 
     # uncetainty
     if vcov is not None:
-        J = get_jacobian(fun, fit.params.to_numpy())
+        J = get_jacobian(fun, model.params.to_numpy())
         se = get_se(J, vcov)
         out = out.with_columns(pl.Series(se).alias("std_error"))
 
@@ -120,7 +120,7 @@ def get_comparison(
 
 
 def comparisons(
-        fit,
+        model,
         variables = None,
         newdata = None,
         comparison = "differenceavg",
@@ -136,9 +136,9 @@ def comparisons(
 
     Parameters
     ----------
-    * model : `statsmodels.formula.api` fitted model
+    * model : `statsmodels.formula.api` modelted model
     * conf_int : float
-    * vcov : bool or string which corresponds to one of the attributes in `fit`. "HC3" looks for an attributed named `cov_HC3`.
+    * vcov : bool or string which corresponds to one of the attributes in `model`. "HC3" looks for an attributed named `cov_HC3`.
     * newdata : None, DataFrame or `datagrid()` call.
     * hypothesis : Numpy array for linear combinations. 
     * comparison : "difference", "differenceavg", "ratio", "ratioavg", "lnratio", "lnratioavg", "lnor", "lnoravg", "lift", "liftavg", "expdydx", "expdydxavg", "expdydxavgwts"
@@ -147,17 +147,17 @@ def comparisons(
 
 
     # sanity
-    V = sanitize_vcov(vcov, fit)
-    newdata = sanitize_newdata(fit, newdata)
+    V = sanitize_vcov(vcov, model)
+    newdata = sanitize_newdata(model, newdata)
 
     # after sanitize_newdata() 
-    variables = sanitize_variables(variables=variables, fit=fit, newdata=newdata, comparison=comparison, eps=eps)
+    variables = sanitize_variables(variables=variables, model=model, newdata=newdata, comparison=comparison, eps=eps)
 
     # computation
     out = []
     for v in variables:
         tmp = get_comparison(
-            fit,
+            model,
             variable=v,
             newdata=newdata,
             comparison=comparison,
@@ -170,7 +170,7 @@ def comparisons(
     out = pl.concat(out)
 
     # uncertainty
-    out = get_z_p_ci(out, fit, conf_int=conf_int)
+    out = get_z_p_ci(out, model, conf_int=conf_int)
 
     # output
     out = sort_columns(out, by = by)
