@@ -3,6 +3,7 @@ import numpy as np
 import polars as pl
 from warnings import warn
 from collections import namedtuple
+
 HiLo = namedtuple('HiLo', ['variable', 'hi', 'lo', 'lab', "pad"])
 
 
@@ -25,9 +26,20 @@ def get_one_variable_type(variable, newdata):
         raise ValueError(f"Unknown type for `{variable}`: {newdata[variable].dtype}")
 
 
+def clean_global(k, n):
+    if not isinstance(k, list) and not isinstance(k, pl.Series) and not isinstance(k, np.ndarray):
+        out = [k]
+    if not isinstance(k, list) or len(k) == 1:
+        out = pl.Series(np.repeat(k, n))
+    else:
+        out = pl.Series(k)
+    return out
+
+
 def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
     msg = "`value` must be a numeric, a list of length two, or 'sd'"
     vartype = get_one_variable_type(variable, newdata)
+    clean = lambda k: clean_global(k, newdata.shape[0])
 
     if value is None:
         if vartype == "character":
@@ -39,25 +51,39 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
                 value = 1
 
     if vartype == "boolean":
-        out = HiLo(variable=variable, hi=pl.Series([True]), lo=pl.Series([False]), lab="True - False", pad = None)
+        out = HiLo(
+            variable=variable,
+            hi=clean(True),
+            lo=clean(False),
+            lab=clean("True - False"),
+            pad = None)
         return [out]
 
     if vartype == "binary":
-        out = HiLo(variable=variable, hi=pl.Series([1]), lo=pl.Series([0]), lab="1 - 0", pad = None)
+        out = HiLo(
+            variable=variable,
+            hi=clean(1),
+            lo=clean(0),
+            lab=clean("1 - 0"),
+            pad = None)
         return [out]
 
     if vartype == "character":
         if isinstance(value, list) and len(value) == 2:
             out = HiLo(
                 variable=variable,
-                hi=pl.Series([value[1]]),
-                lo=pl.Series([value[0]]),
-                lab=f"{value[1]} - {value[0]}",
+                hi=clean([value[1]]),
+                lo=clean([value[0]]),
+                lab=clean(f"{value[1]} - {value[0]}"),
                 pad = None)
             return [out]
 
         elif isinstance(value, str):
-            out = get_categorical_combinations(variable, newdata[variable].unique().sort(), value)
+            out = get_categorical_combinations(
+                variable = variable,
+                uniqs = newdata[variable].unique().sort(),
+                newdata = newdata,
+                combo = value)
             return out
 
         else:
@@ -66,7 +92,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
     if vartype == "numeric" and isinstance(value, str):
         if value == "sd":
             value = np.std(newdata[variable])
-            lab = "sd"
+            lab = clean("sd")
             hi = (newdata[variable] + value / 2).cast(newdata[variable].dtype)
             lo = (newdata[variable] - value / 2).cast(newdata[variable].dtype)
         else:
@@ -75,12 +101,12 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
     elif isinstance(value, list):
         if len(value) != 2:
             raise ValueError(msg)
-        lab = f"{value[1]} - {value[0]}"
-        hi = pl.Series([value[1]])
-        lo = pl.Series([value[0]])
+        lab = clean(f"{value[1]} - {value[0]}")
+        hi = clean([value[1]])
+        lo = clean([value[0]])
 
     elif isinstance(value, (int, float)):
-        lab = f"+{value}"
+        lab = clean(f"+{value}")
         hi = newdata[variable] + value / 2
         lo = newdata[variable] - value / 2
 
@@ -88,11 +114,16 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
         raise ValueError(msg)
 
     if isinstance(value, list):
-        lo = pl.Series([value[0]])
-        hi = pl.Series([value[1]])
+        lo = clean([value[0]])
+        hi = clean([value[1]])
     else:
         lo = newdata[variable] - value / 2
         hi = newdata[variable] + value / 2
+
+    if len(lo) == 1:
+        lo = clean(np.repeat[lo[0]])
+        hi = clean(np.repeat[hi[0]])
+        lab = clean(np.repeat[lab[0]])
 
     out = [HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad = None)]
     return out
@@ -116,6 +147,82 @@ def get_variables_names(variables, model, newdata):
     if len(good) == 0:
         raise ValueError("There is no valid column name in `variables`.")
     return variables
+
+
+def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
+    clean = lambda k: clean_global(k, newdata.shape[0])
+
+    if not isinstance(combo, str):
+        raise ValueError("The 'variables' value must be a string.")
+
+    if len(uniqs) > 25:
+        raise ValueError("There are too many unique categories to compute comparisons.")
+
+    out = []
+
+    if combo == "reference":
+        for u in uniqs:
+            if u != uniqs[0]:
+                hl = HiLo(
+                    variable=variable,
+                    hi=clean([u]),
+                    lo=clean([uniqs[0]]),
+                    lab=clean(f"{u} - {uniqs[0]}"),
+                    pad=uniqs)
+                out.append(hl)
+    elif combo == "revreference":
+        last_element = uniqs[-1]
+        for u in uniqs:
+            if u != last_element:
+                hl = HiLo(
+                    variable=variable,
+                    hi=clean([u]),
+                    lo=clean([last_element]),
+                    lab=clean(f"{u} - {last_element}"),
+                    pad=uniqs)
+                out.append(hl)
+    elif combo == "sequential":
+        for i in range(len(uniqs) - 1):
+            hl = HiLo(
+                variable=variable,
+                hi=clean([uniqs[i + 1]]),
+                lo=clean([uniqs[i]]),
+                lab=clean(f"{uniqs[i + 1]} - {uniqs[i]}"),
+                pad=uniqs)
+            out.append(hl)
+    elif combo == "revsequential":
+        for i in range(len(uniqs) - 1, 0, -1):
+            hl = HiLo(
+                variable=variable,
+                hi=clean([uniqs[i - 1]]),
+                lo=clean([uniqs[i]]),
+                lab=clean(f"{uniqs[i - 1]} - {uniqs[i]}"),
+                pad=uniqs)
+            out.append(hl)
+    elif combo == "pairwise":
+        for i in range(len(uniqs)):
+            for j in range(i + 1, len(uniqs)):
+                hl = HiLo(
+                    variable=variable,
+                    hi=clean([uniqs[j]]),
+                    lo=clean([uniqs[i]]),
+                    lab=clean(f"{uniqs[j]} - {uniqs[i]}"),
+                    pad=uniqs)
+                out.append(hl)
+    elif combo == "revpairwise":
+        for i in range(len(uniqs)):
+            for j in range(i + 1, len(uniqs)):
+                hl = HiLo(
+                    variable=variable,
+                    hi=clean([uniqs[i]]),
+                    lo=clean([uniqs[j]]),
+                    lab=clean(f"{uniqs[i]} - {uniqs[j]}"),
+                    pad=uniqs)
+                out.append(hl)
+    else:
+        raise ValueError(f"The supported comparisons are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', and 'revpairwise'.")
+
+    return out
 
 
 def sanitize_variables(variables, model, newdata, comparison, eps):
@@ -150,79 +257,4 @@ def sanitize_variables(variables, model, newdata, comparison, eps):
     out = [item for sublist in out for item in sublist]
 
     return out
-        
-
-
-def get_categorical_combinations(variable, uniqs, combo="reference"):
-
-    if not isinstance(combo, str):
-        raise ValueError("The 'variables' value must be a string.")
-
-    if len(uniqs) > 25:
-        raise ValueError("There are too many unique categories to compute comparisons.")
-
-    out = []
-
-    if combo == "reference":
-        for u in uniqs:
-            if u != uniqs[0]:
-                hl = HiLo(
-                    variable=variable,
-                    hi=pl.Series([u]),
-                    lo=pl.Series([uniqs[0]]),
-                    lab=f"{u} - {uniqs[0]}",
-                    pad=uniqs)
-                out.append(hl)
-    elif combo == "revreference":
-        last_element = uniqs[-1]
-        for u in uniqs:
-            if u != last_element:
-                hl = HiLo(
-                    variable=variable,
-                    hi=pl.Series([u]),
-                    lo=pl.Series([last_element]),
-                    lab=f"{u} - {last_element}",
-                    pad=uniqs)
-                out.append(hl)
-    elif combo == "sequential":
-        for i in range(len(uniqs) - 1):
-            hl = HiLo(
-                variable=variable,
-                hi=pl.Series([uniqs[i + 1]]),
-                lo=pl.Series([uniqs[i]]),
-                lab=f"{uniqs[i + 1]} - {uniqs[i]}",
-                pad=uniqs)
-            out.append(hl)
-    elif combo == "revsequential":
-        for i in range(len(uniqs) - 1, 0, -1):
-            hl = HiLo(
-                variable=variable,
-                hi=pl.Series([uniqs[i - 1]]),
-                lo=pl.Series([uniqs[i]]),
-                lab=f"{uniqs[i - 1]} - {uniqs[i]}",
-                pad=uniqs)
-            out.append(hl)
-    elif combo == "pairwise":
-        for i in range(len(uniqs)):
-            for j in range(i + 1, len(uniqs)):
-                hl = HiLo(
-                    variable=variable,
-                    hi=pl.Series([uniqs[j]]),
-                    lo=pl.Series([uniqs[i]]),
-                    lab=f"{uniqs[j]} - {uniqs[i]}",
-                    pad=uniqs)
-                out.append(hl)
-    elif combo == "revpairwise":
-        for i in range(len(uniqs)):
-            for j in range(i + 1, len(uniqs)):
-                hl = HiLo(
-                    variable=variable,
-                    hi=pl.Series([uniqs[i]]),
-                    lo=pl.Series([uniqs[j]]),
-                    lab=f"{uniqs[i]} - {uniqs[j]}",
-                    pad=uniqs)
-                out.append(hl)
-    else:
-        raise ValueError(f"The supported comparisons are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', and 'revpairwise'.")
-
-    return out
+ 

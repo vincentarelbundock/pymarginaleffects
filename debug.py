@@ -17,11 +17,11 @@ df = df.with_columns(
 df = df.with_columns(
         pl.col('Bin').apply(lambda x: int(x), return_dtype=pl.Int32).alias('Bin'),
         pl.Series(np.random.choice(["a", "b", "c"], df.shape[0])).alias("Char"))
-df = df.with_columns(pl.col("Char").cast(pl.Categorical))
+
 
 # fit
 mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", df)
-mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin", df)
+# mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin", df)
 fit = mod.fit()
 
 print(comparisons(fit, comparison = "differenceavg", vcov = "HC3"))

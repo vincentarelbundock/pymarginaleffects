@@ -81,8 +81,7 @@ def comparisons(
     * comparison : "difference", "differenceavg", "ratio", "ratioavg", "lnratio", "lnratioavg", "lnor", "lnoravg", "lift", "liftavg", "expdydx", "expdydxavg", "expdydxavgwts"
     * by : None, string, or list of strings
     """
-
-
+    
     # sanity
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata)
@@ -90,18 +89,41 @@ def comparisons(
     # after sanitize_newdata() 
     variables = sanitize_variables(variables=variables, model=model, newdata=newdata, comparison=comparison, eps=eps)
 
+    # pad newdata for character/categorical variables in patsy
+    pad = []
+    for v in variables:
+        if v.pad is not None:
+            pad.append(get_pad(newdata, v.variable, v.pad)) 
+    if len(pad) == 0:
+        pad = pl.DataFrame()
+        newdata_pad = newdata
+    else:
+        pad = pl.concat(pad).unique()
+        newdata_pad = pl.concat([pad, newdata])
+
     xvar = None
     yvar = None
     def fun(coefs, v):
-        lo = newdata.clone().with_columns(pl.Series(v.lo).alias(v.variable))
-        hi = newdata.clone().with_columns(pl.Series(v.hi).alias(v.variable))
-        k, lo = patsy.dmatrices(model.model.formula, lo.to_pandas())
-        k, hi = patsy.dmatrices(model.model.formula, hi.to_pandas())
-        lo = model.model.predict(coefs, lo)
-        hi = model.model.predict(coefs, hi)
+        if pad.shape[0] > 0:
+            padval = pad[v.variable]
+            lo_values = pl.concat([padval, v.lo.cast(padval.dtype)])
+            hi_values = pl.concat([padval, v.hi.cast(padval.dtype)])
+        else:
+            lo_values = v.lo
+            hi_values = v.hi
+        lo = newdata_pad.with_columns(lo_values.alias(v.variable))
+        hi = newdata_pad.with_columns(hi_values.alias(v.variable))
+        
+        n, X_lo = patsy.dmatrices(model.model.formula, lo.to_pandas())
+        n, X_hi = patsy.dmatrices(model.model.formula, hi.to_pandas())
+        # if pad.shape[0] > 0:
+        #     X_lo = X_lo[(pad.shape[0] + 1):]
+        #     X_hi = X_hi[(pad.shape[0] + 1):]
+        lo = model.model.predict(coefs, X_lo)
+        hi = model.model.predict(coefs, X_hi)
         est = estimands[comparison](hi = hi, lo = lo, eps = eps, x = xvar, y = yvar)
         if len(est) == newdata.shape[0]:
-            out = newdata.with_columns(
+            out = newdata_pad.with_columns(
                 pl.Series(lo).alias("predicted_lo"),
                 pl.Series(hi).alias("predicted_hi"),
                 pl.Series(est).alias("estimate"),
