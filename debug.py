@@ -21,9 +21,10 @@ df = df.with_columns(pl.col("Char").cast(pl.Categorical))
 
 # fit
 mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", df)
+mod = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin", df)
 fit = mod.fit()
 
-print(comparisons(fit, comparison = "differenceavg", vcov = False, hypothesis = "b1=b2"))
+print(comparisons(fit, comparison = "differenceavg", vcov = False))
 
 # hyp = hypotheses(fit, hypothesis = np.array([1, -1, 0, 0, 0, 0, 0, 0]))
 # print(hyp)

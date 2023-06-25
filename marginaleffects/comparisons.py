@@ -90,62 +90,46 @@ def comparisons(
     # after sanitize_newdata() 
     variables = sanitize_variables(variables=variables, model=model, newdata=newdata, comparison=comparison, eps=eps)
 
-    # combined data frame (more efficient to do this only once)
-    with pl.StringCache():
-        hi = []
-        lo = []
-        out = []
-        for v in variables:
-            tmp = newdata.with_columns(
+    xvar = None
+    yvar = None
+    def fun(coefs, v):
+        lo = newdata.clone().with_columns(pl.Series(v.lo).alias(v.variable))
+        hi = newdata.clone().with_columns(pl.Series(v.hi).alias(v.variable))
+        k, lo = patsy.dmatrices(model.model.formula, lo.to_pandas())
+        k, hi = patsy.dmatrices(model.model.formula, hi.to_pandas())
+        lo = model.model.predict(coefs, lo)
+        hi = model.model.predict(coefs, hi)
+        est = estimands[comparison](hi = hi, lo = lo, eps = eps, x = xvar, y = yvar)
+        if len(est) == newdata.shape[0]:
+            out = newdata.with_columns(
+                pl.Series(lo).alias("predicted_lo"),
+                pl.Series(hi).alias("predicted_hi"),
+                pl.Series(est).alias("estimate"),
                 pl.Series([v.variable]).alias("term"),
-                pl.Series([v.lab]).alias("contrast"))
-            tmp_lo = tmp.clone().with_columns(v.lo.cast(tmp[v.variable].dtype).alias(v.variable))
-            tmp_hi = tmp.clone().with_columns(v.hi.cast(tmp[v.variable].dtype).alias(v.variable))
-            hi.append(tmp_hi)
-            lo.append(tmp_lo)
-        hi = pl.concat(hi)
-        lo = pl.concat(lo)
+                pl.Series([v.lab]).alias("contrast"),
+            )
+        else:
+            out = pl.DataFrame({
+                "term": [v.variable],
+                "contrast": [v.lab],
+                "estimate": est,
+            })
+        return out
 
-            tmp = newdata.with_columns(pl.Series([v.variable]).alias("term"), pl.Series([v.lab]).alias("contrast"))
-            out.append(tmp)
-            lo = pl.concat(lo)
-            hi = pl.concat(hi)
-            out = pl.concat(out)
-
-        # design matrices by group
-        lo_group = [x[1].to_pandas() for x in lo.groupby(["term", "contrast"])]
-        hi_group = [x[1].to_pandas() for x in hi.groupby(["term", "contrast"])]
-        lo_group = [patsy.dmatrices(model.model.formula, x)[1] for x in lo_group]
-        hi_group = [patsy.dmatrices(model.model.formula, x)[1] for x in hi_group]
-
-        # we re-use these data frames
-        out_group = [x[1] for x in out.groupby(["term", "contrast"])]
-
-    # estimate
-    xvar = None
-    yvar = None
-    def get_estimand(x):
-        res = []
-        for i, v in enumerate(out_group):
-            dat = out_group[i]
-            p_hi = model.model.predict(x, hi_group[i])
-            p_lo = model.model.predict(x, lo_group[i])
-            tmp = pl.Series(estimands[comparison](hi = p_hi, lo = p_lo, eps = eps, x = xvar, y = yvar))
-            tmp = dat.with_columns(tmp.alias("estimate"))
-            res.append(tmp)
-        res = pl.concat(res)
-        return res
-
-    # TODO: actually support `by`
-    out = get_estimand(model.params)
-
-
-
-    y, lo = patsy.dmatrices(model.model.formula, lo.to_pandas())
-    y, hi = patsy.dmatrices(model.model.formula, hi.to_pandas())
-    xvar = None
-    yvar = None
-    out = fun(model.params)
+    res = []
+    for v in variables:
+        tmp = fun(model.params, v)
+        res.append(tmp)
+        if vcov is not None and vcov is not False:
+            g = lambda x: fun(x, v)
+            J = get_jacobian(g, model.params.to_numpy())
+            se = get_se(J, vcov)
+            out = out.with_columns(pl.Series(se).alias("std_error"))
+    for i, r in enumerate(res):
+        for col in res[0].columns:
+            if r[col].dtype is pl.Categorical:
+                res[i] = r.with_columns(pl.col(col).cast(pl.Utf8))
+    out = pl.concat(res)
 
     # if variabletype != "numeric" and comparison in ["dydx", "eyex", "eydx", "dyex"]:
     #     fun = estimands["difference"]
@@ -155,10 +139,6 @@ def comparisons(
     #     fun = estimands[comparison]
 
     # uncetainty
-    if vcov is not None and vcov is not False:
-        J = get_jacobian(fun, model.params.to_numpy())
-        se = get_se(J, vcov)
-        out = out.with_columns(pl.Series(se).alias("std_error"))
 
     # uncertainty
     out = get_z_p_ci(out, model, conf_int=conf_int)
