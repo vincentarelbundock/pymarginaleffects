@@ -116,9 +116,9 @@ def comparisons(
         
         n, X_lo = patsy.dmatrices(model.model.formula, lo.to_pandas())
         n, X_hi = patsy.dmatrices(model.model.formula, hi.to_pandas())
-        # if pad.shape[0] > 0:
-        #     X_lo = X_lo[(pad.shape[0] + 1):]
-        #     X_hi = X_hi[(pad.shape[0] + 1):]
+        if pad.shape[0] > 0:
+            X_lo = X_lo[(pad.shape[0] + 1):]
+            X_hi = X_hi[(pad.shape[0] + 1):]
         lo = model.model.predict(coefs, X_lo)
         hi = model.model.predict(coefs, X_hi)
         est = estimands[comparison](hi = hi, lo = lo, eps = eps, x = xvar, y = yvar)
@@ -132,8 +132,8 @@ def comparisons(
             )
         else:
             out = pl.DataFrame({
-                "term": [v.variable],
-                "contrast": [v.lab],
+                "term": np.repeat([v.variable], len(est)),
+                "contrast": np.repeat([v.lab], len(est)),
                 "estimate": est,
             })
         return out

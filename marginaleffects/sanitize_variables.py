@@ -55,7 +55,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
             variable=variable,
             hi=clean(True),
             lo=clean(False),
-            lab=clean("True - False"),
+            lab="True - False",
             pad = None)
         return [out]
 
@@ -64,7 +64,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
             variable=variable,
             hi=clean(1),
             lo=clean(0),
-            lab=clean("1 - 0"),
+            lab="1 - 0",
             pad = None)
         return [out]
 
@@ -74,7 +74,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
                 variable=variable,
                 hi=clean([value[1]]),
                 lo=clean([value[0]]),
-                lab=clean(f"{value[1]} - {value[0]}"),
+                lab=f"{value[1]} - {value[0]}",
                 pad = None)
             return [out]
 
@@ -92,7 +92,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
     if vartype == "numeric" and isinstance(value, str):
         if value == "sd":
             value = np.std(newdata[variable])
-            lab = clean("sd")
+            lab = "sd"
             hi = (newdata[variable] + value / 2).cast(newdata[variable].dtype)
             lo = (newdata[variable] - value / 2).cast(newdata[variable].dtype)
         else:
@@ -101,12 +101,12 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
     elif isinstance(value, list):
         if len(value) != 2:
             raise ValueError(msg)
-        lab = clean(f"{value[1]} - {value[0]}")
+        lab = f"{value[1]} - {value[0]}"
         hi = clean([value[1]])
         lo = clean([value[0]])
 
     elif isinstance(value, (int, float)):
-        lab = clean(f"+{value}")
+        lab = f"+{value}"
         hi = newdata[variable] + value / 2
         lo = newdata[variable] - value / 2
 
@@ -123,7 +123,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
     if len(lo) == 1:
         lo = clean(np.repeat[lo[0]])
         hi = clean(np.repeat[hi[0]])
-        lab = clean(np.repeat[lab[0]])
+        lab = lab[0]
 
     out = [HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad = None)]
     return out
@@ -167,7 +167,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                     variable=variable,
                     hi=clean([u]),
                     lo=clean([uniqs[0]]),
-                    lab=clean(f"{u} - {uniqs[0]}"),
+                    lab=f"{u} - {uniqs[0]}",
                     pad=uniqs)
                 out.append(hl)
     elif combo == "revreference":
@@ -178,7 +178,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                     variable=variable,
                     hi=clean([u]),
                     lo=clean([last_element]),
-                    lab=clean(f"{u} - {last_element}"),
+                    lab=f"{u} - {last_element}",
                     pad=uniqs)
                 out.append(hl)
     elif combo == "sequential":
@@ -187,7 +187,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                 variable=variable,
                 hi=clean([uniqs[i + 1]]),
                 lo=clean([uniqs[i]]),
-                lab=clean(f"{uniqs[i + 1]} - {uniqs[i]}"),
+                lab=f"{uniqs[i + 1]} - {uniqs[i]}",
                 pad=uniqs)
             out.append(hl)
     elif combo == "revsequential":
@@ -196,7 +196,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                 variable=variable,
                 hi=clean([uniqs[i - 1]]),
                 lo=clean([uniqs[i]]),
-                lab=clean(f"{uniqs[i - 1]} - {uniqs[i]}"),
+                lab=f"{uniqs[i - 1]} - {uniqs[i]}",
                 pad=uniqs)
             out.append(hl)
     elif combo == "pairwise":
@@ -206,7 +206,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                     variable=variable,
                     hi=clean([uniqs[j]]),
                     lo=clean([uniqs[i]]),
-                    lab=clean(f"{uniqs[j]} - {uniqs[i]}"),
+                    lab=f"{uniqs[j]} - {uniqs[i]}",
                     pad=uniqs)
                 out.append(hl)
     elif combo == "revpairwise":
@@ -216,7 +216,7 @@ def get_categorical_combinations(variable, uniqs, newdata, combo="reference"):
                     variable=variable,
                     hi=clean([uniqs[i]]),
                     lo=clean([uniqs[j]]),
-                    lab=clean(f"{uniqs[i]} - {uniqs[j]}"),
+                    lab=f"{uniqs[i]} - {uniqs[j]}",
                     pad=uniqs)
                 out.append(hl)
     else:
