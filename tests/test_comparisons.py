@@ -12,9 +12,7 @@ marginaleffects = importr("marginaleffects")
 stats = importr("stats")
 
 # Guerry Data
-df = sm.datasets.get_rdataset("Guerry", "HistData").data
-df_r = pandas_to_r(df)
-df = pl.from_pandas(df)
+df, df_r = download_data("HistData", "Guerry")
 df = df.with_columns((pl.col("Area") > pl.col("Area").median()).alias("Bool"))
 df = df.with_columns((pl.col("Distance") > pl.col("Distance").median()).alias("Bin"))
 df = df.with_columns(df['Bin'].apply(lambda x: int(x), return_dtype=pl.Int32).alias('Bin'))
@@ -26,12 +24,7 @@ def test_basic():
     cmp_py = comparisons(mod_py, comparison = "differenceavg")
     cmp_r = marginaleffects.comparisons(mod_r, comparison = "differenceavg")
     cmp_r = r_to_polars(cmp_r)
-    cmp_r = cmp_r.sort(["term", "contrast"])
-    cmp_py = cmp_r.sort(["term", "contrast"])
-    for col_py in ["estimate", "std_error", "statistic", "conf_low", "conf_high"]:
-        col_r = re.sub("_", ".", col_py)
-        if col_py in cmp_py.columns and col_r in cmp_r.columns:
-            assert cmp_r[col_r].to_numpy() == approx(cmp_py[col_py].to_numpy(), rel = 1e-5)
+    compare_r_to_py(cmp_r, cmp_py)
 
 
 def test_HC3():
@@ -40,13 +33,7 @@ def test_HC3():
     cmp_py = comparisons(mod_py, comparison = "differenceavg", vcov = "HC3")
     cmp_r = marginaleffects.comparisons(mod_r, comparison = "differenceavg", vcov = "HC3")
     cmp_r = r_to_polars(cmp_r)
-    cmp_r = cmp_r.sort(["term", "contrast"])
-    cmp_py = cmp_r.sort(["term", "contrast"])
-    for col_py in ["estimate", "std_error", "statistic", "conf_low", "conf_high"]:
-        col_r = re.sub("_", ".", col_py)
-        if col_py in cmp_py.columns and col_r in cmp_r.columns:
-            assert cmp_r[col_r].to_numpy() == approx(cmp_py[col_py].to_numpy(), rel = 1e-5)
-
+    compare_r_to_py(cmp_r, cmp_py)
 
 
 def test_bare_minimum():
