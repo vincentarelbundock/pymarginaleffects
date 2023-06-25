@@ -13,7 +13,7 @@ from rpy2.robjects.packages import importr
 # R packages
 marginaleffects = importr("marginaleffects")
 stats = importr("stats")
-df_py, df_r = download_data("datasets", "mtcars")
+df_py, df_r = rdatasets("datasets", "mtcars", r = True)
 mod_py = smf.ols("mpg ~ wt * hp", df_py).fit()
 mod_r = stats.lm("mpg ~ wt * hp", data = df_r)
 

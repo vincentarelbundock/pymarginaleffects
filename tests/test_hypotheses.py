@@ -11,7 +11,7 @@ marginaleffects = importr("marginaleffects")
 stats = importr("stats")
 
 # Guerry Data
-df, df_r = download_data("HistData", "Guerry")
+df, df_r = rdatasets("HistData", "Guerry", r = True)
 
 # fit models
 mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()

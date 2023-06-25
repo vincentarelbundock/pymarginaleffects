@@ -23,12 +23,15 @@ def r_to_pandas(df):
 def r_to_polars(df):
     return pl.from_pandas(r_to_pandas(df))
 
-def download_data(package, dataset):
+def rdatasets(package, dataset, r = False):
     url = f"https://vincentarelbundock.github.io/Rdatasets/csv/{package}/{dataset}.csv"
     dat_py = pl.read_csv(url)
     dat_py = dat_py.rename({"": "rownames"})
-    dat_r = pandas_to_r(dat_py.to_pandas())
-    return dat_py, dat_r
+    if r is False:
+        return dat_py
+    else:
+        dat_r = pandas_to_r(dat_py.to_pandas())
+        return dat_py, dat_r
 
 def compare_r_to_py(r_obj, py_obj, rel = 1e-3):
     cols = ["term", "contrast", "rowid"]

@@ -12,7 +12,7 @@ marginaleffects = importr("marginaleffects")
 stats = importr("stats")
 
 # Guerry Data
-df, df_r = download_data("HistData", "Guerry")
+df, df_r = rdatasets("HistData", "Guerry", r = True)
 df = df.with_columns((pl.col("Area") > pl.col("Area").median()).alias("Bool"))
 df = df.with_columns((pl.col("Distance") > pl.col("Distance").median()).alias("Bin"))
 df = df.with_columns(df['Bin'].apply(lambda x: int(x), return_dtype=pl.Int32).alias('Bin'))
