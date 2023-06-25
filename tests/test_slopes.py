@@ -1,5 +1,3 @@
-# TODO: standard errors are commented out. In the simple case, the bad ones are 30% off
-
 import re
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
@@ -21,6 +19,18 @@ df = df.with_columns((pl.col("Area") > pl.col("Area").median()).alias("Bool"))
 df = df.with_columns((pl.col("Distance") > pl.col("Distance").median()).alias("Bin"))
 df = df.with_columns(df['Bin'].apply(lambda x: int(x), return_dtype=pl.Int32).alias('Bin'))
 df = df.with_columns(pl.Series(np.random.choice(["a", "b", "c"], df.shape[0])).alias("Char"))
+mod = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
+
+
+def test_bare_minimum():
+    slo = slopes(mod, slope = "dydx")
+    assert type(slo) == pl.DataFrame
+    slopes(mod, slope = "eydx")
+    assert type(slo) == pl.DataFrame
+    slopes(mod, slope = "dyex")
+    assert type(slo) == pl.DataFrame
+    slopes(mod, slope = "eyex")
+    assert type(slo) == pl.DataFrame
 
 
 def test_basic():
@@ -31,7 +41,7 @@ def test_basic():
     slo_r = r_to_polars(slo_r)
     cmp_py = cmp_py.sort(["term", "contrast"])
     slo_r = slo_r.sort(["term", "contrast"])
-    for col_py in ["estimate"]:#, "std_error", "statistic", "conf_low", "conf_high"]:
+    for col_py in ["estimate"]:#, "std_error", "statistic", "conf_low", pl."conf_high"]:
         col_r = re.sub("_", ".", col_py) 
         if col_py in cmp_py.columns and col_r in slo_r.columns:
             assert slo_r[col_r].to_numpy() == approx(cmp_py[col_py].to_numpy(), rel = 1e-2)

@@ -20,14 +20,14 @@ estimands = {
     # "differenceavgwts": lambda hi, lo, w: (hi * w).sum() / w.sum() - (lo * w).sum() / w.sum(),
 
     "dydx": lambda hi, lo, eps, x, y: (hi - lo) / eps,
-    # "eyex": lambda hi, lo, eps, y, x: (hi - lo) / eps * (x / y),
-    # "eydx": lambda hi, lo, eps, y, x: ((hi - lo) / eps) / y,
-    # "dyex": lambda hi, lo, eps, x: ((hi - lo) / eps) * x,
+    "eyex": lambda hi, lo, eps, x, y: (hi - lo) / eps * (x / y),
+    "eydx": lambda hi, lo, eps, x, y: ((hi - lo) / eps) / y,
+    "dyex": lambda hi, lo, eps, x, y: ((hi - lo) / eps) * x,
 
     "dydxavg": lambda hi, lo, eps, x, y: ((hi - lo) / eps).mean(),
-    # "eyexavg": lambda hi, lo, eps, y, x: ((hi - lo) / eps * (x / y)).mean(),
-    # "eydxavg": lambda hi, lo, eps, y, x: (((hi - lo) / eps) / y).mean(),
-    # "dyexavg": lambda hi, lo, eps, x: (((hi - lo) / eps) * x).mean(),
+    "eyexavg": lambda hi, lo, eps, x, y: ((hi - lo) / eps * (x / y)).mean(),
+    "eydxavg": lambda hi, lo, eps, x, y: (((hi - lo) / eps) / y).mean(),
+    "dyexavg": lambda hi, lo, eps, x, y: (((hi - lo) / eps) * x).mean(),
     # "dydxavgwts": lambda hi, lo, eps, w: (((hi - lo) / eps) * w).sum() / w.sum(),
     # "eyexavgwts": lambda hi, lo, eps, y, x, w: (((hi - lo) / eps) * (x / y) * w).sum() / w.sum(),
     # "eydxavgwts": lambda hi, lo, eps, y, x, w: ((((hi - lo) / eps) / y) * w).sum() / w.sum(),
@@ -48,8 +48,8 @@ estimands = {
     "lift": lambda hi, lo, eps, x, y: (hi - lo) / lo,
     "liftavg": lambda hi, lo, eps, x, y: np.array([(np.mean(hi) - np.mean(lo)) / np.mean(lo)]),
 
-    # "expdydx": lambda hi, lo, eps: ((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps,
-    # "expdydxavg": lambda hi, lo, eps: (((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps).mean(),
+    "expdydx": lambda hi, lo, eps, x, y: ((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps,
+    "expdydxavg": lambda hi, lo, eps, x, y: (((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps).mean(),
     # "expdydxavgwts": lambda hi, lo, eps, w: ((((np.exp(hi) - np.exp(lo)) / np.exp(eps)) / eps) * w).sum() / w.sum(),
 }
 
@@ -79,7 +79,7 @@ def get_estimand(model, params, hi, lo, comparison, variabletype = "numeric", ep
         fun = estimands["difference"]
     else:
         fun = estimands[comparison]
-    out = fun(hi = p_hi, lo = p_lo, eps = eps, x = None, y = None)
+    out = fun(hi = p_hi, lo = p_lo, eps = eps, x = x, y = y)
     return out
 
 
@@ -99,9 +99,12 @@ def get_comparison(
 
     variabletype = get_one_variable_type(variable = variable.variable, newdata = newdata)
 
+    xvar = newdata[variable.variable]
+    yvar = newdata[model.model.endog_names]
+
     # estimands
     def fun(x):
-        out = get_estimand(model, x, hi, lo, comparison=comparison, variabletype = variabletype, eps = eps, x = None, y = None)
+        out = get_estimand(model, x, hi, lo, comparison=comparison, variabletype = variabletype, eps = eps, x = xvar, y = yvar)
         out = get_by(model, out, newdata=newdata, by=by)
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
