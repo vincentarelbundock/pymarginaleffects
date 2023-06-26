@@ -138,7 +138,7 @@ def comparisons(
                 x = None,
                 y = None, 
             )
-            if isinstance(est, float):
+            if isinstance(est, float) or len(est) == 1:
                 est = pl.Series([est])
                 tmp = x.select(by) \
                        .unique() \
@@ -147,7 +147,8 @@ def comparisons(
                 tmp = x.with_columns(pl.lit(est).alias("estimate"))
             return tmp 
 
-        tmp = tmp.groupby(by).apply(applyfun)
+        # maintain_order is extremely important
+        tmp = tmp.groupby(by, maintain_order = True).apply(applyfun)
         return tmp 
 
     outer = lambda x: inner(x, by = by)

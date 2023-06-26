@@ -7,5 +7,9 @@ def get_by(model, estimand, newdata, by = None):
         out = pl.DataFrame({"estimate" : estimand})
     if by is not None:
         # maintain_order is super important
-        out = out.select([by, "estimate"]).groupby(by, maintain_order=True).mean()
+        if isinstance(by, str):
+            tmp = [by] + ["estimate"]
+        elif isinstance(by, list):
+            tmp = by + ["estimate"]
+        out = out.select(tmp).groupby(by, maintain_order=True).mean()
     return out

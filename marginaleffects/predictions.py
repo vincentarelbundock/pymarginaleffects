@@ -50,6 +50,7 @@ def predictions(
         out = get_by(model, out, newdata=newdata, by=by)
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
+    g = lambda x: fun(np.array(x), by = by)
     out = fun(np.array(model.params))
     if vcov is not None:
         J = get_jacobian(fun, model.params.to_numpy())
