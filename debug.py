@@ -10,13 +10,8 @@ marginaleffects = importr("marginaleffects")
 stats = importr("stats")
 df_py, df_r = rdatasets("datasets", "mtcars", r = True)
 mod_py = smf.ols("mpg ~ wt * hp", df_py).fit()
-mod_py = comparisons(mod_py, comparison = "dyex").sort(["term", "contrast", "rowid"])
-mod_r = stats.lm("mpg ~ wt * hp", data = df_r)
-mod_r = marginaleffects.comparisons(mod_r, comparison = "dyex", data = df_r)
-mod_r = r_to_polars(mod_r).sort(["term", "contrast", "rowid"])
-
-compare_r_to_py(mod_r, mod_py, tolr = 2e-2)
 
 
-print()
-print(comparisons(mod, comparison = "dyex"))
+print(comparisons(mod_py, comparison = "difference", by = True))
+# print(comparisons(mod_py, comparison = "difference", by = True))
+# print(comparisons(mod_py, comparison = "ratio", by = True))

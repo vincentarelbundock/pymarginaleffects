@@ -3,6 +3,7 @@ import numpy as np
 import polars as pl
 from warnings import warn
 from collections import namedtuple
+from .comparisons import estimands
 
 HiLo = namedtuple('HiLo', ['variable', 'hi', 'lo', 'lab', "pad", "comparison"])
 
@@ -282,3 +283,10 @@ def sanitize_variables(variables, model, newdata, comparison, eps):
 
     return out
  
+
+def sanitize_comparison(comparison, v, by):
+    out = comparison
+    if by is not False:
+        if f"{comparison}avg" in estimands.keys():
+            out = comparison + "avg"
+    return out

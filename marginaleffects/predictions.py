@@ -15,7 +15,13 @@ def get_exog(model, newdata = None):
     y, out = patsy.dmatrices(model.model.formula, newdata.to_pandas())
     return out
 
-def predictions(model, conf_int = 0.95, vcov = True, by = None, newdata = None, hypothesis = None):
+def predictions(
+    model,
+    conf_int = 0.95,
+    vcov = True,
+    by = False,
+    newdata = None,
+    hypothesis = None):
     """
     Predictions
 

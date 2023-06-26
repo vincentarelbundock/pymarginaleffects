@@ -1,4 +1,5 @@
 import polars as pl
+from .estimands import * 
 
 
 def sanitize_newdata(model, newdata):
@@ -8,6 +9,13 @@ def sanitize_newdata(model, newdata):
         out = pl.from_pandas(out)
     except:
         pass
+    origin = [pl.Int16, pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64, pl.Float64]
+    for col in out.columns:
+        if out[col].dtype in origin:
+            print("good")
+            out = out.with_columns(pl.col(col).cast(pl.Float32).alias(col))
+        else:
+            print("bad")
     return out
 
 
