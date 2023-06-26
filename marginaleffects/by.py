@@ -5,11 +5,13 @@ def get_by(model, estimand, newdata, by = None):
         out = newdata.with_columns(pl.Series(estimand).alias("estimate"))
     else:
         out = pl.DataFrame({"estimate" : estimand})
-    if by is not None:
-        # maintain_order is super important
-        if isinstance(by, str):
-            tmp = [by] + ["estimate"]
-        elif isinstance(by, list):
-            tmp = by + ["estimate"]
-        out = out.select(tmp).groupby(by, maintain_order=True).mean()
+    if by is True:
+        return out.select(["estimate"]).mean()
+    elif by is False:
+        return out
+    elif not isinstance(by, list) and not isinstance(by, str):
+         raise ValueError("by must be True, False, str, or list")
+    out = out \
+        .groupby(by, maintain_order=True) \
+        .agg(pl.col("estimate").mean())
     return out

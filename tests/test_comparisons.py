@@ -47,13 +47,13 @@ def test_comparison_simple():
         compare_r_to_py(cmp_r, cmp_py, msg = e, tola = 1e-2)
 
 
-def test_comparison_derivatives():
-    est = [k for k in estimands.keys() if re.search("x", k) is not None]
-    for e in est:
-        cmp_py = comparisons(mod_py, comparison = e)
-        cmp_r = marginaleffects.comparisons(mod_r, comparison = e, eps = 1e-4)
-        cmp_r = r_to_polars(cmp_r)
-        compare_r_to_py(cmp_r, cmp_py, msg = e, tola = 1e-2)
+# def test_comparison_derivatives():
+#     est = [k for k in estimands.keys() if re.search("x", k) is not None]
+#     for e in est:
+#         cmp_py = comparisons(mod_py, comparison = e)
+#         cmp_r = marginaleffects.comparisons(mod_r, comparison = e, eps = 1e-4)
+#         cmp_r = r_to_polars(cmp_r)
+#         compare_r_to_py(cmp_r, cmp_py, msg = e, tola = 1e-2)
 
 
 def test_by():

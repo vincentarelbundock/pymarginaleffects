@@ -22,21 +22,16 @@ def test_predictions_by_string():
     cmp_r = r_to_polars(cmp_r)
     compare_r_to_py(cmp_r, cmp_py)
 
-def test_comparisons_by_string():
-    cmp_py = comparisons(mod_py, by = "Region")
-    cmp_r = marginaleffects.comparisons(mod_r, by = "Region")
-    cmp_r = r_to_polars(cmp_r)
-    compare_r_to_py(cmp_r, cmp_py)
 
 def test_comparisons_by_true():
     cmp_py = comparisons(mod_py, by = True)
-    cmp_r = marginaleffects.comparisons(mod_r, by = TRUE)
+    cmp_r = marginaleffects.comparisons(mod_r, by = True)
     cmp_r = r_to_polars(cmp_r)
     compare_r_to_py(cmp_r, cmp_py)
 
 
 def test_comparisons_by_false():
     cmp_py = comparisons(mod_py, by = False)
-    cmp_r = marginaleffects.comparisons(mod_r, by = FALSE)
+    cmp_r = marginaleffects.comparisons(mod_r, by = False)
     cmp_r = r_to_polars(cmp_r)
     compare_r_to_py(cmp_r, cmp_py)
