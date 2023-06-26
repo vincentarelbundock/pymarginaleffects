@@ -138,8 +138,8 @@ def comparisons(
                 x = None,
                 y = None, 
             )
-            if isinstance(est, float) or len(est) == 1:
-                est = pl.Series([est])
+            if est.shape[0] == 1:
+                est = est.item()
                 tmp = x.select(by) \
                        .unique() \
                        .with_columns(pl.lit(est).alias("estimate"))
