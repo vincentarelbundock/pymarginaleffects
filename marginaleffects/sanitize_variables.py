@@ -37,7 +37,7 @@ def clean_global(k, n):
     return out
 
 
-def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
+def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by):
     msg = "`value` must be a numeric, a list of length two, or 'sd'"
     vartype = get_one_variable_type(variable, newdata)
     clean = lambda k: clean_global(k, newdata.shape[0])
@@ -56,6 +56,8 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps):
                 value = eps
             else:
                 value = 1
+
+    comparison = sanitize_comparison(comparison, by)
 
     if vartype == "boolean":
         out = HiLo(
@@ -250,13 +252,13 @@ def get_categorical_combinations(variable, uniqs, newdata, comparison, combo="re
     return out
 
 
-def sanitize_variables(variables, model, newdata, comparison, eps):
+def sanitize_variables(variables, model, newdata, comparison, eps, by):
     out = []
 
     if variables is None:
         vlist = get_variables_names(variables, model, newdata)
         for v in vlist:
-            out.append(get_one_variable_hi_lo(v, None, newdata, comparison, eps))
+            out.append(get_one_variable_hi_lo(v, None, newdata, comparison, eps, by))
 
     elif isinstance(variables, dict):
         for v in variables:
@@ -264,19 +266,19 @@ def sanitize_variables(variables, model, newdata, comparison, eps):
                 del variables[v]
                 warn(f"Variable {v} is not in newdata.")
             else:
-                out.append(get_one_variable_hi_lo(v, variables[v], newdata, comparison, eps))
+                out.append(get_one_variable_hi_lo(v, variables[v], newdata, comparison, eps, by))
 
     elif isinstance(variables, str):
         if variables not in newdata.columns:
             raise ValueError(f"Variable {variables} is not in newdata.")
-        out.append(get_one_variable_hi_lo(variables, None, newdata, comparison, eps))
+        out.append(get_one_variable_hi_lo(variables, None, newdata, comparison, eps, by))
 
     elif isinstance(variables, list):
         for v in variables:
             if v not in newdata.columns:
                 warn(f"Variable {v} is not in newdata.")
             else:
-                out.append(get_one_variable_hi_lo(v, None, newdata, comparison, eps))
+                out.append(get_one_variable_hi_lo(v, None, newdata, comparison, eps, by))
 
     # unnest list of list of HiLo
     out = [item for sublist in out for item in sublist]
@@ -284,7 +286,7 @@ def sanitize_variables(variables, model, newdata, comparison, eps):
     return out
  
 
-def sanitize_comparison(comparison, v, by):
+def sanitize_comparison(comparison, by):
     out = comparison
     if by is not False:
         if f"{comparison}avg" in estimands.keys():

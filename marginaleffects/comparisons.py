@@ -32,7 +32,7 @@ def convert_int_columns_to_float32(dfs: list) -> list:
     for df in dfs:
         new_columns = []
         for col in df:
-            if col != "rowid" and col.dtype in numeric_types:
+            if col.dtype in numeric_types:
                 new_columns.append(col.cast(pl.Float32).alias(col.name))
             else:
                 new_columns.append(col)
@@ -56,7 +56,7 @@ def comparisons(
     newdata = sanitize_newdata(model, newdata)
 
     # after sanitize_newdata() 
-    variables = sanitize_variables(variables=variables, model=model, newdata=newdata, comparison=comparison, eps=eps)
+    variables = sanitize_variables(variables=variables, model=model, newdata=newdata, comparison=comparison, eps=eps, by=by)
 
     # pad for character/categorical variables in patsy
     pad = []
@@ -99,23 +99,29 @@ def comparisons(
         hi = hi[pad.shape[0]:]
         lo = lo[pad.shape[0]:]
 
-    # meta data
-    out = hi.clone()
-
     # TODO: fix derivatives
     xvar = pl.Series(np.repeat(None, newdata.shape[0]))
     yvar = pl.Series(np.repeat(None, newdata.shape[0]))
 
-    def fun(coefs, v, by):
-        comp = sanitize_comparison(comparison, v, by)
+    baseline = hi.clone()
+
+    def fun(coefs, by):
+
+        # we don't want a pandas series
+        try:
+            coefs = coefs.to_numpy()
+        except:
+            pass
+
+        comp = sanitize_comparison(comparison, by)
 
         # estimates
-        tmp = out.with_columns(
+        tmp = baseline.with_columns(
             pl.Series(model.model.predict(coefs, lo_X)).alias("predicted_lo"),
             pl.Series(model.model.predict(coefs, hi_X)).alias("predicted_hi"),
-        )
             # pl.lit(xvar).alias("marginaleffects_xvar"),
             # pl.lit(yvar).alias("marginaleffects_yvar"),
+        )
 
         if isinstance(by, str):
             by = ["term", "contrast"] + [by]
@@ -124,7 +130,7 @@ def comparisons(
         else:
             by = ["term", "contrast"]
 
-        def applyfun(x):
+        def applyfun(x, by = by):
             est = estimands[comp](
                 hi = x["predicted_hi"],
                 lo = x["predicted_lo"],
@@ -132,15 +138,23 @@ def comparisons(
                 x = None,
                 y = None, 
             )
-            return x.with_columns(pl.lit(est).alias("estimate"))
-        
-        return tmp.groupby(by).apply(applyfun)
+            if isinstance(est, float):
+                est = pl.Series([est])
+                tmp = x.select(by) \
+                       .unique() \
+                       .with_columns(pl.lit(est).alias("estimate"))
+            else:
+                tmp = x.with_columns(pl.lit(est).alias("estimate"))
+            return tmp 
 
-    out = fun(model.params, v = v, by = by)
+        tmp = tmp.groupby(by).apply(applyfun)
+        return tmp 
+
+    out = fun(model.params, by = by)
 
     if vcov is not None and vcov is not False:
-        g = lambda x: fun(x, v = v, by = by)
-        J = get_jacobian(func = g, coefs = model.params)
+        g = lambda x: fun(x, by = by)
+        J = get_jacobian(func = g, coefs = model.params.to_numpy())
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_int=conf_int)
