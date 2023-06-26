@@ -105,7 +105,7 @@ def comparisons(
 
     baseline = hi.clone()
 
-    def fun(coefs, by):
+    def inner(coefs, by):
 
         # we don't want a pandas series
         try:
@@ -150,11 +150,12 @@ def comparisons(
         tmp = tmp.groupby(by).apply(applyfun)
         return tmp 
 
-    out = fun(model.params, by = by)
+    outer = lambda x: inner(x, by = by)
+
+    out = outer(model.params.to_numpy())
 
     if vcov is not None and vcov is not False:
-        g = lambda x: fun(x, by = by)
-        J = get_jacobian(func = g, coefs = model.params.to_numpy())
+        J = get_jacobian(func = outer, coefs = model.params.to_numpy())
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_int=conf_int)
