@@ -2,11 +2,9 @@ import re
 import numpy as np
 from marginaleffects import *
 import polars as pl
-import rpy2
 from rpy2.robjects.packages import importr
 import rpy2.robjects as ro
 from rpy2.robjects import r, pandas2ri
-from pytest import approx
 
 def pandas_to_r(df):
     with (ro.default_converter + ro.pandas2ri.converter).context():

@@ -16,7 +16,7 @@ df = df \
         pl.Series(np.random.choice(["a", "b", "c"], df.shape[0])).alias("Char"))
 
 fit = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", df).fit()
-print(comparisons(fit))
+print(comparisons(fit, by = True))
 # print(comparisons(fit, variables = "Pop1831", comparison = "differenceavg"))
 # print(comparisons(fit, variables = "Pop1831", comparison = "difference").head())
 # print(comparisons(fit, variables = "Pop1831", comparison = "ratio").head())

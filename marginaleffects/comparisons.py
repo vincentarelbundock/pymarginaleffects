@@ -31,13 +31,14 @@ def convert_int_columns_to_float32(dfs: list) -> list:
     converted_dfs = []
     for df in dfs:
         new_columns = []
-        for col in df:
-            if col.dtype in numeric_types:
-                new_columns.append(col.cast(pl.Float32).alias(col.name))
-            else:
-                new_columns.append(col)
-        converted_df = df.with_columns(new_columns)
-        converted_dfs.append(converted_df)
+        if df is not None:
+            for col in df:
+                if col.dtype in numeric_types:
+                    new_columns.append(col.cast(pl.Float32).alias(col.name))
+                else:
+                    new_columns.append(col)
+            converted_df = df.with_columns(new_columns)
+            converted_dfs.append(converted_df)
     return converted_dfs
 
     
@@ -78,15 +79,16 @@ def comparisons(
     # ugly hack, but polars is very strict and `value / 2`` is float
     hi = convert_int_columns_to_float32(hi)
     lo = convert_int_columns_to_float32(lo)
-    hi = pl.concat(hi)
-    lo = pl.concat(lo)
+    pad = convert_int_columns_to_float32(pad)
+    hi = pl.concat(hi, how = "vertical_relaxed")
+    lo = pl.concat(lo, how = "vertical_relaxed")
     pad = [x for x in pad if x is not None]
     if len(pad) == 0:
         pad = pl.DataFrame()
     else:
         pad = pl.concat(pad).unique()
-        hi = pl.concat([pad, hi])
-        lo = pl.concat([pad, lo])
+        hi = pl.concat([pad, hi], how = "diagonal")
+        lo = pl.concat([pad, lo], how = "diagonal")
 
     # model matrices
     y, hi_X = patsy.dmatrices(model.model.formula, hi.to_pandas())
