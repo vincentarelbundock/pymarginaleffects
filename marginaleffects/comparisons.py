@@ -124,7 +124,7 @@ def comparisons(
 
         # estimates
         tmp = baseline.with_columns(
-            pl.Series(model.model.predict(model.params.to_numpy(), lo_X)).alias("predicted"),
+            pl.Series(model.model.predict(model.params.to_numpy(), nd_X)).alias("predicted"),
             pl.Series(model.model.predict(coefs, lo_X)).alias("predicted_lo"),
             pl.Series(model.model.predict(coefs, hi_X)).alias("predicted_hi"),
         )
