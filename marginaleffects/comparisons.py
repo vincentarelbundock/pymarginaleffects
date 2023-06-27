@@ -102,7 +102,6 @@ def comparisons(
         lo = lo[pad.shape[0]:]
 
     # TODO: fix derivatives
-    xvar = pl.Series(np.repeat(None, newdata.shape[0]))
     yvar = pl.Series(np.repeat(None, newdata.shape[0]))
 
     baseline = hi.clone()
@@ -132,11 +131,12 @@ def comparisons(
 
         def applyfun(x, by = by):
             comp = x["marginaleffects_comparison"][0]
+            xvar = x[x["term"][0]]
             est = estimands[comp](
                 hi = x["predicted_hi"],
                 lo = x["predicted_lo"],
                 eps = eps,
-                x = None,
+                x = xvar,
                 y = None, 
             )
             if est.shape[0] == 1:
