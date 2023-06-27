@@ -101,9 +101,6 @@ def comparisons(
         hi = hi[pad.shape[0]:]
         lo = lo[pad.shape[0]:]
 
-    # TODO: fix derivatives
-    yvar = pl.Series(np.repeat(None, newdata.shape[0]))
-
     baseline = hi.clone()
 
     def inner(coefs, by):
@@ -118,8 +115,6 @@ def comparisons(
         tmp = baseline.with_columns(
             pl.Series(model.model.predict(coefs, lo_X)).alias("predicted_lo"),
             pl.Series(model.model.predict(coefs, hi_X)).alias("predicted_hi"),
-            # pl.lit(xvar).alias("marginaleffects_xvar"),
-            # pl.lit(yvar).alias("marginaleffects_yvar"),
         )
 
         if isinstance(by, str):
@@ -132,12 +127,13 @@ def comparisons(
         def applyfun(x, by = by):
             comp = x["marginaleffects_comparison"][0]
             xvar = x[x["term"][0]]
+            yvar = model.predict(x).to_numpy()
             est = estimands[comp](
                 hi = x["predicted_hi"],
                 lo = x["predicted_lo"],
                 eps = eps,
                 x = xvar,
-                y = None, 
+                y = yvar,
             )
             if est.shape[0] == 1:
                 est = est.item()
