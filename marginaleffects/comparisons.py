@@ -116,7 +116,7 @@ def comparisons(
 
     baseline = nd.clone()
 
-    def inner(coefs, by):
+    def inner(coefs, by, hypothesis):
 
         # we don't want a pandas series
         try:
@@ -138,7 +138,7 @@ def comparisons(
         else:
             by = ["term", "contrast"]
 
-        def applyfun(x, by = by):
+        def applyfun(x, by):
             comp = x["marginaleffects_comparison"][0]
             xvar = x[x["term"][0]]
             est = estimands[comp](
@@ -157,11 +157,16 @@ def comparisons(
                 tmp = x.with_columns(pl.lit(est).alias("estimate"))
             return tmp 
 
+        applyfun_outer = lambda x: applyfun(x, by = by)
+
         # maintain_order is extremely important
-        tmp = tmp.groupby(by, maintain_order = True).apply(applyfun)
+        tmp = tmp.groupby(by, maintain_order = True).apply(applyfun_outer)
+
+        tmp = get_hypothesis(tmp, hypothesis = hypothesis)
+
         return tmp 
 
-    outer = lambda x: inner(x, by = by)
+    outer = lambda x: inner(x, by = by, hypothesis = hypothesis)
 
     out = outer(model.params.to_numpy())
 
