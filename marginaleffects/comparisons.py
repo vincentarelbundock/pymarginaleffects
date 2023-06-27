@@ -6,6 +6,7 @@ from .uncertainty import *
 from .sanitize_variables import *
 from .estimands import *
 from .get_transform import *
+from .equivalence import *
 import polars as pl
 import pandas as pd
 import numpy as np
@@ -52,6 +53,7 @@ def comparisons(
         conf_int = 0.95,
         by = False,
         hypothesis = None,
+        equivalence = None,
         transform = None,
         eps = 1e-4):
 
@@ -177,5 +179,6 @@ def comparisons(
         out = get_z_p_ci(out, model, conf_int=conf_int)
 
     out = get_transform(out, transform = transform)
+    out = get_equivalence(out, equivalence = equivalence, df = np.inf)
     out = sort_columns(out, by = by)
     return out

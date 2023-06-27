@@ -25,7 +25,6 @@ def test_coefs():
 
 
 def test_comparisons_hypothesis():
-    py = comparisons(mod_py, by = True, hypothesis = "b2 = b1")
+    py = comparisons(mod_py, by = True, hypothesis = "b1 = b2")
     r = r_to_polars(marginaleffects.comparisons(mod_r, by = True, hypothesis = "b1 = b2"))
-    py["estimate"] == r["estimate"]
     compare_r_to_py(r, py)

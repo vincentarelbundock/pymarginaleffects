@@ -23,6 +23,7 @@ def predictions(
     by = False,
     newdata = None,
     hypothesis = None,
+    equivalence = None,
     transform = None):
     """
     Predictions
@@ -60,5 +61,6 @@ def predictions(
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_int=conf_int)
     out = get_transform(out, transform = transform)
+    out = get_equivalence(out, equivalence = equivalence)
     out = sort_columns(out, by = by)
     return out
