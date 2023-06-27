@@ -32,5 +32,6 @@ def get_z_p_ci(df, model, conf_int):
 
     df = df.with_columns((pl.col("estimate") - critical_value * pl.col("std_error")).alias("conf_low"))
     df = df.with_columns((pl.col("estimate") + critical_value * pl.col("std_error")).alias("conf_high"))
-    # df = df.with_columns((2 * (1 - stats.t.cdf(pl.col("statistic").abs()), dof)).alias("p_value"))
+    df = df.with_columns(pl.col("statistic").apply(lambda x: (2 * (1 - stats.t.cdf(np.abs(x), dof)))).alias("p_value"))
+    df = df.with_columns(pl.col("p_value").apply(lambda x: -np.log2(x)).alias("s_value"))
     return df

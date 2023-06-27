@@ -11,4 +11,4 @@ df = pl.read_csv("mtcars.csv")
 mod = smf.ols("mpg ~ wt * hp * cyl", df).fit()
 
 
-print(comparisons(mod, by = True, hypothesis = "b1 = b2"))
+print(comparisons(mod, by = True))
