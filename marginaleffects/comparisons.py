@@ -63,7 +63,12 @@ def comparisons(
     pad = []
     hi = []
     lo = []
+    nd = []
     for v in variables:
+        nd.append(newdata.with_columns(
+            pl.lit(v.variable).alias("term"),
+            pl.lit(v.lab).alias("contrast"),
+            pl.lit(v.comparison).alias("marginaleffects_comparison")))
         hi.append(newdata.with_columns(
             v.hi.alias(v.variable),
             pl.lit(v.variable).alias("term"),
@@ -77,9 +82,11 @@ def comparisons(
         pad.append(get_pad(newdata, v.variable, v.pad)) 
 
     # ugly hack, but polars is very strict and `value / 2`` is float
+    nd = convert_int_columns_to_float32(nd)
     hi = convert_int_columns_to_float32(hi)
     lo = convert_int_columns_to_float32(lo)
     pad = convert_int_columns_to_float32(pad)
+    nd = pl.concat(nd, how = "vertical_relaxed")
     hi = pl.concat(hi, how = "vertical_relaxed")
     lo = pl.concat(lo, how = "vertical_relaxed")
     pad = [x for x in pad if x is not None]
@@ -87,21 +94,25 @@ def comparisons(
         pad = pl.DataFrame()
     else:
         pad = pl.concat(pad).unique()
+        nd = pl.concat([pad, hi], how = "diagonal")
         hi = pl.concat([pad, hi], how = "diagonal")
         lo = pl.concat([pad, lo], how = "diagonal")
 
     # model matrices
     y, hi_X = patsy.dmatrices(model.model.formula, hi.to_pandas())
     y, lo_X = patsy.dmatrices(model.model.formula, lo.to_pandas())
+    y, nd_X = patsy.dmatrices(model.model.formula, nd.to_pandas())
 
     # unpad
     if pad.shape[0] > 0:
+        nd_X = nd_X[pad.shape[0]:]
         hi_X = hi_X[pad.shape[0]:]
         lo_X = lo_X[pad.shape[0]:]
+        nd = nd[pad.shape[0]:]
         hi = hi[pad.shape[0]:]
         lo = lo[pad.shape[0]:]
 
-    baseline = hi.clone()
+    baseline = nd.clone()
 
     def inner(coefs, by):
 
@@ -113,6 +124,7 @@ def comparisons(
 
         # estimates
         tmp = baseline.with_columns(
+            pl.Series(model.model.predict(model.params.to_numpy(), lo_X)).alias("predicted"),
             pl.Series(model.model.predict(coefs, lo_X)).alias("predicted_lo"),
             pl.Series(model.model.predict(coefs, hi_X)).alias("predicted_hi"),
         )
@@ -127,13 +139,12 @@ def comparisons(
         def applyfun(x, by = by):
             comp = x["marginaleffects_comparison"][0]
             xvar = x[x["term"][0]]
-            yvar = model.predict(x).to_numpy()
             est = estimands[comp](
                 hi = x["predicted_hi"],
                 lo = x["predicted_lo"],
                 eps = eps,
                 x = xvar,
-                y = yvar,
+                y = x["predicted"],
             )
             if est.shape[0] == 1:
                 est = est.item()

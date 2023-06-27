@@ -106,8 +106,8 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by):
         if value == "sd":
             value = np.std(newdata[variable])
             lab = "sd"
-            hi = (newdata[variable] + value / 2).cast(newdata[variable].dtype)
-            lo = (newdata[variable] - value / 2).cast(newdata[variable].dtype)
+            hi = (newdata[variable] + value / 2)
+            lo = (newdata[variable] - value / 2)
         else:
             raise ValueError(msg)
 

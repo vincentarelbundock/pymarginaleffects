@@ -6,6 +6,8 @@ def prep(x):
         return pl.Series([x])
     elif isinstance(x, np.ndarray) or isinstance(x, list):
         return pl.Series(x)
+    elif np.isscalar(x):
+        return pl.Series([x])
     else:
         return x
 
@@ -20,10 +22,11 @@ estimands = {
     "eydx": lambda hi, lo, eps, x, y: ((hi - lo) / eps) / y,
     "dyex": lambda hi, lo, eps, x, y: ((hi - lo) / eps) * x,
 
-    "dydxavg": lambda hi, lo, eps, x, y: prep(np.mean((hi - lo) / eps)),
-    "eyexavg": lambda hi, lo, eps, x, y: prep(np.mean((hi - lo) / eps * (x / y))),
-    "eydxavg": lambda hi, lo, eps, x, y: prep(np.mean((hi - lo) / eps) / y),
-    "dyexavg": lambda hi, lo, eps, x, y: prep(np.mean(((hi - lo) / eps) * x)),
+    # "dydxavg": lambda hi, lo, eps, x, y: prep(np.mean((hi - lo) / eps)),
+    "dydxavg": lambda hi, lo, eps, x, y: prep(((hi - lo) / eps).mean()),
+    "eyexavg": lambda hi, lo, eps, x, y: prep(((hi - lo) / eps * (x / y)).mean()),
+    "eydxavg": lambda hi, lo, eps, x, y: prep((((hi - lo) / eps) / y).mean()),
+    "dyexavg": lambda hi, lo, eps, x, y: prep(((((hi - lo) / eps) * x)).mean()),
     # "dydxavgwts": lambda hi, lo, eps, w: (((hi - lo) / eps) * w).sum() / w.sum(),
     # "eyexavgwts": lambda hi, lo, eps, y, x, w: (((hi - lo) / eps) * (x / y) * w).sum() / w.sum(),
     # "eydxavgwts": lambda hi, lo, eps, y, x, w: ((((hi - lo) / eps) / y) * w).sum() / w.sum(),

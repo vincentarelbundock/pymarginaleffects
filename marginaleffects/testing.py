@@ -25,8 +25,9 @@ def r_to_polars(df):
 
 def compare_r_to_py(r_obj, py_obj, tolr = 1e-3, tola = 1e-3, msg = ""):
     cols = ["term", "contrast", "rowid"]
-    r_obj = r_obj.sort([x for x in cols if x in r_obj.columns])
-    py_obj = py_obj.sort([x for x in cols if x in py_obj.columns])
+    cols = [x for x in cols if x in r_obj.columns and x in py_obj.columns]
+    r_obj = r_obj.sort(cols)
+    py_obj = py_obj.sort(cols)
     # dont' compare other statistics because degrees of freedom don't match
     for col_py in ["estimate", "std_error"]:
         col_r = re.sub("_", ".", col_py) 
