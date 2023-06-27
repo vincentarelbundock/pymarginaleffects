@@ -1,4 +1,5 @@
-library(dplyr)
+options(marginaleffects_numDeriv = list(method.args = list(eps = 1e-6)))
+options(marginaleffects_numDeriv = NULL)
 library(marginaleffects)
-mod = lm(mpg ~ wt * hp * cyl, mtcars)
-comparisons(mod) |> arrange(term, contrast, rowid)
+mod = lm(mpg ~ wt * hp, mtcars)
+slopes(mod)

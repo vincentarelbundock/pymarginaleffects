@@ -3,6 +3,7 @@ from .sanity import *
 from .by import *
 from .utils import *
 from .hypothesis import *
+from .get_transform import *
 import polars as pl
 import pandas as pd
 import numpy as np
@@ -21,7 +22,8 @@ def predictions(
     vcov = True,
     by = False,
     newdata = None,
-    hypothesis = None):
+    hypothesis = None,
+    transform = None):
     """
     Predictions
 
@@ -57,5 +59,6 @@ def predictions(
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_int=conf_int)
+    out = get_transform(out, transform = transform)
     out = sort_columns(out, by = by)
     return out

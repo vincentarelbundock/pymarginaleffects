@@ -5,6 +5,7 @@ from .hypothesis import *
 from .uncertainty import *
 from .sanitize_variables import *
 from .estimands import *
+from .get_transform import *
 import polars as pl
 import pandas as pd
 import numpy as np
@@ -51,6 +52,7 @@ def comparisons(
         conf_int = 0.95,
         by = False,
         hypothesis = None,
+        transform = None,
         eps = 1e-4):
 
     V = sanitize_vcov(vcov, model)
@@ -169,5 +171,6 @@ def comparisons(
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_int=conf_int)
 
+    out = get_transform(out, transform = transform)
     out = sort_columns(out, by = by)
     return out

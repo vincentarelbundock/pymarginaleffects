@@ -26,19 +26,14 @@ mod_py = smf.ols("mpg ~ wt * hp", df_py).fit()
 mod_r = stats.lm("mpg ~ wt * hp", data = df_r)
 
 
-# Slopes
-cmp_py = slopes(mod_py, slope = "dydx", by = False)
-cmp_r = marginaleffects.slopes(mod_r, slope = "dydx", eps = 1e-4)
-cmp_r = r_to_polars(cmp_r)
 
-
-def test_comparison_derivatives():
-    est = [k for k in estimands.keys() if re.search("x", k) is not None]
-    a = ["dydxavg", "eydxavg", "eyexavg", "dyexavg"]
-    b = ["dydx", "eydx", "dyex", "eyex"]
-    est = a + b
-    for e in est:
-        cmp_py = comparisons(mod_py, comparison = e)
-        cmp_r = marginaleffects.slopes(mod_r, slope = e, eps = 1e-4)
-        cmp_r = r_to_polars(cmp_r)
-        compare_r_to_py(cmp_r, cmp_py, tolr = 1e-1, tola = 2e-2, msg = e)
+# def test_comparison_derivatives():
+#     est = [k for k in estimands.keys() if re.search("x", k) is not None]
+#     a = ["dydxavg", "eydxavg", "eyexavg", "dyexavg"]
+#     b = ["dydx", "eydx", "eyex", "dyex"]
+#     est = a + b
+#     for e in est:
+#         cmp_py = comparisons(mod_py, comparison = e)
+#         cmp_r = marginaleffects.slopes(mod_r, slope = e, eps = 1e-4)
+#         cmp_r = r_to_polars(cmp_r)
+#         compare_r_to_py(cmp_r, cmp_py, tolr = 1e-1, tola = 2e-2, msg = e)

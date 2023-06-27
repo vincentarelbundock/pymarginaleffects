@@ -10,4 +10,7 @@ from marginaleffects.estimands import estimands
 df = pl.read_csv("mtcars.csv")
 mod = smf.ols("mpg ~ wt * hp * cyl", df).fit()
 
-comparisons(mod, comparison = "dydxavg")
+def fun(x):
+    return np.exp(x) 
+
+out = comparisons(mod, transform = fun)
