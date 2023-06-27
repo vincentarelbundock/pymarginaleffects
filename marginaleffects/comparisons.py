@@ -115,8 +115,6 @@ def comparisons(
         except:
             pass
 
-        comp = sanitize_comparison(comparison, by)
-
         # estimates
         tmp = baseline.with_columns(
             pl.Series(model.model.predict(coefs, lo_X)).alias("predicted_lo"),
@@ -133,6 +131,7 @@ def comparisons(
             by = ["term", "contrast"]
 
         def applyfun(x, by = by):
+            comp = x["marginaleffects_comparison"][0]
             est = estimands[comp](
                 hi = x["predicted_hi"],
                 lo = x["predicted_lo"],
