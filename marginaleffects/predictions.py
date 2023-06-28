@@ -29,6 +29,7 @@ def get_predictions(model, params, newdata: Union[pl.DataFrame, pd.DataFrame]):
             .melt(id_vars = "rowid", variable_name = "group", value_name = "estimate")
     else:
         raise ValueError("The `predict()` method must return an array with 1 or 2 dimensions.")
+    p = p.with_columns(pl.col("rowid").cast(pl.Int32))
     return p
 
 
