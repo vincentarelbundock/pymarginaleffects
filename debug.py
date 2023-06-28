@@ -24,4 +24,4 @@ dat_py = dat_py \
 
 mod = smf.mnlogit("island ~ bill_length_mm + flipper_length_mm", dat_py).fit()
 
-predictions(mod).filter(pl.col("rowid") == 2)
+print(predictions(mod, newdata = dat_py.head(3)).filter(pl.col("rowid").is_in(range(3))))

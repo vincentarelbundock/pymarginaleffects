@@ -30,6 +30,11 @@ def sanitize_vcov(vcov, model):
             raise ValueError(f"The model object has no {lab} attribute.")
     else:
         raise ValueError('`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".')
+    # mnlogit returns pandas
+    try:
+        V = V.to_numpy()
+    except:
+        pass
     return V
 
 def sanitize_newdata(model, newdata):
