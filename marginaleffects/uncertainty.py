@@ -5,16 +5,27 @@ import patsy
 import scipy.stats as stats
 
 def get_jacobian(func, coefs):
-    # forward finite difference (faster)
-    eps = max(1e-8, 1e-4 * np.min(np.abs(coefs)))
-    eps = 1e-6
-    baseline = func(coefs)["estimate"].to_numpy()
-    jac = np.empty((baseline.shape[0], len(coefs)), dtype=np.float64)
-    for i, xi in enumerate(coefs):
-        dx = np.copy(coefs)
-        dx[i] = dx[i] + eps
-        jac[:, i] = (func(dx)["estimate"].to_numpy() - baseline) / eps
-    return jac
+    if coefs.ndim == 2:
+        coefs_flat = coefs.to_numpy().flatten()
+        eps = max(1e-8, 1e-4 * np.min(np.abs(coefs_flat)))
+        baseline = func(coefs)["estimate"].to_numpy()
+        jac = np.empty((baseline.shape[0], len(coefs_flat)), dtype=np.float64)
+        for i, xi in enumerate(coefs):
+            dx = np.copy(coefs_flat)
+            dx[i] = dx[i] + eps
+            tmp = dx.reshape(coefs.shape)
+            jac[:, i] = (func(tmp)["estimate"].to_numpy() - baseline) / eps
+        return jac
+    else:
+        # forward finite difference (faster)
+        eps = max(1e-8, 1e-4 * np.min(np.abs(coefs)))
+        baseline = func(coefs)["estimate"].to_numpy()
+        jac = np.empty((baseline.shape[0], len(coefs)), dtype=np.float64)
+        for i, xi in enumerate(coefs):
+            dx = np.copy(coefs)
+            dx[i] = dx[i] + eps
+            jac[:, i] = (func(dx)["estimate"].to_numpy() - baseline) / eps
+        return jac
 
 def get_se(J, V):
     se = np.sqrt(np.sum((J @ V) * J, axis=1))
@@ -33,5 +44,9 @@ def get_z_p_ci(df, model, conf_int):
     df = df.with_columns((pl.col("estimate") - critical_value * pl.col("std_error")).alias("conf_low"))
     df = df.with_columns((pl.col("estimate") + critical_value * pl.col("std_error")).alias("conf_high"))
     df = df.with_columns(pl.col("statistic").apply(lambda x: (2 * (1 - stats.t.cdf(np.abs(x), dof)))).alias("p_value"))
-    df = df.with_columns(pl.col("p_value").apply(lambda x: -np.log2(x)).alias("s_value"))
+    # TODO: better handling of p_value == 0 case, which breaks np.log2
+    try:
+        df = df.with_columns(pl.col("p_value").apply(lambda x: -np.log2(x)).alias("s_value"))
+    except:
+        pass
     return df

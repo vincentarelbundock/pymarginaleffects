@@ -3,7 +3,8 @@ from .sanity import *
 from .by import *
 from .utils import *
 from .hypothesis import *
-from .get_transform import *
+from .equivalence import *
+from .transform import *
 import polars as pl
 import pandas as pd
 import numpy as np
@@ -12,9 +13,24 @@ import scipy.stats as stats
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
 
-def get_exog(model, newdata = None):
-    y, out = patsy.dmatrices(model.model.formula, newdata.to_pandas())
-    return out
+def get_predictions(model, params, newdata: Union[pl.DataFrame, pd.DataFrame]):
+    if isinstance(newdata, np.ndarray):
+        exog = newdata
+    else:
+        y, exog = patsy.dmatrices(model.model.formula, newdata.to_pandas())
+    p = model.model.predict(params, exog)
+    if p.ndim == 1:
+        p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
+    elif p.ndim == 2:
+        colnames = {f"column_{i}": str(i) for i in range(p.shape[1])}
+        p = pl.DataFrame(p) \
+            .rename(colnames) \
+            .with_columns(pl.Series(range(p.shape[0]), dtype = pl.Int32).alias("rowid")) \
+            .melt(id_vars = "rowid", variable_name = "group", value_name = "estimate")
+    else:
+        raise ValueError("The `predict()` method must return an array with 1 or 2 dimensions.")
+    return p
+
 
 def predictions(
     model,
@@ -25,38 +41,23 @@ def predictions(
     hypothesis = None,
     equivalence = None,
     transform = None):
-    """
-    Predictions
-
-    Outcome predicted by a modelted model on a specified scale for a given combination of values of the predictor variables,
-    such as their observed values, their means, or factor levels (a.k.a. "reference grid").
-
-    Parameters
-    ----------
-    - model : `statsmodels.formula.api` modelted model
-    - conf_int : float
-    - vcov : bool or string which corresponds to one of the attributes in `model`. "HC3" looks for an attributed named `cov_HC3`.
-    - newdata : None, DataFrame or `datagrid()` call.
-    - hypothesis : Numpy array for linear combinations. 
-    """
 
     # sanity checks
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata)
 
     # predictors
-    exog = get_exog(model, newdata = newdata)
+    y, exog = patsy.dmatrices(model.model.formula, newdata.to_pandas())
 
     # estimands
     def fun(x):
-        out = model.model.predict(x, exog)
+        out = get_predictions(model, np.array(x), exog)
         out = get_by(model, out, newdata=newdata, by=by)
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
-    g = lambda x: fun(np.array(x), by = by)
-    out = fun(np.array(model.params))
+    out = fun(model.params)
     if vcov is not None:
-        J = get_jacobian(fun, model.params.to_numpy())
+        J = get_jacobian(fun, model.params)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_int=conf_int)

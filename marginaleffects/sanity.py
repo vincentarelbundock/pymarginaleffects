@@ -9,6 +9,10 @@ def sanitize_newdata(model, newdata):
         out = pl.from_pandas(out)
     except:
         pass
+    reserved = ["group", "rowid"]
+    if any(x in reserved for x in out.columns):
+        reserved = ", ".join(reserved)
+        raise ValueError("These column names are reserved and must not appear in `newdata`: {reserved}")
     return out
 
 
@@ -39,6 +43,6 @@ def sanitize_newdata(model, newdata):
     if "rowid" in out.columns:
         raise ValueError("The newdata has a column named 'rowid', which is not allowed.")
     else:
-        out = out.with_columns(pl.Series(range(out.height)).alias("rowid"))
+        out = out.with_columns(pl.Series(range(out.height), dtype = pl.Int32).alias("rowid"))
 
     return out

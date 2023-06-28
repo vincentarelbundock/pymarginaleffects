@@ -1,5 +1,0 @@
-options(marginaleffects_numDeriv = list(method.args = list(eps = 1e-6)))
-options(marginaleffects_numDeriv = NULL)
-library(marginaleffects)
-mod = lm(mpg ~ wt * hp, mtcars)
-slopes(mod)

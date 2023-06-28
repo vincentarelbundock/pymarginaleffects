@@ -5,8 +5,9 @@ from .hypothesis import *
 from .uncertainty import *
 from .sanitize_variables import *
 from .estimands import *
-from .get_transform import *
+from .transform import *
 from .equivalence import *
+from .predictions import get_predictions
 import polars as pl
 import pandas as pd
 import numpy as np
@@ -128,9 +129,9 @@ def comparisons(
 
         # estimates
         tmp = baseline.with_columns(
-            pl.Series(model.model.predict(model.params.to_numpy(), nd_X)).alias("predicted"),
-            pl.Series(model.model.predict(coefs, lo_X)).alias("predicted_lo"),
-            pl.Series(model.model.predict(coefs, hi_X)).alias("predicted_hi"),
+            get_predictions(model, model.params.to_numpy(), nd_X)["estimate"].alias("predicted"),
+            get_predictions(model, coefs, lo_X)["estimate"].alias("predicted_lo"),
+            get_predictions(model, coefs, hi_X)["estimate"].alias("predicted_hi"),
         )
 
         if isinstance(by, str):
