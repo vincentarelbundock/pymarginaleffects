@@ -53,16 +53,17 @@ def comparisons(
         vcov = True,
         conf_int = 0.95,
         by = False,
+        wts = None,
         hypothesis = None,
         equivalence = None,
         transform = None,
         eps = 1e-4):
 
     V = sanitize_vcov(vcov, model)
-    newdata = sanitize_newdata(model, newdata)
+    newdata = sanitize_newdata(model, newdata, wts)
 
     # after sanitize_newdata() 
-    variables = sanitize_variables(variables=variables, model=model, newdata=newdata, comparison=comparison, eps=eps, by=by)
+    variables = sanitize_variables(variables=variables, model=model, newdata=newdata, comparison=comparison, eps=eps, by=by, wts = wts)
 
     # pad for character/categorical variables in patsy
     pad = []
@@ -119,7 +120,7 @@ def comparisons(
 
     baseline = nd.clone()
 
-    def inner(coefs, by, hypothesis):
+    def inner(coefs, by, hypothesis, wts):
 
         # we don't want a pandas series
         try:
@@ -141,15 +142,20 @@ def comparisons(
         else:
             by = ["term", "contrast"]
 
-        def applyfun(x, by):
+        def applyfun(x, by, wts = None):
             comp = x["marginaleffects_comparison"][0]
             xvar = x[x["term"][0]]
+            if wts is not None:
+                xwts = x[wts]
+            else:
+                xwts = None
             est = estimands[comp](
                 hi = x["predicted_hi"],
                 lo = x["predicted_lo"],
                 eps = eps,
                 x = xvar,
                 y = x["predicted"],
+                w = xwts,
             )
             if est.shape[0] == 1:
                 est = est.item()
@@ -160,7 +166,7 @@ def comparisons(
                 tmp = x.with_columns(pl.lit(est).alias("estimate"))
             return tmp 
 
-        applyfun_outer = lambda x: applyfun(x, by = by)
+        applyfun_outer = lambda x: applyfun(x, by = by, wts = wts)
 
         # maintain_order is extremely important
         tmp = tmp.groupby(by, maintain_order = True).apply(applyfun_outer)
@@ -169,7 +175,7 @@ def comparisons(
 
         return tmp 
 
-    outer = lambda x: inner(x, by = by, hypothesis = hypothesis)
+    outer = lambda x: inner(x, by = by, hypothesis = hypothesis, wts = wts)
 
     out = outer(model.params.to_numpy())
 

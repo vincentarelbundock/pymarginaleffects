@@ -37,7 +37,7 @@ def sanitize_vcov(vcov, model):
         pass
     return V
 
-def sanitize_newdata(model, newdata):
+def sanitize_newdata(model, newdata, wts):
     if newdata is None:
         newdata = model.model.data.frame
     try:
@@ -49,5 +49,9 @@ def sanitize_newdata(model, newdata):
         raise ValueError("The newdata has a column named 'rowid', which is not allowed.")
     else:
         out = out.with_columns(pl.Series(range(out.height), dtype = pl.Int32).alias("rowid"))
+
+    if wts is not None:
+        if (isinstance(wts, str) is False) or (wts not in newdata.columns):
+            raise ValueError(f"`newdata` does not have a column named '{wts}'.")
 
     return out
