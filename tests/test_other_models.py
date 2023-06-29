@@ -23,8 +23,8 @@ def test_smf_mixedlm():
     assert mod_r["estimate"].to_numpy() == approx(mod_py["estimate"].to_numpy())
 
 
-
 def test_mnlogit():
+    importr("nnet")
     dat_py, dat_r = rdatasets("palmerpenguins", "penguins", r = True)
     dat_py = dat_py \
         .with_columns(
