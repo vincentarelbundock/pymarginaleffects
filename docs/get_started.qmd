@@ -50,16 +50,20 @@ import numpy as np
 import polars as pl
 from marginaleffects import *
 import statsmodels.formula.api as smf
+mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+mod = smf.ols("mpg ~ hp * wt * am", data = mtcars).fit()
+
+print(mod.summary().as_text())
+```
+
+```{python}
+#| echo: false
 pl.Config(
     tbl_formatting="ASCII_MARKDOWN",
     tbl_hide_column_data_types=True,
     tbl_hide_dataframe_shape=True,
 )
-
-mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
-mod = smf.ols("mpg ~ hp * wt * am", data = mtcars).fit()
-
-print(mod.summary().as_text())
+pl.Config.set_tbl_cols(10)
 ```
 
 Then, we call the `predictions()` function. As noted above, predictions are unit-level estimates, so there is one specific prediction per observation. By default, the `predictions()` function makes one prediction per observation in the dataset that was used to fit the original model. Since `mtcars` has 32 rows, the `predictions()` outcome also has 32 rows:
@@ -163,7 +167,7 @@ Marginal Means are a special case of predictions, which are marginalized (or ave
 dat = mtcars \
   .with_columns(
     pl.col("am").cast(pl.Boolean),
-    pl.col("cyl").cast(pl.Utf8).cast(pl.Categorical),
+    pl.col("cyl").cast(pl.Utf8)
   )
 mod_cat = smf.ols("mpg ~ am + cyl + hp", data = dat).fit()
 ```
@@ -198,16 +202,7 @@ mod.params
 Can we reject the null hypothesis that the `drat` coefficient is 2 times the size of the `qsec` coefficient?
 
 ```{python}
-# hypotheses(mod, "drat = 2 * qsec")
-
 hyp = hypotheses(mod, "b4 - 2. * b3 = 0")
-print(hyp)
-```
-
-We can ask the same question but refer to parameters by position, with indices `b1`, `b2`, `b3`, etc.:
-
-```{python}
-hyp = hypotheses(mod, "b3 = 2 * b2")
 print(hyp)
 ```
 
