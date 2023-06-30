@@ -25,7 +25,9 @@ dat_py = dat_py \
         pl.col("flipper_length_mm").cast(pl.Float32),
     )
 
-# dat_py = dat_py.drop_nulls()
-mod = smf.ols("body_mass_g ~ bill_length_mm + flipper_length_mm", dat_py).fit()
-print(avg_comparisons(mod, variables = {"flipper_length_mm": 100}, comparison = "lnor"))
-print(avg_predictions(mod))
+print(datagrid(dat_py, body_mass_g = [3000, 4000], bill_length_mm = [30, 50]))
+
+# # dat_py = dat_py.drop_nulls()
+# mod = smf.ols("body_mass_g ~ bill_length_mm + flipper_length_mm", dat_py).fit()
+# print(avg_comparisons(mod, variables = {"flipper_length_mm": 100}, comparison = "lnor"))
+# print(avg_predictions(mod))
