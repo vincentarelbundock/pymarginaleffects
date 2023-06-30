@@ -159,7 +159,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
     if vartype == "boolean":
         hi = clean(True)
         lo = clean(False)
-        lab = lab.format("True", "False")
+        lab = lab.format(hi = "True", lo = "False")
         out = HiLo(
             variable=variable,
             hi=hi,
@@ -172,7 +172,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
     if vartype == "binary":
         hi = clean(1)
         lo = clean(0)
-        lab = lab.format("1", "0")
+        lab = lab.format(hi = "1", lo = "0")
         out = HiLo(
             variable=variable,
             hi=hi,
@@ -186,7 +186,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
         if isinstance(value, list) and len(value) == 2:
             hi=clean([value[1]])
             lo=clean([value[0]])
-            lab = lab.format(hi, lo)
+            lab = lab.format(hi = hi, lo = lo)
             out = HiLo(
                 variable=variable,
                 hi=hi,
@@ -213,7 +213,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
             value = np.std(newdata[variable])
             hi = (newdata[variable] + value / 2)
             lo = (newdata[variable] - value / 2)
-            lab = lab.format("x+sd/2", "x-sd/2")
+            lab = lab.format(hi = "x+sd/2", lo = "x-sd/2")
         else:
             raise ValueError(msg)
 
@@ -222,7 +222,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
             raise ValueError(msg)
         hi=clean([value[1]])
         lo=clean([value[0]])
-        lab = lab.format(value[1], value[0])
+        lab = lab.format(hi = value[1], lo = value[0])
 
     elif isinstance(value, (int, float)):
         lab = f"+{value}"
@@ -235,14 +235,14 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
     if isinstance(value, list):
         lo = clean([value[0]])
         hi = clean([value[1]])
-        lab = lab.fromat(value[1], value[0])
+        lab = lab.format(value[1], value[0])
     else:
         lo = newdata[variable] - value / 2
         hi = newdata[variable] + value / 2
         lab = f"+{value}"
 
     if len(lo) == 1:
-        lab = lab.format(hi[0], lo[0])
+        lab = lab.format(hi = hi[0], lo = lo[0])
         lo = clean(np.repeat[lo[0]])
         hi = clean(np.repeat[hi[0]])
 

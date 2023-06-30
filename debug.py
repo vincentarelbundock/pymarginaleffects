@@ -27,5 +27,5 @@ dat_py = dat_py \
 
 # dat_py = dat_py.drop_nulls()
 mod = smf.ols("body_mass_g ~ bill_length_mm + flipper_length_mm", dat_py).fit()
-print(avg_comparisons(mod, comparison = "ratio"))
+print(avg_comparisons(mod, variables = {"flipper_length_mm": 100}, comparison = "lnor"))
 print(avg_predictions(mod))
