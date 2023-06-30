@@ -15,17 +15,15 @@ dat_py = dat_py \
     .with_columns(
         pl.col("island").cast(pl.Categorical),
         pl.col("bill_length_mm").map_dict({"NA": None}, default = pl.col("bill_length_mm")),
+        pl.col("body_mass_g").map_dict({"NA": None}, default = pl.col("body_mass_g")),
         pl.col("flipper_length_mm").map_dict({"NA": None}, default = pl.col("flipper_length_mm")),) \
     .with_columns(
         pl.col("island").cast(pl.Int16),
         pl.col("bill_length_mm").cast(pl.Float32),
+        pl.col("body_mass_g").cast(pl.Float32),
         pl.col("flipper_length_mm").cast(pl.Float32),
     )
 
-mod = smf.mnlogit("island ~ bill_length_mm + flipper_length_mm", dat_py).fit()
-print(mod.summary())
-print(np.sqrt(np.diag(mod.cov_params().to_numpy())))
-
-# print(mod.cov_params())
-
-# print(predictions(mod).head())
+mod = smf.ols("body_mass_g ~ bill_length_mm + flipper_length_mm", dat_py).fit()
+# mod = smf.mnlogit("island ~ bill_length_mm + flipper_length_mm", dat_py).fit()
+print(avg_comparisons(mod).head())
