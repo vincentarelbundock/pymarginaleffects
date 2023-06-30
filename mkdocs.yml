@@ -1,7 +1,7 @@
 site_name: marginaleffects for Python
 nav:
   - Home: index.md
-  - Getting Started: getting_started.md
+  - Getting Started: get_started.md
   - Functions API:
     - predictions: api/predictions.md
     - comparisons: api/comparisons.md
@@ -9,6 +9,9 @@ nav:
 
 theme:
   name: "material"
+
+plugins:
+  - mkquartodocs
 
 markdown_extensions:
   - admonition

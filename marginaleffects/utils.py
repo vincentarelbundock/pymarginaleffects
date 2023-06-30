@@ -33,3 +33,32 @@ def get_pad(df, colname, uniqs):
     first = pl.concat(first)
     first = first.with_columns(uniqs.alias(colname))
     return first
+
+
+def convert_int_columns_to_float32(dfs: list) -> list:
+    numeric_types = [
+        pl.Int8,
+        pl.Int16,
+        pl.Int32,
+        pl.Int64,
+        pl.UInt8,
+        pl.UInt16,
+        pl.UInt32,
+        pl.UInt64,
+        pl.Float32,
+        pl.Float64,
+    ]
+
+    converted_dfs = []
+    for df in dfs:
+        new_columns = []
+        if df is not None:
+            for col in df:
+                if col.dtype in numeric_types:
+                    new_columns.append(col.cast(pl.Float32).alias(col.name))
+                else:
+                    new_columns.append(col)
+            converted_df = df.with_columns(new_columns)
+            converted_dfs.append(converted_df)
+    return converted_dfs
+

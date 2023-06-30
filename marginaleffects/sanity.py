@@ -27,6 +27,7 @@ def sanitize_vcov(vcov, model):
         pass
     return V
 
+
 def sanitize_newdata(model, newdata, wts):
     if newdata is None:
         newdata = model.model.data.frame
@@ -210,10 +211,23 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
 
     if vartype == "numeric" and isinstance(value, str):
         if value == "sd":
-            value = np.std(newdata[variable])
+            value = newdata[variable].std()
             hi = (newdata[variable] + value / 2)
             lo = (newdata[variable] - value / 2)
-            lab = lab.format(hi = "x+sd/2", lo = "x-sd/2")
+            lab = lab.format(hi = "(x+sd/2)", lo = "(x-sd/2)")
+        elif value == "2sd":
+            value = newdata[variable].std()
+            hi = (newdata[variable] + value)
+            lo = (newdata[variable] - value)
+            lab = lab.format(hi = "(x+sd)", lo = "(x-sd)")
+        elif value == "iqr":
+            hi = np.percentile(newdata[variable], 75)
+            lo = np.percentile(newdata[variable], 25)
+            lab = lab.format(hi = "Q3", lo = "Q1")
+        elif value == "minmax":
+            hi = np.max(newdata[variable])
+            lo = np.min(newdata[variable])
+            lab = lab.format(hi = "Max", lo = "Min")
         else:
             raise ValueError(msg)
 

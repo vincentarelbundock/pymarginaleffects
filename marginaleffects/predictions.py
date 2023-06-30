@@ -39,6 +39,49 @@ def predictions(
     equivalence = None,
     transform = None,
     wts = None):
+ 
+    """
+    Predict outcomes using a fitted model on a specified scale for given combinations of values
+    of predictor variables, such as their observed values, means, or factor levels (reference grid).
+    
+    This function handles unit-level (conditional) estimates and average (marginal) estimates based 
+    on the `variables` and `newdata` arguments. See the package website and vignette for examples:
+    - https://vincentarelbundock.github.io/marginaleffects/articles/predictions.html
+    - https://vincentarelbundock.github.io/marginaleffects/
+    
+    Parameters
+    ----------
+    model : object
+        Model object.
+        
+    newdata : Union[None, DataFrame], optional
+        Grid of predictor values at which to evaluate predictions, by default predictions are made on the data used to fit the model.
+
+    by (bool, str): a logical value, a list of column names in `newdata`. If `True`, estimates are aggregated for each term.
+
+    wts: Column name of weights to use for marginalization. Must be a column in `newdata`
+
+    transform : Callable, optional
+        A function applied to unit-level adjusted predictions and confidence intervals just before
+        the function returns results, by default None.
+
+    hypothesis: String formula of hypothesis test or numpy array.
+        
+    Returns
+    -------
+    DataFrame
+        A DataFrame with one row per observation and several columns:
+        - rowid: row number of the `newdata` data frame
+        - type: prediction type, as defined by the `type` argument
+        - group: (optional) value of the grouped outcome (e.g., categorical outcome models)
+        - estimate: predicted outcome
+        - std.error: standard errors computed using the delta method.
+        - p_value: p value associated with the `estimate` column.
+        - s_value: Shannon information transforms of p values.
+        - conf_low: lower bound of the confidence interval (or equal-tailed interval for Bayesian models)
+        - conf_high: upper bound of the confidence interval (or equal-tailed interval for Bayesian models)
+    """
+    pass
 
     # sanity checks
     V = sanitize_vcov(vcov, model)
