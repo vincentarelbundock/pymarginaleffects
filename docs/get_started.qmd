@@ -63,7 +63,7 @@ pl.Config(
     tbl_hide_column_data_types=True,
     tbl_hide_dataframe_shape=True,
 )
-pl.Config.set_tbl_cols(10)
+pl.Config.set_tbl_cols(8)
 ```
 
 Then, we call the `predictions()` function. As noted above, predictions are unit-level estimates, so there is one specific prediction per observation. By default, the `predictions()` function makes one prediction per observation in the dataset that was used to fit the original model. Since `mtcars` has 32 rows, the `predictions()` outcome also has 32 rows:
