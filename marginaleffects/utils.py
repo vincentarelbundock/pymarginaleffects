@@ -14,6 +14,8 @@ def sort_columns(df, by = None):
         if item not in cols_unique:
             cols_unique.append(item)
     out = df.select(cols_unique)
+    if "marginaleffects_comparison" in out.columns:
+        out = out.drop("marginaleffects_comparison")
     return out
 
 
