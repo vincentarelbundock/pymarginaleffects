@@ -198,17 +198,17 @@ mod.params
 Can we reject the null hypothesis that the `drat` coefficient is 2 times the size of the `qsec` coefficient?
 
 ```{python}
-#| eval: false
-hypotheses(mod, "drat = 2 * qsec")
+# hypotheses(mod, "drat = 2 * qsec")
 
-hypotheses(mod, "b4 - 2. * b3 = 0")
+hyp = hypotheses(mod, "b4 - 2. * b3 = 0")
+print(hyp)
 ```
 
 We can ask the same question but refer to parameters by position, with indices `b1`, `b2`, `b3`, etc.:
 
 ```{python}
-#| eval: false
-hypotheses(mod, "b3 = 2 * b2")
+hyp = hypotheses(mod, "b3 = 2 * b2")
+print(hyp)
 ```
 
 The main functions in `marginaleffects` all have a `hypothesis` argument, which means that we can do complex model testing. For example, consider two slope estimates:

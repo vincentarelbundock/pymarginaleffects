@@ -9,7 +9,7 @@ import patsy
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
 
-def hypotheses(model, conf_int = 0.95, vcov = True, hypothesis = None):
+def hypotheses(model, hypothesis = None, conf_int = 0.95, vcov = True):
     # sanity checks
     V = sanitize_vcov(vcov, model)
     # estimands

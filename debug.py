@@ -25,9 +25,27 @@ dat_py = dat_py \
         pl.col("flipper_length_mm").cast(pl.Float32),
     )
 
-print(datagrid(dat_py, body_mass_g = [3000, 4000], bill_length_mm = [30, 50]))
-
 # # dat_py = dat_py.drop_nulls()
 # mod = smf.ols("body_mass_g ~ bill_length_mm + flipper_length_mm", dat_py).fit()
 # print(avg_comparisons(mod, variables = {"flipper_length_mm": 100}, comparison = "lnor"))
 # print(avg_predictions(mod))
+
+
+mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+dat = mtcars \
+  .with_columns(
+    pl.col("am").cast(pl.Boolean),
+    pl.col("cyl").cast(pl.Utf8).cast(pl.Categorical),
+  )
+mod_cat = smf.ols("mpg ~ am + cyl + hp", data = dat).fit()
+dat = mtcars \
+  .with_columns(
+    pl.col("am").cast(pl.Boolean),
+    pl.col("cyl").cast(pl.Utf8).cast(pl.Categorical),
+  )
+mod = smf.ols("mpg ~ qsec * drat", data = mtcars).fit()
+# mod.params
+# mod_cat = smf.ols("mpg ~ am + cyl + hp", data = dat).fit()
+# hypotheses(mod, "drat = 2 * qsec")
+
+print(hypotheses(mod, "b4 - 2. * b3 = 0"))
