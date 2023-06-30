@@ -41,11 +41,12 @@ def predictions(
     newdata = None,
     hypothesis = None,
     equivalence = None,
-    transform = None):
+    transform = None,
+    wts = None):
 
     # sanity checks
     V = sanitize_vcov(vcov, model)
-    newdata = sanitize_newdata(model, newdata)
+    newdata = sanitize_newdata(model, newdata, wts = wts)
 
     # predictors
     y, exog = patsy.dmatrices(model.model.formula, newdata.to_pandas())
@@ -53,7 +54,7 @@ def predictions(
     # estimands
     def fun(x):
         out = get_predictions(model, np.array(x), exog)
-        out = get_by(model, out, newdata=newdata, by=by)
+        out = get_by(model, out, newdata=newdata, by=by, wts=wts)
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
     out = fun(model.params)

@@ -35,3 +35,10 @@ def test_comparisons_by_false():
     cmp_r = marginaleffects.comparisons(mod_r, by = False)
     cmp_r = r_to_polars(cmp_r)
     compare_r_to_py(cmp_r, cmp_py)
+
+
+def test_predictions_by_wts():
+    pre_py = predictions(mod_py, by = "Region", wts = "Donations")
+    pre_r = marginaleffects.predictions(mod_r, by = "Region", wts = "Donations")
+    pre_r = r_to_polars(pre_r)
+    compare_r_to_py(pre_r, pre_py)
