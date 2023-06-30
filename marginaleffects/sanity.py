@@ -6,24 +6,6 @@ from collections import namedtuple
 from .estimands import estimands
 
 
-def sanitize_newdata(model, newdata):
-    if newdata is None:
-        out = model.model.data.frame
-    try:
-        out = pl.from_pandas(out)
-    except:
-        pass
-    reserved = ["group", "rowid"]
-    if any(x in reserved for x in out.columns):
-        reserved = ", ".join(reserved)
-        raise ValueError("These column names are reserved and must not appear in `newdata`: {reserved}")
-
-    varnames = get_variables_names(variables = None, model = model, newdata = newdata)
-    out = out.drop_nulls(subset = varnames)
-
-    return out
-
-
 def sanitize_vcov(vcov, model):
     if isinstance(vcov, bool):
         if vcov is True:
@@ -61,6 +43,13 @@ def sanitize_newdata(model, newdata, wts):
     if wts is not None:
         if (isinstance(wts, str) is False) or (wts not in newdata.columns):
             raise ValueError(f"`newdata` does not have a column named '{wts}'.")
+
+    xnames = get_variables_names(variables = None, model = model, newdata = newdata)
+    ynames = model.model.data.ynames
+    if isinstance(ynames, str):
+        ynames = [ynames]
+    cols = [x for x in xnames + ynames if x in out.columns]
+    out = out.drop_nulls(subset = cols)
 
     return out
 

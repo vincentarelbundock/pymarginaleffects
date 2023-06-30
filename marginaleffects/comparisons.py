@@ -3,7 +3,6 @@ from .utils import *
 from .sanity import *
 from .hypothesis import *
 from .uncertainty import *
-from .sanitize_variables import *
 from .estimands import *
 from .transform import *
 from .equivalence import *
@@ -198,15 +197,12 @@ def avg_comparisons(
         comparison = "difference",
         vcov = True,
         conf_int = 0.95,
-        by = False,
+        by = True,
         wts = None,
         hypothesis = None,
         equivalence = None,
         transform = None,
         eps = 1e-4):
-
-    if by is None:
-        by = True
 
     out = comparisons(
         model = model,

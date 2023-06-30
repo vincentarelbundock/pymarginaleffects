@@ -71,17 +71,14 @@ def avg_predictions(
     model,
     conf_int = 0.95,
     vcov = True,
-    by = False,
+    by = True,
     newdata = None,
     hypothesis = None,
     equivalence = None,
     transform = None,
     wts = None):
 
-    if by is None:
-        by = True
-
-    predictions(
+    out = predictions(
         model = model,
         conf_int = conf_int,
         vcov = vcov,
@@ -91,3 +88,5 @@ def avg_predictions(
         equivalence = equivalence,
         transform = transform,
         wts = wts)
+
+    return out

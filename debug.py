@@ -8,6 +8,7 @@ from marginaleffects.estimands import estimands
 from typing import Union
 import patsy
 import pandas as pd
+import numpy as np
 
 
 dat_py, dat_r = rdatasets("palmerpenguins", "penguins", r = True)
@@ -24,6 +25,7 @@ dat_py = dat_py \
         pl.col("flipper_length_mm").cast(pl.Float32),
     )
 
+# dat_py = dat_py.drop_nulls()
 mod = smf.ols("body_mass_g ~ bill_length_mm + flipper_length_mm", dat_py).fit()
-# mod = smf.mnlogit("island ~ bill_length_mm + flipper_length_mm", dat_py).fit()
-print(avg_comparisons(mod).head())
+print(avg_comparisons(mod, comparison = "ratio"))
+print(avg_predictions(mod))
