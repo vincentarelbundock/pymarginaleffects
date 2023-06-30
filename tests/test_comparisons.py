@@ -4,7 +4,7 @@ import statsmodels.formula.api as smf
 import numpy as np
 from pytest import approx
 from marginaleffects import *
-from marginaleffects.testing import *
+from .utilities import *
 from rpy2.robjects.packages import importr
 from marginaleffects.comparisons import estimands
 

@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats import pearsonr
 from pytest import approx
 from marginaleffects import *
-from marginaleffects.testing import *
+from .utilities import *
 from rpy2.robjects.packages import importr
 from marginaleffects.comparisons import estimands
 import matplotlib.pyplot as plt

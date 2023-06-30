@@ -3,7 +3,7 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from pytest import approx
 from marginaleffects import *
-from marginaleffects.testing import *
+from .utilities import *
 from rpy2.robjects.packages import importr
 
 # R packages

@@ -1,4 +1,4 @@
-from marginaleffects.testing import *
+from .utilities import *
 from marginaleffects import *
 import statsmodels.api as sm
 import statsmodels.formula.api as smf

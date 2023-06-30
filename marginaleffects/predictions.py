@@ -6,14 +6,10 @@ from .hypothesis import *
 from .equivalence import *
 from .transform import *
 import polars as pl
-import pandas as pd
 import numpy as np
 import patsy
-import scipy.stats as stats
-import statsmodels.formula.api as smf
-import statsmodels.api as sm
 
-def get_predictions(model, params, newdata: Union[pl.DataFrame, pd.DataFrame]):
+def get_predictions(model, params, newdata: pl.DataFrame):
     if isinstance(newdata, np.ndarray):
         exog = newdata
     else:
@@ -67,3 +63,31 @@ def predictions(
     out = get_equivalence(out, equivalence = equivalence)
     out = sort_columns(out, by = by)
     return out
+
+
+
+
+def avg_predictions(
+    model,
+    conf_int = 0.95,
+    vcov = True,
+    by = False,
+    newdata = None,
+    hypothesis = None,
+    equivalence = None,
+    transform = None,
+    wts = None):
+
+    if by is None:
+        by = True
+
+    predictions(
+        model = model,
+        conf_int = conf_int,
+        vcov = vcov,
+        by = by,
+        newdata = newdata,
+        hypothesis = hypothesis,
+        equivalence = equivalence,
+        transform = transform,
+        wts = wts)

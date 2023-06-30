@@ -4,7 +4,6 @@ from .by import *
 from .utils import *
 from .hypothesis import *
 import polars as pl
-import pandas as pd
 import numpy as np
 import patsy
 import statsmodels.formula.api as smf

@@ -1,7 +1,7 @@
-import pandas as pd
-import numpy as np
-import polars as pl
 import patsy
+import numpy as np
+import warnings
+import polars as pl
 import scipy.stats as stats
 
 def get_jacobian(func, coefs):
@@ -44,9 +44,13 @@ def get_z_p_ci(df, model, conf_int):
     df = df.with_columns((pl.col("estimate") - critical_value * pl.col("std_error")).alias("conf_low"))
     df = df.with_columns((pl.col("estimate") + critical_value * pl.col("std_error")).alias("conf_high"))
     df = df.with_columns(pl.col("statistic").apply(lambda x: (2 * (1 - stats.t.cdf(np.abs(x), dof)))).alias("p_value"))
-    # TODO: better handling of p_value == 0 case, which breaks np.log2
-    try:
-        df = df.with_columns(pl.col("p_value").apply(lambda x: -np.log2(x)).alias("s_value"))
-    except:
-        pass
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            df = df.with_columns(
+                pl.col("p_value") \
+                .apply(lambda x: -np.log2(x)) \
+                .alias("s_value"))
+        except:
+            pass
     return df

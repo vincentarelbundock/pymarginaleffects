@@ -9,7 +9,6 @@ from .transform import *
 from .equivalence import *
 from .predictions import get_predictions
 import polars as pl
-import pandas as pd
 import numpy as np
 import patsy
 import scipy.stats as stats
@@ -188,4 +187,39 @@ def comparisons(
     out = get_transform(out, transform = transform)
     out = get_equivalence(out, equivalence = equivalence, df = np.inf)
     out = sort_columns(out, by = by)
+    return out
+
+
+    
+def avg_comparisons(
+        model,
+        variables = None,
+        newdata = None,
+        comparison = "difference",
+        vcov = True,
+        conf_int = 0.95,
+        by = False,
+        wts = None,
+        hypothesis = None,
+        equivalence = None,
+        transform = None,
+        eps = 1e-4):
+
+    if by is None:
+        by = True
+
+    out = comparisons(
+        model = model,
+        variables = variables,
+        newdata = newdata,
+        comparison = comparison,
+        vcov = vcov,
+        conf_int = conf_int,
+        by = by,
+        wts = wts,
+        hypothesis = hypothesis,
+        equivalence = equivalence,
+        transform = transform,
+        eps = eps)
+    
     return out
