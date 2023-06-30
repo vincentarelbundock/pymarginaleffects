@@ -31,7 +31,14 @@ dat_py = dat_py \
 # print(avg_predictions(mod))
 
 
-mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+dat_py = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+
+mod_py = smf.quantreg("mpg ~ wt + qsec", data = dat_py).fit(q = 0.5)
+pre_py = predictions(mod)
+
+
+
+
 dat = mtcars \
   .with_columns(
     pl.col("am").cast(pl.Boolean),

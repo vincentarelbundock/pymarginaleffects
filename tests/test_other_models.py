@@ -10,6 +10,8 @@ import patsy
 importr("marginaleffects")
 importr("nnet")
 
+mod_py = smf.quantreg("mpg ~ wt + qsec", data = dat_py).fit(q = 0.5)
+pre_py = predictions(mod)
 
 def test_smf_mixedlm():
     marginaleffects = importr("marginaleffects")
@@ -21,6 +23,14 @@ def test_smf_mixedlm():
     mod_r = marginaleffects.comparisons(mod_r, by = True)
     mod_r = r_to_polars(mod_r)
     assert mod_r["estimate"].to_numpy() == approx(mod_py["estimate"].to_numpy())
+
+
+importr("quantreg")
+dat_py, dat_r = rdatasets("datasets", "mtcars", r = True)
+mod_py = smf.quantreg("mpg ~ wt + qsec", data = dat_py).fit(q = 0.25)
+pre_py = predictions(mod_py)
+cmp_py = comparisons(mod_py)
+quantreg.rq("mpg ~ wt + qsec", data = dat_r, tau = 0.25)
 
 
 # def test_mnlogit():
