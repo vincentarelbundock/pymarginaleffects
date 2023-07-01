@@ -8,7 +8,7 @@ def slopes(
     slope="dydx",
     vcov=True,
     conf_int=0.95,
-    by=None,
+    by=False,
     hypothesis=None,
     eps=1e-4,
 ):
