@@ -207,7 +207,7 @@ mod.params
 Can we reject the null hypothesis that the `drat` coefficient is 2 times the size of the `qsec` coefficient?
 
 ```{python}
-hyp = hypotheses(mod, "b4 * 2 = b3")
+hyp = hypotheses(mod, "b3 = 2 * b2")
 print(hyp)
 ```
 
