@@ -119,7 +119,7 @@ Predictions, comparisons, and slopes are typically "conditional" quantities whic
 
 ```{python}
 pre = predictions(mod, newdata = mtcars.tail(2))
-print(cmp)
+print(pre)
 ```
 
 The [`datagrid` function gives us a powerful way to define a grid of predictors.](https://vincentarelbundock.github.io/marginaleffects/reference/datagrid.html) All the variables not mentioned explicitly in `datagrid()` are fixed to their mean or mode:
