@@ -57,7 +57,7 @@ print(mod.summary().as_text())
 ```
 
 ```{python}
-#| echo: false
+#| include: false
 pl.Config(
     tbl_formatting="ASCII_MARKDOWN",
     tbl_hide_column_data_types=True,
@@ -207,7 +207,7 @@ mod.params
 Can we reject the null hypothesis that the `drat` coefficient is 2 times the size of the `qsec` coefficient?
 
 ```{python}
-hyp = hypotheses(mod, "b4 - 2. * b3 = 0")
+hyp = hypotheses(mod, "b4 * 2 = b3")
 print(hyp)
 ```
 

@@ -95,7 +95,7 @@ print(mod.summary().as_text())
     Model:                            OLS   Adj. R-squared:                  0.866
     Method:                 Least Squares   F-statistic:                     29.55
     Date:                Sat, 01 Jul 2023   Prob (F-statistic):           2.60e-10
-    Time:                        10:49:23   Log-Likelihood:                -66.158
+    Time:                        10:52:45   Log-Likelihood:                -66.158
     No. Observations:                  32   AIC:                             148.3
     Df Residuals:                      24   BIC:                             160.0
     Df Model:                           7                                         
@@ -122,8 +122,6 @@ print(mod.summary().as_text())
     [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
     [2] The condition number is large, 3.32e+04. This might indicate that there are
     strong multicollinearity or other numerical problems.
-
-    polars.config.Config
 
 Then, we call the `predictions()` function. As noted above, predictions
 are unit-level estimates, so there is one specific prediction per
@@ -274,10 +272,10 @@ print(pre)
 
     | rowid | estimate  | std_error | statistic | … | qsec     | vs  | gear | carb |
     |-------|-----------|-----------|-----------|---|----------|-----|------|------|
-    | 0     | 13.172203 | 4.441821  | 2.965496  | … | 17.84875 | 0   | 3    | 2    |
-    | 1     | 25.713056 | 3.540931  | 7.261666  | … | 17.84875 | 0   | 3    | 2    |
-    | 2     | 3.941373  | 5.723686  | 0.688608  | … | 17.84875 | 0   | 3    | 2    |
-    | 3     | 29.810874 | 1.798712  | 16.573459 | … | 17.84875 | 0   | 3    | 2    |
+    | 0     | 12.500384 | 1.958795  | 6.381669  | … | 17.84875 | 0   | 3    | 2    |
+    | 1     | 21.36604  | 2.405812  | 8.88101   | … | 17.84875 | 0   | 3    | 2    |
+    | 2     | 7.414996  | 6.117208  | 1.212154  | … | 17.84875 | 0   | 3    | 2    |
+    | 3     | 25.093597 | 3.768361  | 6.659022  | … | 17.84875 | 0   | 3    | 2    |
 
 ## Averaging
 
@@ -326,11 +324,11 @@ print(cmp)
 
     | am  | term | contrast          | estimate  | … | p_value  | s_value  | conf_low   | conf_high |
     |-----|------|-------------------|-----------|---|----------|----------|------------|-----------|
-    | 1.0 | wt   | +1                | -6.07176  | … | 0.005221 | 7.58135  | -10.150458 | -1.993061 |
-    | 0.0 | wt   | +1                | -2.479903 | … | 0.055405 | 4.173847 | -5.02186   | 0.062054  |
-    | 1.0 | hp   | +1                | -0.04364  | … | 0.051466 | 4.280249 | -0.08758   | 0.000301  |
+    | 1.0 | hp   | +1                | -0.04364  | … | 0.051465 | 4.280251 | -0.08758   | 0.000301  |
     | 0.0 | hp   | +1                | -0.034264 | … | 0.040994 | 4.608441 | -0.067005  | -0.001522 |
-    | 1.0 | am   | mean(1) - mean(0) | 1.902898  | … | 0.417912 | 1.25873  | -2.861879  | 6.667675  |
+    | 1.0 | wt   | +1                | -6.07176  | … | 0.005221 | 7.58135  | -10.150458 | -1.993061 |
+    | 0.0 | wt   | +1                | -2.479903 | … | 0.055405 | 4.173847 | -5.02186   | 0.062055  |
+    | 1.0 | am   | mean(1) - mean(0) | 1.902898  | … | 0.417912 | 1.258729 | -2.861879  | 6.667675  |
     | 0.0 | am   | mean(1) - mean(0) | -1.383009 | … | 0.588937 | 0.763814 | -6.59434   | 3.828322  |
 
 Marginal Means are a special case of predictions, which are marginalized
@@ -370,9 +368,9 @@ print(cmp)
     |------|--------------|-----------|-----------|---|----------|----------|-----------|-----------|
     | cyl  | 6 - 4        | -3.924578 | 1.537515  | … | 0.016663 | 5.907182 | -7.079298 | -0.769859 |
     | cyl  | 8 - 4        | -3.533414 | 2.502788  | … | 0.169433 | 2.561213 | -8.668711 | 1.601883  |
+    | hp   | +1           | -0.044244 | 0.014576  | … | 0.005266 | 7.569022 | -0.074151 | -0.014337 |
     | am   | mean(True) - | 4.157856  | 1.25655   | … | 0.00266  | 8.554463 | 1.579629  | 6.736084  |
     |      | mean(False)  |           |           |   |          |          |           |           |
-    | hp   | +1           | -0.044244 | 0.014576  | … | 0.005266 | 7.569022 | -0.074151 | -0.014337 |
 
 ## Hypothesis and equivalence tests
 
@@ -397,13 +395,13 @@ Can we reject the null hypothesis that the `drat` coefficient is 2 times
 the size of the `qsec` coefficient?
 
 ``` python
-hyp = hypotheses(mod, "b4 - 2. * b3 = 0")
+hyp = hypotheses(mod, "b4 * 2 = b3")
 print(hyp)
 ```
 
-    | term       | estimate | std_error | statistic | p_value  | s_value  | conf_low   | conf_high |
-    |------------|----------|-----------|-----------|----------|----------|------------|-----------|
-    | b4-2.*b3=0 | 7.471607 | 37.603481 | 0.198695  | 0.843937 | 0.244792 | -69.555631 | 84.498846 |
+    | term    | estimate | std_error | statistic | p_value  | s_value  | conf_low   | conf_high |
+    |---------|----------|-----------|-----------|----------|----------|------------|-----------|
+    | b4*2=b3 | 4.631777 | 20.319369 | 0.227949  | 0.821342 | 0.283944 | -36.990564 | 46.254117 |
 
 The main functions in `marginaleffects` all have a `hypothesis`
 argument, which means that we can do complex model testing. For example,

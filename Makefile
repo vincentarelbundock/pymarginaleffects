@@ -8,13 +8,11 @@ test: install ## run pytest suite
 	poetry run pytest -W ignore::DeprecationWarning
 
 readme: ## render Quarto readme
-	poetry run quarto render README.qmd
-	sed -i '/<div><style>/,/<\/style>/d' README.md
-	sed -i '/<div><style>/,/<\/style>/d' README.md
-	sed -i '/<\/div>/d' README.md
+	poetry run quarto render docs/get_started.qmd --to gfm
+	mv -f docs/get_started.md README.md
 
 install: ## install in poetry venv
 	poetry install
 
-docs: ## build docs
+docs: readme ## build docs
 	poetry run mkdocs build
