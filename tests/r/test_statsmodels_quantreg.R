@@ -1,19 +1,15 @@
 source(here::here("tests/r/load.R"))
 
-dat = iris[!is.na(iris$Species),]
-mod = rq(Sepal.Length ~ Sepal.Width * Petal.Width + Species, tau = .25, data = dat)
-
-predictions(mod, by = "Species")
-slopes(mod, by = "Species")
+mod = rq(Sepal.Length ~ Sepal.Width * Petal.Length + Species, tau = .25, data = iris)
 
 predictions(mod) |> 
-    fwrite(here("tests/r/test_statsmodels_quantreg_predictions_01.csv"))
+    write.csv(here("tests/r/test_statsmodels_quantreg_predictions_01.csv"), na = "")
 
 predictions(mod, by = "Species") |> 
-    fwrite(here("tests/r/test_statsmodels_quantreg_predictions_02.csv"))
+    write.csv(here("tests/r/test_statsmodels_quantreg_predictions_02.csv"), na = "")
 
 comparisons(mod) |>
-    fwrite(here("tests/r/test_statsmodels_quantreg_comparisons_01.csv"))
+    write.csv(here("tests/r/test_statsmodels_quantreg_comparisons_01.csv"), na = "")
 
 comparisons(mod, by = "Species") |>
-    fwrite(here("tests/r/test_statsmodels_quantreg_comparisons_02.csv"))
+    write.csv(here("tests/r/test_statsmodels_quantreg_comparisons_02.csv"), na = "")
