@@ -187,6 +187,11 @@ pre = avg_predictions(
 print(pre)
 ```
 
+```{python}
+cmp = avg_comparisons(mod_cat)
+print(cmp)
+```
+
 
 ## Hypothesis and equivalence tests
 

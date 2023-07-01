@@ -40,6 +40,7 @@ def sanitize_newdata(model, newdata, wts):
     except:
         out = newdata
 
+
     if "rowid" in out.columns:
         raise ValueError(
             "The newdata has a column named 'rowid', which is not allowed."
@@ -59,6 +60,9 @@ def sanitize_newdata(model, newdata, wts):
         ynames = [ynames]
     cols = [x for x in xnames + ynames if x in out.columns]
     out = out.drop_nulls(subset=cols)
+
+    if any([isinstance(out[x], pl.Categorical) for x in out.columns]):
+        raise ValueError("Categorical type columns are not supported in `newdata`.")
 
     return out
 
