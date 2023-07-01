@@ -5,12 +5,12 @@ import polars as pl
 from .by import get_by
 from .equivalence import *
 from .estimands import estimands
-from .hypothesis import get_hypothsis
+from .hypothesis import get_hypothesis
 from .predictions import get_predictions
 from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov
 from .transform import *
 from .uncertainty import *
-from .utils import convert_int_columns_to_float32, get_pad
+from .utils import convert_int_columns_to_float32, get_pad, sort_columns
 
 
 def comparisons(
@@ -218,7 +218,7 @@ def comparisons(
             return tmp
 
         def applyfun_outer(x):
-            applyfun(x, by=by, wts=wts)
+            return applyfun(x, by=by, wts=wts)
 
         # maintain_order is extremely important
         tmp = tmp.groupby(by, maintain_order=True).apply(applyfun_outer)
