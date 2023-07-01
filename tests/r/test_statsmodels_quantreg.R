@@ -1,3 +1,4 @@
+# requires marginaleffects >= 0.13.0.9002
 source(here::here("tests/r/load.R"))
 
 mod = rq(Sepal.Length ~ Sepal.Width * Petal.Length + Species, tau = .25, data = iris)
