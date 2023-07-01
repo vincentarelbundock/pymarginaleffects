@@ -152,7 +152,7 @@ def comparisons(
         pad = pl.DataFrame()
     else:
         pad = pl.concat(pad).unique()
-        nd = pl.concat([pad, hi], how="diagonal")
+        nd = pl.concat([pad, nd], how="diagonal")
         hi = pl.concat([pad, hi], how="diagonal")
         lo = pl.concat([pad, lo], how="diagonal")
 
@@ -195,6 +195,7 @@ def comparisons(
         else:
             by = ["term", "contrast"]
 
+        # TODO: problem is that `cyl` is the modified hi and lo instead of the original, so when we group by it, we get only rows with cyl matching the contrast.
         def applyfun(x, by, wts=None):
             comp = x["marginaleffects_comparison"][0]
             xvar = x[x["term"][0]]
