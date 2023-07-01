@@ -1,11 +1,19 @@
 import re
+
 import numpy as np
 import polars as pl
 
+
 def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.DataFrame:
     hypothesis = re.sub("=", "-(", hypothesis) + ")"
-    if re.search(r'\bb\d+\b', hypothesis):
-        bmax = max([int(re.sub('b', '', match.group())) for match in re.finditer(r'\bb\d+\b', lab)], default=0)
+    if re.search(r"\bb\d+\b", hypothesis):
+        bmax = max(
+            [
+                int(re.sub("b", "", match.group()))
+                for match in re.finditer(r"\bb\d+\b", lab)
+            ],
+            default=0,
+        )
         if bmax > x.shape[0]:
             msg = f"b{bmax} cannot be used in `hypothesis` because the call produced just {x.shape[0]} estimate(s). Try executing the exact same command without the `hypothesis` argument to see which estimates are available for hypothesis testing."
             raise ValueError(msg)
@@ -16,13 +24,11 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
 
         rowlabels = [f"marginaleffects__{i + 1}" for i in range(x.shape[0])]
     else:
-        if 'term' not in x.columns or x['term'].count() != x['term'].unique().count():
-            msg = (
-                'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b1`, `b2`, etc. indices instead of term names in the `hypotheses` string Ex: "b1 + b2 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
-            )
+        if "term" not in x.columns or x["term"].count() != x["term"].unique().count():
+            msg = 'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b1`, `b2`, etc. indices instead of term names in the `hypotheses` string Ex: "b1 + b2 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
             raise ValueError(msg)
 
-        rowlabels = x['term'].to_list()
+        rowlabels = x["term"].to_list()
 
     def eval_string_function(vec, hypothesis, rowlabels):
         env = {rowlabel: vec[i] for i, rowlabel in enumerate(rowlabels)}
@@ -31,25 +37,19 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
         return out
 
     out = eval_string_function(
-        x['estimate'].to_numpy(),
-        hypothesis=hypothesis,
-        rowlabels=rowlabels
+        x["estimate"].to_numpy(), hypothesis=hypothesis, rowlabels=rowlabels
     )
 
-    out = pl.DataFrame(
-        {
-            "term": [re.sub(r'\s+', '', lab)],
-            "estimate": [out]
-        }
-    )
+    out = pl.DataFrame({"term": [re.sub(r"\s+", "", lab)], "estimate": [out]})
 
     return out
+
 
 # function extracts the estimate column from a data frame and sets it to x. If `hypothesis` argument is a numpy array, it feeds it directly to lincome_multiply. If lincome is a string, it checks if the string is valid, and then calls the corresponding function.
 def get_hypothesis(x, hypothesis):
     msg = f"Invalid hypothesis argument: {hypothesis}. Valid arguments are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', 'revpairwise' or a numpy array."
     if hypothesis is None:
-        return(x)
+        return x
     if isinstance(hypothesis, np.ndarray):
         out = lincom_multiply(x, hypothesis)
         lab = [f"H{i + 1}" for i in range(out.shape[1])]
@@ -79,17 +79,16 @@ def get_hypothesis(x, hypothesis):
 
 
 def lincom_multiply(x, lincom):
-    estimates = x['estimate']
+    estimates = x["estimate"]
     multiplied_results = np.dot(estimates, lincom)
-    out = pl.DataFrame({
-        'estimate': multiplied_results
-    })
+    out = pl.DataFrame({"estimate": multiplied_results})
     return out
 
 
 # TODO: improve labeling
 def get_hypothesis_row_labels(x):
     return [f"i" for i in range(len(x))]
+
 
 def lincom_revreference(x):
     lincom = -1 * np.identity(len(x))
@@ -125,7 +124,7 @@ def lincom_revsequential(x):
     else:
         lab = [f"{lab[i]} - {lab[i+1]}" for i in range(lincom.shape[1])]
     for i in range(lincom.shape[1]):
-        lincom[i:i+2, i] = [1, -1]
+        lincom[i : i + 2, i] = [1, -1]
     lincom = pl.DataFrame(lincom.T, schema=lab)
     return lincom
 
@@ -138,7 +137,7 @@ def lincom_sequential(x):
     else:
         lab = [f"{lab[i+1]} - {lab[i]}" for i in range(lincom.shape[1])]
     for i in range(lincom.shape[1]):
-        lincom[i:i+2, i] = [-1, 1]
+        lincom[i : i + 2, i] = [-1, 1]
     lincom = pl.DataFrame(lincom.T, schema=lab)
     return lincom
 

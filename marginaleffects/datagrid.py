@@ -1,5 +1,7 @@
 from functools import reduce
+
 import polars as pl
+
 
 def datagrid(newdata, **kwargs):
     out = {}
@@ -14,6 +16,6 @@ def datagrid(newdata, **kwargs):
                 # .mode() can return multiple values
                 out[col] = pl.DataFrame({col: newdata[col].mode()[0]})
 
-    out = reduce(lambda x, y: x.join(y, how = "cross"), out.values())
+    out = reduce(lambda x, y: x.join(y, how="cross"), out.values())
 
     return out

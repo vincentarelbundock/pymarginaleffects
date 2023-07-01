@@ -1,8 +1,21 @@
-import polars as pl
 import numpy as np
+import polars as pl
 
-def sort_columns(df, by = None):
-    cols = ["rowid", "group", "term", "contrast", "estimate", "std_error", "statistic", "p_value", "s_value", "conf_low", "conf_high"] + df.columns
+
+def sort_columns(df, by=None):
+    cols = [
+        "rowid",
+        "group",
+        "term",
+        "contrast",
+        "estimate",
+        "std_error",
+        "statistic",
+        "p_value",
+        "s_value",
+        "conf_low",
+        "conf_high",
+    ] + df.columns
     if by is not None:
         if isinstance(by, list):
             cols = by + cols
@@ -28,9 +41,10 @@ def pad_array(arr, n):
         out = arr
     return pl.Series(out)
 
+
 def get_pad(df, colname, uniqs):
     if uniqs is None:
-        return(None)
+        return None
     first = [df.slice(0, 1)] * len(uniqs)
     first = pl.concat(first)
     first = first.with_columns(uniqs.alias(colname))
@@ -63,4 +77,3 @@ def convert_int_columns_to_float32(dfs: list) -> list:
             converted_df = df.with_columns(new_columns)
             converted_dfs.append(converted_df)
     return converted_dfs
-

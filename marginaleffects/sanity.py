@@ -1,8 +1,10 @@
 import re
+from collections import namedtuple
+from warnings import warn
+
 import numpy as np
 import polars as pl
-from warnings import warn
-from collections import namedtuple
+
 from .estimands import estimands
 
 
@@ -14,12 +16,14 @@ def sanitize_vcov(vcov, model):
             V = None
     elif isinstance(vcov, str):
         lab = f"cov_{vcov}"
-        if (hasattr(model, lab)):
+        if hasattr(model, lab):
             V = getattr(model, lab)
         else:
             raise ValueError(f"The model object has no {lab} attribute.")
     else:
-        raise ValueError('`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".')
+        raise ValueError(
+            '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".'
+        )
     # mnlogit returns pandas
     try:
         V = V.to_numpy()
@@ -35,27 +39,31 @@ def sanitize_newdata(model, newdata, wts):
         out = pl.from_pandas(newdata)
     except:
         out = newdata
-    
+
     if "rowid" in out.columns:
-        raise ValueError("The newdata has a column named 'rowid', which is not allowed.")
+        raise ValueError(
+            "The newdata has a column named 'rowid', which is not allowed."
+        )
     else:
-        out = out.with_columns(pl.Series(range(out.height), dtype = pl.Int32).alias("rowid"))
+        out = out.with_columns(
+            pl.Series(range(out.height), dtype=pl.Int32).alias("rowid")
+        )
 
     if wts is not None:
         if (isinstance(wts, str) is False) or (wts not in newdata.columns):
             raise ValueError(f"`newdata` does not have a column named '{wts}'.")
 
-    xnames = get_variables_names(variables = None, model = model, newdata = newdata)
+    xnames = get_variables_names(variables=None, model=model, newdata=newdata)
     ynames = model.model.data.ynames
     if isinstance(ynames, str):
         ynames = [ynames]
     cols = [x for x in xnames + ynames if x in out.columns]
-    out = out.drop_nulls(subset = cols)
+    out = out.drop_nulls(subset=cols)
 
     return out
 
 
-def sanitize_comparison(comparison, by, wts = None):
+def sanitize_comparison(comparison, by, wts=None):
     out = comparison
     if by is not False:
         if f"{comparison}avg" in estimands.keys():
@@ -96,14 +104,13 @@ def sanitize_comparison(comparison, by, wts = None):
         "lnoravgwts": "ln(odds({hi}) / odds({lo}))",
         "lift": "lift",
         "liftavg": "liftavg",
-        "expdydx": "exp(dY/dX)"
+        "expdydx": "exp(dY/dX)",
     }
 
     return (out, lab[out])
 
 
-
-HiLo = namedtuple('HiLo', ['variable', 'hi', 'lo', 'lab', "pad", "comparison"])
+HiLo = namedtuple("HiLo", ["variable", "hi", "lo", "lab", "pad", "comparison"])
 
 
 def get_one_variable_type(variable, newdata):
@@ -126,7 +133,11 @@ def get_one_variable_type(variable, newdata):
 
 
 def clean_global(k, n):
-    if not isinstance(k, list) and not isinstance(k, pl.Series) and not isinstance(k, np.ndarray):
+    if (
+        not isinstance(k, list)
+        and not isinstance(k, pl.Series)
+        and not isinstance(k, np.ndarray)
+    ):
         out = [k]
     if not isinstance(k, list) or len(k) == 1:
         out = pl.Series(np.repeat(k, n))
@@ -135,7 +146,7 @@ def clean_global(k, n):
     return out
 
 
-def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = None):
+def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=None):
     msg = "`value` must be a numeric, a list of length two, or 'sd'"
     vartype = get_one_variable_type(variable, newdata)
     clean = lambda k: clean_global(k, newdata.shape[0])
@@ -150,7 +161,16 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
             elif comparison in ["eyex", "dyex", "eydx", "dydx"]:
                 comparison = "difference"
         else:
-            if comparison in ["eyexavg", "dyexavg", "eydxavg", "dydxavg", "eyex", "dyex", "eydx", "dydx"]:
+            if comparison in [
+                "eyexavg",
+                "dyexavg",
+                "eydxavg",
+                "dydxavg",
+                "eyex",
+                "dyex",
+                "eydx",
+                "dydx",
+            ]:
                 value = eps
             else:
                 value = 1
@@ -160,50 +180,44 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
     if vartype == "boolean":
         hi = clean(True)
         lo = clean(False)
-        lab = lab.format(hi = "True", lo = "False")
+        lab = lab.format(hi="True", lo="False")
         out = HiLo(
-            variable=variable,
-            hi=hi,
-            lo=lo,
-            lab=lab,
-            comparison = comparison,
-            pad = None)
+            variable=variable, hi=hi, lo=lo, lab=lab, comparison=comparison, pad=None
+        )
         return [out]
 
     if vartype == "binary":
         hi = clean(1)
         lo = clean(0)
-        lab = lab.format(hi = "1", lo = "0")
+        lab = lab.format(hi="1", lo="0")
         out = HiLo(
-            variable=variable,
-            hi=hi,
-            lo=lo,
-            lab=lab,
-            comparison = comparison,
-            pad = None)
+            variable=variable, hi=hi, lo=lo, lab=lab, comparison=comparison, pad=None
+        )
         return [out]
 
     if vartype == "character":
         if isinstance(value, list) and len(value) == 2:
-            hi=clean([value[1]])
-            lo=clean([value[0]])
-            lab = lab.format(hi = hi, lo = lo)
+            hi = clean([value[1]])
+            lo = clean([value[0]])
+            lab = lab.format(hi=hi, lo=lo)
             out = HiLo(
                 variable=variable,
                 hi=hi,
                 lo=lo,
                 lab=lab,
-                comparison = comparison,
-                pad = None)
+                comparison=comparison,
+                pad=None,
+            )
             return [out]
 
         elif isinstance(value, str):
             out = get_categorical_combinations(
-                variable = variable,
-                uniqs = newdata[variable].unique().sort(),
-                newdata = newdata,
-                combo = value,
-                comparison = comparison)
+                variable=variable,
+                uniqs=newdata[variable].unique().sort(),
+                newdata=newdata,
+                combo=value,
+                comparison=comparison,
+            )
             return out
 
         else:
@@ -212,31 +226,31 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
     if vartype == "numeric" and isinstance(value, str):
         if value == "sd":
             value = newdata[variable].std()
-            hi = (newdata[variable] + value / 2)
-            lo = (newdata[variable] - value / 2)
-            lab = lab.format(hi = "(x+sd/2)", lo = "(x-sd/2)")
+            hi = newdata[variable] + value / 2
+            lo = newdata[variable] - value / 2
+            lab = lab.format(hi="(x+sd/2)", lo="(x-sd/2)")
         elif value == "2sd":
             value = newdata[variable].std()
-            hi = (newdata[variable] + value)
-            lo = (newdata[variable] - value)
-            lab = lab.format(hi = "(x+sd)", lo = "(x-sd)")
+            hi = newdata[variable] + value
+            lo = newdata[variable] - value
+            lab = lab.format(hi="(x+sd)", lo="(x-sd)")
         elif value == "iqr":
             hi = np.percentile(newdata[variable], 75)
             lo = np.percentile(newdata[variable], 25)
-            lab = lab.format(hi = "Q3", lo = "Q1")
+            lab = lab.format(hi="Q3", lo="Q1")
         elif value == "minmax":
             hi = np.max(newdata[variable])
             lo = np.min(newdata[variable])
-            lab = lab.format(hi = "Max", lo = "Min")
+            lab = lab.format(hi="Max", lo="Min")
         else:
             raise ValueError(msg)
 
     elif isinstance(value, list):
         if len(value) != 2:
             raise ValueError(msg)
-        hi=clean([value[1]])
-        lo=clean([value[0]])
-        lab = lab.format(hi = value[1], lo = value[0])
+        hi = clean([value[1]])
+        lo = clean([value[0]])
+        lab = lab.format(hi=value[1], lo=value[0])
 
     elif isinstance(value, (int, float)):
         lab = f"+{value}"
@@ -256,18 +270,13 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts = 
         lab = f"+{value}"
 
     if len(lo) == 1:
-        lab = lab.format(hi = hi[0], lo = lo[0])
+        lab = lab.format(hi=hi[0], lo=lo[0])
         lo = clean(np.repeat[lo[0]])
         hi = clean(np.repeat[hi[0]])
 
-    out = [HiLo(
-        variable=variable,
-        lo=lo,
-        hi=hi,
-        lab=lab,
-        pad = None,
-        comparison = comparison
-        )]
+    out = [
+        HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad=None, comparison=comparison)
+    ]
     return out
 
 
@@ -280,7 +289,9 @@ def get_variables_names(variables, model, newdata):
     elif isinstance(variables, str):
         variables = [variables]
     else:
-        assert isinstance(variables, dict), "`variables` must be None, a dict, string, or list of strings"
+        assert isinstance(
+            variables, dict
+        ), "`variables` must be None, a dict, string, or list of strings"
     good = [x for x in variables if x in newdata.columns]
     bad = [x for x in variables if x not in newdata.columns]
     if len(bad) > 0:
@@ -291,7 +302,9 @@ def get_variables_names(variables, model, newdata):
     return variables
 
 
-def get_categorical_combinations(variable, uniqs, newdata, comparison, combo="reference"):
+def get_categorical_combinations(
+    variable, uniqs, newdata, comparison, combo="reference"
+):
     clean = lambda k: clean_global(k, newdata.shape[0])
 
     if not isinstance(combo, str):
@@ -312,7 +325,8 @@ def get_categorical_combinations(variable, uniqs, newdata, comparison, combo="re
                     lo=clean([uniqs[0]]),
                     lab=f"{u} - {uniqs[0]}",
                     pad=uniqs,
-                    comparison = comparison)
+                    comparison=comparison,
+                )
                 out.append(hl)
     elif combo == "revreference":
         last_element = uniqs[-1]
@@ -324,7 +338,8 @@ def get_categorical_combinations(variable, uniqs, newdata, comparison, combo="re
                     lo=clean([last_element]),
                     lab=f"{u} - {last_element}",
                     comparison=comparison,
-                    pad=uniqs)
+                    pad=uniqs,
+                )
                 out.append(hl)
     elif combo == "sequential":
         for i in range(len(uniqs) - 1):
@@ -334,7 +349,8 @@ def get_categorical_combinations(variable, uniqs, newdata, comparison, combo="re
                 lo=clean([uniqs[i]]),
                 lab=f"{uniqs[i + 1]} - {uniqs[i]}",
                 comparison=comparison,
-                pad=uniqs)
+                pad=uniqs,
+            )
             out.append(hl)
     elif combo == "revsequential":
         for i in range(len(uniqs) - 1, 0, -1):
@@ -344,7 +360,8 @@ def get_categorical_combinations(variable, uniqs, newdata, comparison, combo="re
                 lo=clean([uniqs[i]]),
                 lab=f"{uniqs[i - 1]} - {uniqs[i]}",
                 comparison=comparison,
-                pad=uniqs)
+                pad=uniqs,
+            )
             out.append(hl)
     elif combo == "pairwise":
         for i in range(len(uniqs)):
@@ -355,7 +372,8 @@ def get_categorical_combinations(variable, uniqs, newdata, comparison, combo="re
                     lo=clean([uniqs[i]]),
                     lab=f"{uniqs[j]} - {uniqs[i]}",
                     comparison=comparison,
-                    pad=uniqs)
+                    pad=uniqs,
+                )
                 out.append(hl)
     elif combo == "revpairwise":
         for i in range(len(uniqs)):
@@ -366,21 +384,26 @@ def get_categorical_combinations(variable, uniqs, newdata, comparison, combo="re
                     lo=clean([uniqs[j]]),
                     lab=f"{uniqs[i]} - {uniqs[j]}",
                     comparison=comparison,
-                    pad=uniqs)
+                    pad=uniqs,
+                )
                 out.append(hl)
     else:
-        raise ValueError(f"The supported comparisons are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', and 'revpairwise'.")
+        raise ValueError(
+            f"The supported comparisons are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', and 'revpairwise'."
+        )
 
     return out
 
 
-def sanitize_variables(variables, model, newdata, comparison, eps, by, wts = None):
+def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None):
     out = []
 
     if variables is None:
         vlist = get_variables_names(variables, model, newdata)
         for v in vlist:
-            out.append(get_one_variable_hi_lo(v, None, newdata, comparison, eps, by, wts))
+            out.append(
+                get_one_variable_hi_lo(v, None, newdata, comparison, eps, by, wts)
+            )
 
     elif isinstance(variables, dict):
         for v in variables:
@@ -388,22 +411,29 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts = Non
                 del variables[v]
                 warn(f"Variable {v} is not in newdata.")
             else:
-                out.append(get_one_variable_hi_lo(v, variables[v], newdata, comparison, eps, by, wts))
+                out.append(
+                    get_one_variable_hi_lo(
+                        v, variables[v], newdata, comparison, eps, by, wts
+                    )
+                )
 
     elif isinstance(variables, str):
         if variables not in newdata.columns:
             raise ValueError(f"Variable {variables} is not in newdata.")
-        out.append(get_one_variable_hi_lo(variables, None, newdata, comparison, eps, by, wts))
+        out.append(
+            get_one_variable_hi_lo(variables, None, newdata, comparison, eps, by, wts)
+        )
 
     elif isinstance(variables, list):
         for v in variables:
             if v not in newdata.columns:
                 warn(f"Variable {v} is not in newdata.")
             else:
-                out.append(get_one_variable_hi_lo(v, None, newdata, comparison, eps, by, wts))
+                out.append(
+                    get_one_variable_hi_lo(v, None, newdata, comparison, eps, by, wts)
+                )
 
     # unnest list of list of HiLo
     out = [item for sublist in out for item in sublist]
 
     return out
- 
