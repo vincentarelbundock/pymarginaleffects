@@ -80,7 +80,7 @@ print(mod.summary().as_text())
     Model:                            OLS   Adj. R-squared:                  0.866
     Method:                 Least Squares   F-statistic:                     29.55
     Date:                Sun, 02 Jul 2023   Prob (F-statistic):           2.60e-10
-    Time:                        08:45:36   Log-Likelihood:                -66.158
+    Time:                        10:51:06   Log-Likelihood:                -66.158
     No. Observations:                  32   AIC:                             148.3
     Df Residuals:                      24   BIC:                             160.0
     Df Model:                           7                                         
@@ -260,16 +260,24 @@ print(beta_1 * logistic.pdf(beta_0 + beta_1 * 24))
 
     0.06653436463892946
 
-This computes a “marginal effect at the mean” (or “slope at the mean”):
+This computes a “marginal effect (or slope) at the mean” or “at the
+median”, that is, when all covariates are held at their mean or median
+values:
 
 ``` python
-mfx = slopes(mod, newdata = datagrid(newdata = mtcars))
+mfx = slopes(mod, newdata = "mean")
+print(mfx)
+
+mfx = slopes(mod, newdata = "median")
 print(mfx)
 ```
 
     | term | contrast | estimate | std_error | … | p_value  | s_value  | conf_low | conf_high |
     |------|----------|----------|-----------|---|----------|----------|----------|-----------|
     | mpg  | +0.0001  | 0.073235 | 0.028289  | … | 0.014712 | 6.086849 | 0.015461 | 0.13101   |
+    | term | contrast | estimate | std_error | … | p_value  | s_value  | conf_low | conf_high |
+    |------|----------|----------|-----------|---|----------|----------|----------|-----------|
+    | mpg  | +0.0001  | 0.067875 | 0.025298  | … | 0.011754 | 6.410751 | 0.01621  | 0.119539  |
 
 We can also compute an “average slope” or “average marginaleffects”
 
@@ -327,12 +335,12 @@ pre = predictions(
 print(pre)
 ```
 
-    | rowid | estimate | std_error | statistic | … | qsec     | vs  | gear | carb |
-    |-------|----------|-----------|-----------|---|----------|-----|------|------|
-    | 0     | 0.3929   | 0.108367  | 3.625643  | … | 17.84875 | 0   | 3    | 2    |
-    | 1     | 0.3929   | 0.108367  | 3.625643  | … | 17.84875 | 0   | 3    | 2    |
-    | 2     | 0.3929   | 0.108367  | 3.625643  | … | 17.84875 | 0   | 3    | 2    |
-    | 3     | 0.3929   | 0.108367  | 3.625643  | … | 17.84875 | 0   | 3    | 2    |
+    | rowid | estimate | std_error | statistic | … | qsec     | vs     | gear   | carb   |
+    |-------|----------|-----------|-----------|---|----------|--------|--------|--------|
+    | 0     | 0.3929   | 0.108367  | 3.625643  | … | 17.84875 | 0.4375 | 3.6875 | 2.8125 |
+    | 1     | 0.3929   | 0.108367  | 3.625643  | … | 17.84875 | 0.4375 | 3.6875 | 2.8125 |
+    | 2     | 0.3929   | 0.108367  | 3.625643  | … | 17.84875 | 0.4375 | 3.6875 | 2.8125 |
+    | 3     | 0.3929   | 0.108367  | 3.625643  | … | 17.84875 | 0.4375 | 3.6875 | 2.8125 |
 
 ## Averaging
 
@@ -469,10 +477,10 @@ cmp = comparisons(
 print(cmp)
 ```
 
-    | rowid | term | contrast | estimate  | … | carb | predicted | predicted_lo | predicted_hi |
-    |-------|------|----------|-----------|---|------|-----------|--------------|--------------|
-    | 0.0   | drat | +1       | 10.241374 | … | 4.0  | 25.718632 | 20.597945    | 30.839319    |
-    | 1.0   | drat | +1       | 5.223926  | … | 4.0  | 16.275659 | 13.663696    | 18.887621    |
+    | rowid | term | contrast | estimate  | … | carb   | predicted | predicted_lo | predicted_hi |
+    |-------|------|----------|-----------|---|--------|-----------|--------------|--------------|
+    | 0.0   | drat | +1       | 10.241374 | … | 2.8125 | 25.718632 | 20.597945    | 30.839319    |
+    | 1.0   | drat | +1       | 5.223926  | … | 2.8125 | 16.275659 | 13.663696    | 18.887621    |
 
 Are these two contrasts significantly different from one another? To
 test this, we can use the `hypothesis` argument:

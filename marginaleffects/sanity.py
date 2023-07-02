@@ -6,6 +6,7 @@ import numpy as np
 import polars as pl
 
 from .estimands import estimands
+from .datagrid import datagrid
 
 
 def sanitize_vcov(vcov, model):
@@ -35,11 +36,17 @@ def sanitize_vcov(vcov, model):
 def sanitize_newdata(model, newdata, wts):
     if newdata is None:
         newdata = model.model.data.frame
+
+    elif newdata is "mean":
+        newdata = datagrid(newdata = model.model.data.frame)
+
+    elif newdata is "median":
+        newdata = datagrid(newdata = model.model.data.frame, FUN_numeric = lambda x: x.median())
+
     try:
         out = pl.from_pandas(newdata)
     except:
         out = newdata
-
 
     if "rowid" in out.columns:
         raise ValueError(

@@ -131,10 +131,13 @@ beta_1 = mod.params.iloc[1]
 print(beta_1 * logistic.pdf(beta_0 + beta_1 * 24))
 ```
 
-This computes a "marginal effect at the mean" (or "slope at the mean"):
+This computes a "marginal effect (or slope) at the mean" or "at the median", that is, when all covariates are held at their mean or median values:
 
 ```{python}
-mfx = slopes(mod, newdata = datagrid(newdata = mtcars))
+mfx = slopes(mod, newdata = "mean")
+print(mfx)
+
+mfx = slopes(mod, newdata = "median")
 print(mfx)
 ```
 
