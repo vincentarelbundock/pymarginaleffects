@@ -136,7 +136,8 @@ This computes a "marginal effect (or slope) at the mean" or "at the median", tha
 ```{python}
 mfx = slopes(mod, newdata = "mean")
 print(mfx)
-
+```
+```{python}
 mfx = slopes(mod, newdata = "median")
 print(mfx)
 ```
