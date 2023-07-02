@@ -10,7 +10,7 @@ from .predictions import get_predictions
 from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov
 from .transform import *
 from .uncertainty import *
-from .utils import convert_int_columns_to_float32, get_pad, sort_columns
+from .utils import upcast, get_pad, sort_columns
 
 
 def comparisons(
@@ -140,10 +140,10 @@ def comparisons(
         pad.append(get_pad(newdata, v.variable, v.pad))
 
     # ugly hack, but polars is very strict and `value / 2`` is float
-    nd = convert_int_columns_to_float32(nd)
-    hi = convert_int_columns_to_float32(hi)
-    lo = convert_int_columns_to_float32(lo)
-    pad = convert_int_columns_to_float32(pad)
+    nd = upcast(nd)
+    hi = upcast(hi)
+    lo = upcast(lo)
+    pad = upcast(pad)
     nd = pl.concat(nd, how="vertical_relaxed")
     hi = pl.concat(hi, how="vertical_relaxed")
     lo = pl.concat(lo, how="vertical_relaxed")
@@ -152,9 +152,9 @@ def comparisons(
         pad = pl.DataFrame()
     else:
         pad = pl.concat(pad).unique()
-        nd = pl.concat([pad, nd], how="diagonal")
-        hi = pl.concat([pad, hi], how="diagonal")
-        lo = pl.concat([pad, lo], how="diagonal")
+        nd = pl.concat(upcast([pad, nd]), how="diagonal")
+        hi = pl.concat(upcast([pad, hi]), how="diagonal")
+        lo = pl.concat(upcast([pad, lo]), how="diagonal")
 
     # model matrices
     y, hi_X = patsy.dmatrices(model.model.formula, hi.to_pandas())

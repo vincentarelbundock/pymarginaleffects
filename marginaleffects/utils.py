@@ -51,7 +51,7 @@ def get_pad(df, colname, uniqs):
     return first
 
 
-def convert_int_columns_to_float32(dfs: list) -> list:
+def upcast(dfs: list) -> list:
     numeric_types = [
         pl.Int8,
         pl.Int16,
@@ -62,17 +62,21 @@ def convert_int_columns_to_float32(dfs: list) -> list:
         pl.UInt32,
         pl.UInt64,
         pl.Float32,
+        pl.Float64
     ]
 
-    converted_dfs = []
-    for df in dfs:
-        new_columns = []
-        if df is not None:
-            for col in df:
-                if col.dtype in numeric_types:
-                    new_columns.append(col.cast(pl.Float64).alias(col.name))
-                else:
-                    new_columns.append(col)
-            converted_df = df.with_columns(new_columns)
-            converted_dfs.append(converted_df)
-    return converted_dfs
+    tmp = [df for df in dfs if type(df) is pl.DataFrame]
+
+    if len(tmp) == 0:
+        return dfs
+
+    for col in tmp[0].columns:
+        dtypes = [df[col].dtype for df in tmp]
+        match = [next((i for i, x in enumerate(numeric_types) if x == dtype), None) for dtype in dtypes]
+        match = list(set(match))
+        if len(match) > 1:
+            match = max(match)
+            if match is not None:
+                for i, v in enumerate(tmp):
+                    tmp[i] = tmp[i].with_columns(pl.col(col).cast(numeric_types[match]))
+    return tmp
