@@ -61,8 +61,6 @@ def convert_int_columns_to_float32(dfs: list) -> list:
         pl.UInt16,
         pl.UInt32,
         pl.UInt64,
-        pl.Float32,
-        pl.Float64,
     ]
 
     converted_dfs = []

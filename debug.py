@@ -1,9 +1,15 @@
+import patsy
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
-from pytest import approx
+from scipy.stats import logistic
 
-dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv") \
-    .with_columns(pl.col("cyl").cast(pl.Utf8))
-mod = smf.poisson("carb ~ mpg * qsec + cyl", data = dat).fit()
-print(comparisons(mod, by = "cyl", vcov = False))
+mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+mod = smf.logit("am ~ mpg", data = mtcars).fit()
+
+nd = datagrid(mpg = 24, newdata = mtcars)
+print(slopes(mod, newdata = nd))
+
+beta_0 = mod.params.iloc[0]
+beta_1 = mod.params.iloc[1]
+print(beta_1 * logistic.pdf(beta_0 + beta_1 * 24))

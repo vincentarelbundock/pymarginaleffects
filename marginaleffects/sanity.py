@@ -275,8 +275,8 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
 
     if len(lo) == 1:
         lab = lab.format(hi=hi[0], lo=lo[0])
-        lo = clean(np.repeat[lo[0]])
-        hi = clean(np.repeat[hi[0]])
+        lo = clean(np.repeat(lo[0], newdata.shape[0]))
+        lo = clean(np.repeat(lo[0], newdata.shape[0]))
 
     out = [
         HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad=None, comparison=comparison)
