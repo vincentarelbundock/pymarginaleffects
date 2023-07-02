@@ -3,6 +3,18 @@ title: "Get Started"
 format: gfm
 ---
 
+The `marginaleffects` package allows `Python` users to compute and plot three principal quantities of interest: (1) predictions, (2) comparisons, and (3) slopes. In addition, the package includes a convenience function to compute a fourth estimand, "marginal means", which is a special case of averaged predictions. `marginaleffects` can also average (or "marginalize") unit-level (or "conditional") estimates of all those quantities, and conduct hypothesis tests on them.
+
+## WARNING
+
+This is an *alpha* version of the package, released to gather feedback, feature requests, and bug reports from potential users. This version includes known bugs. There are also known discrepancies between the numerical results produced in Python and R. Please report any issues you encounter here: https://github.com/vincentarelbundock/pymarginaleffects/issues
+
+
+## Supported models
+
+There is a good chance that this package will work with (nearly) all the models supported by [the `statsmodels` formula API,](https://www.statsmodels.org/stable/api.html#statsmodels-formula-api) ex: `ols`, `probit`, `logit`, `mnlogit`, `quantreg`, `poisson`, `negativebinomial`, `mixedlm`, `rlm`, etc. However, the package has only been tested with a subset of those, and some weirdness remains. Again: this is *alpha* software; it should not be used in critical applications yet.
+
+
 ## Installation
 
 Install the latest PyPi release:
@@ -14,7 +26,8 @@ pip install marginaleffects
 
 ## Estimands: Predictions, Comparisons, and Slopes
 
-The `marginaleffects` package allows `python` users to compute and plot three principal quantities of interest: (1) predictions, (2) comparisons, and (3) slopes. In addition, the package includes a convenience function to compute a fourth estimand, "marginal means", which is a special case of averaged predictions. `marginaleffects` can also average (or "marginalize") unit-level (or "conditional") estimates of all those quantities, and conduct hypothesis tests on them.
+
+## Definitions
 
 [_Predictions_:](predictions.html)
 

@@ -1,5 +1,33 @@
 # Get Started
 
+The `marginaleffects` package allows `Python` users to compute and plot
+three principal quantities of interest: (1) predictions, (2)
+comparisons, and (3) slopes. In addition, the package includes a
+convenience function to compute a fourth estimand, “marginal means”,
+which is a special case of averaged predictions. `marginaleffects` can
+also average (or “marginalize”) unit-level (or “conditional”) estimates
+of all those quantities, and conduct hypothesis tests on them.
+
+## WARNING
+
+This is an *alpha* version of the package, released to gather feedback,
+feature requests, and bug reports from potential users. This version
+includes known bugs. There are also known discrepancies between the
+numerical results produced in Python and R. Please report any issues you
+encounter here:
+https://github.com/vincentarelbundock/pymarginaleffects/issues
+
+## Supported models
+
+There is a good chance that this package will work with (nearly) all the
+models supported by [the `statsmodels` formula
+API,](https://www.statsmodels.org/stable/api.html#statsmodels-formula-api)
+ex: `ols`, `probit`, `logit`, `mnlogit`, `quantreg`, `poisson`,
+`negativebinomial`, `mixedlm`, `rlm`, etc. However, the package has only
+been tested with a subset of those, and some weirdness remains. Again:
+this is *alpha* software; it should not be used in critical applications
+yet.
+
 ## Installation
 
 Install the latest PyPi release:
@@ -10,13 +38,7 @@ pip install marginaleffects
 
 ## Estimands: Predictions, Comparisons, and Slopes
 
-The `marginaleffects` package allows `python` users to compute and plot
-three principal quantities of interest: (1) predictions, (2)
-comparisons, and (3) slopes. In addition, the package includes a
-convenience function to compute a fourth estimand, “marginal means”,
-which is a special case of averaged predictions. `marginaleffects` can
-also average (or “marginalize”) unit-level (or “conditional”) estimates
-of all those quantities, and conduct hypothesis tests on them.
+## Definitions
 
 [*Predictions*:](predictions.html)
 
@@ -80,7 +102,7 @@ print(mod.summary().as_text())
     Model:                            OLS   Adj. R-squared:                  0.866
     Method:                 Least Squares   F-statistic:                     29.55
     Date:                Sun, 02 Jul 2023   Prob (F-statistic):           2.60e-10
-    Time:                        10:52:15   Log-Likelihood:                -66.158
+    Time:                        17:27:41   Log-Likelihood:                -66.158
     No. Observations:                  32   AIC:                             148.3
     Df Residuals:                      24   BIC:                             160.0
     Df Model:                           7                                         
@@ -147,13 +169,13 @@ cmp.shape
 print(cmp.head())
 ```
 
-    | rowid | term | contrast | estimate  | … | carb | predicted | predicted_lo | predicted_hi |
-    |-------|------|----------|-----------|---|------|-----------|--------------|--------------|
-    | 0.0   | wt   | +1       | -6.614549 | … | 4.0  | 22.488569 | 25.795843    | 19.181294    |
-    | 1.0   | wt   | +1       | -6.614549 | … | 4.0  | 20.801859 | 24.109133    | 17.494584    |
-    | 2.0   | wt   | +1       | -7.162295 | … | 1.0  | 25.264652 | 28.845799    | 21.683504    |
-    | 3.0   | wt   | +1       | -3.206559 | … | 1.0  | 20.255492 | 21.858772    | 18.652213    |
-    | 4.0   | wt   | +1       | -2.266852 | … | 2.0  | 16.997817 | 18.131243    | 15.864392    |
+    | rowid | term | contrast | estimate  | … | vs  | am  | gear | carb |
+    |-------|------|----------|-----------|---|-----|-----|------|------|
+    | 0     | am   | 1 - 0    | 0.325174  | … | 0   | 1   | 4    | 4    |
+    | 1     | am   | 1 - 0    | -0.543864 | … | 0   | 1   | 4    | 4    |
+    | 2     | am   | 1 - 0    | 1.200713  | … | 1   | 1   | 4    | 1    |
+    | 3     | am   | 1 - 0    | -1.70258  | … | 1   | 0   | 3    | 1    |
+    | 4     | am   | 1 - 0    | -0.614695 | … | 0   | 0   | 3    | 2    |
 
 The `comparisons()` function allows customized queries. For example,
 what happens to the predicted outcome when the `hp` variable increases
@@ -164,17 +186,17 @@ cmp = comparisons(mod, variables = {"hp": [120, 100]})
 print(cmp)
 ```
 
-    | rowid | term | contrast  | estimate | … | carb | predicted | predicted_lo | predicted_hi |
-    |-------|------|-----------|----------|---|------|-----------|--------------|--------------|
-    | 0.0   | hp   | 100 - 120 | 0.738111 | … | 4.0  | 22.488569 | 22.119513    | 22.857624    |
-    | 1.0   | hp   | 100 - 120 | 0.573787 | … | 4.0  | 20.801859 | 20.514965    | 21.088752    |
-    | 2.0   | hp   | 100 - 120 | 0.931433 | … | 1.0  | 25.264652 | 24.007217    | 24.93865     |
-    | 3.0   | hp   | 100 - 120 | 0.845426 | … | 1.0  | 20.255492 | 19.83278     | 20.678205    |
-    | …     | …    | …         | …        | … | …    | …         | …            | …            |
-    | 28.0  | hp   | 100 - 120 | 0.383687 | … | 4.0  | 15.896176 | 18.658723    | 19.04241     |
-    | 29.0  | hp   | 100 - 120 | 0.64145  | … | 6.0  | 19.411674 | 21.175661    | 21.817111    |
-    | 30.0  | hp   | 100 - 120 | 0.125924 | … | 8.0  | 14.7881   | 16.141785    | 16.267709    |
-    | 31.0  | hp   | 100 - 120 | 0.635006 | … | 2.0  | 21.461991 | 21.112738    | 21.747744    |
+    | rowid | term | contrast  | estimate | … | vs  | am  | gear | carb |
+    |-------|------|-----------|----------|---|-----|-----|------|------|
+    | 0     | hp   | 100 - 120 | 0.738111 | … | 0   | 1   | 4    | 4    |
+    | 1     | hp   | 100 - 120 | 0.573787 | … | 0   | 1   | 4    | 4    |
+    | 2     | hp   | 100 - 120 | 0.931433 | … | 1   | 1   | 4    | 1    |
+    | 3     | hp   | 100 - 120 | 0.845426 | … | 1   | 0   | 3    | 1    |
+    | …     | …    | …         | …        | … | …   | …   | …    | …    |
+    | 28    | hp   | 100 - 120 | 0.383687 | … | 0   | 1   | 5    | 4    |
+    | 29    | hp   | 100 - 120 | 0.64145  | … | 0   | 1   | 5    | 6    |
+    | 30    | hp   | 100 - 120 | 0.125924 | … | 0   | 1   | 5    | 8    |
+    | 31    | hp   | 100 - 120 | 0.635006 | … | 1   | 1   | 4    | 2    |
 
 What happens to the predicted outcome when the `wt` variable increases
 by 1 standard deviation about its mean?
@@ -184,25 +206,17 @@ cmp = comparisons(mod, variables = {"hp": "sd"})
 print(cmp)
 ```
 
-    | rowid | term | contrast         | estimate  | … | carb | predicted | predicted_lo | predicted_hi |
-    |-------|------|------------------|-----------|---|------|-----------|--------------|--------------|
-    | 0.0   | hp   | +68.562868489320 | -2.530351 | … | 4.0  | 22.488569 | 23.753744    | 21.223393    |
-    |       |      | 59               |           |   |      |           |              |              |
-    | 1.0   | hp   | +68.562868489320 | -1.967025 | … | 4.0  | 20.801859 | 21.785371    | 19.818346    |
-    |       |      | 59               |           |   |      |           |              |              |
-    | 2.0   | hp   | +68.562868489320 | -3.193087 | … | 1.0  | 25.264652 | 26.861195    | 23.668108    |
-    |       |      | 59               |           |   |      |           |              |              |
-    | 3.0   | hp   | +68.562868489320 | -2.89824  | … | 1.0  | 20.255492 | 21.704613    | 18.806372    |
-    |       |      | 59               |           |   |      |           |              |              |
-    | …     | …    | …                | …         | … | …    | …         | …            | …            |
-    | 28.0  | hp   | +68.562868489320 | -1.315334 | … | 4.0  | 15.896176 | 16.553843    | 15.238509    |
-    |       |      | 59               |           |   |      |           |              |              |
-    | 29.0  | hp   | +68.562868489320 | -2.198983 | … | 6.0  | 19.411674 | 20.511165    | 18.312182    |
-    |       |      | 59               |           |   |      |           |              |              |
-    | 30.0  | hp   | +68.562868489320 | -0.431686 | … | 8.0  | 14.7881   | 15.003943    | 14.572257    |
-    |       |      | 59               |           |   |      |           |              |              |
-    | 31.0  | hp   | +68.562868489320 | -2.176891 | … | 2.0  | 21.461991 | 22.550437    | 20.373545    |
-    |       |      | 59               |           |   |      |           |              |              |
+    | rowid | term | contrast           | estimate  | … | vs  | am  | gear | carb |
+    |-------|------|--------------------|-----------|---|-----|-----|------|------|
+    | 0     | hp   | +68.56286848932059 | -2.530351 | … | 0   | 1   | 4    | 4    |
+    | 1     | hp   | +68.56286848932059 | -1.967025 | … | 0   | 1   | 4    | 4    |
+    | 2     | hp   | +68.56286848932059 | -3.193087 | … | 1   | 1   | 4    | 1    |
+    | 3     | hp   | +68.56286848932059 | -2.89824  | … | 1   | 0   | 3    | 1    |
+    | …     | …    | …                  | …         | … | …   | …   | …    | …    |
+    | 28    | hp   | +68.56286848932059 | -1.315334 | … | 0   | 1   | 5    | 4    |
+    | 29    | hp   | +68.56286848932059 | -2.198983 | … | 0   | 1   | 5    | 6    |
+    | 30    | hp   | +68.56286848932059 | -0.431686 | … | 0   | 1   | 5    | 8    |
+    | 31    | hp   | +68.56286848932059 | -2.176891 | … | 1   | 1   | 4    | 2    |
 
 The `comparisons()` function also allows users to specify arbitrary
 functions of predictions, with the `comparison` argument. For example,
@@ -392,8 +406,8 @@ print(cmp)
 
     | am  | term | contrast | estimate | … | p_value   | s_value   | conf_low | conf_high |
     |-----|------|----------|----------|---|-----------|-----------|----------|-----------|
-    | 1.0 | mpg  | +1       | 0.044926 | … | 1.4198e-7 | 22.747797 | 0.031486 | 0.058365  |
-    | 0.0 | mpg  | +1       | 0.04751  | … | 0.000284  | 11.779712 | 0.023884 | 0.071135  |
+    | 1   | mpg  | +1       | 0.044926 | … | 1.4198e-7 | 22.747797 | 0.031486 | 0.058365  |
+    | 0   | mpg  | +1       | 0.04751  | … | 0.000284  | 11.779712 | 0.023884 | 0.071135  |
 
 Marginal Means are a special case of predictions, which are marginalized
 (or averaged) across a balanced grid of categorical predictors. To
@@ -430,9 +444,9 @@ print(cmp)
 
     | term | contrast     | estimate  | std_error | … | p_value  | s_value  | conf_low  | conf_high |
     |------|--------------|-----------|-----------|---|----------|----------|-----------|-----------|
-    | hp   | +1           | -0.044244 | 0.014576  | … | 0.005266 | 7.569022 | -0.074151 | -0.014337 |
     | cyl  | 6 - 4        | -3.924578 | 1.537515  | … | 0.016663 | 5.907182 | -7.079298 | -0.769859 |
     | cyl  | 8 - 4        | -3.533414 | 2.502788  | … | 0.169433 | 2.561213 | -8.668711 | 1.601883  |
+    | hp   | +1           | -0.044244 | 0.014576  | … | 0.005266 | 7.569022 | -0.074151 | -0.014337 |
     | am   | mean(True) - | 4.157856  | 1.25655   | … | 0.00266  | 8.554463 | 1.579629  | 6.736084  |
     |      | mean(False)  |           |           |   |          |          |           |           |
 
@@ -480,10 +494,10 @@ cmp = comparisons(
 print(cmp)
 ```
 
-    | rowid | term | contrast | estimate  | … | carb   | predicted | predicted_lo | predicted_hi |
-    |-------|------|----------|-----------|---|--------|-----------|--------------|--------------|
-    | 0.0   | drat | +1       | 10.241374 | … | 2.8125 | 25.718632 | 20.597945    | 30.839319    |
-    | 1.0   | drat | +1       | 5.223926  | … | 2.8125 | 16.275659 | 13.663696    | 18.887621    |
+    | rowid | term | contrast | estimate  | … | vs     | am      | gear   | carb   |
+    |-------|------|----------|-----------|---|--------|---------|--------|--------|
+    | 0     | drat | +1       | 10.241374 | … | 0.4375 | 0.40625 | 3.6875 | 2.8125 |
+    | 1     | drat | +1       | 5.223926  | … | 0.4375 | 0.40625 | 3.6875 | 2.8125 |
 
 Are these two contrasts significantly different from one another? To
 test this, we can use the `hypothesis` argument:
