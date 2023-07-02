@@ -61,6 +61,7 @@ def convert_int_columns_to_float32(dfs: list) -> list:
         pl.UInt16,
         pl.UInt32,
         pl.UInt64,
+        pl.Float32,
     ]
 
     converted_dfs = []
@@ -69,7 +70,7 @@ def convert_int_columns_to_float32(dfs: list) -> list:
         if df is not None:
             for col in df:
                 if col.dtype in numeric_types:
-                    new_columns.append(col.cast(pl.Float32).alias(col.name))
+                    new_columns.append(col.cast(pl.Float64).alias(col.name))
                 else:
                     new_columns.append(col)
             converted_df = df.with_columns(new_columns)
