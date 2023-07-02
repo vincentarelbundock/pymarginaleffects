@@ -5,6 +5,8 @@ __pycache__/
 __pypackages__/
 *.ipynb
 site/
+debug.py
+debug.R
 
 # Poetry files
 /dist/

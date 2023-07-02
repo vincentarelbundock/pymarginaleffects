@@ -1,4 +1,5 @@
 import numpy as np
+from functools import reduce
 import patsy
 import polars as pl
 
@@ -172,7 +173,7 @@ def comparisons(
 
     baseline = nd.clone()
 
-    def inner(coefs, by, hypothesis, wts):
+    def inner(coefs, by, hypothesis, wts, nd):
         # we don't want a pandas series
         try:
             coefs = coefs.to_numpy()
@@ -180,13 +181,28 @@ def comparisons(
             pass
 
         # estimates
-        tmp = baseline.with_columns(
-            get_predictions(model, model.params.to_numpy(), nd_X)["estimate"].alias(
-                "predicted"
-            ),
-            get_predictions(model, coefs, lo_X)["estimate"].alias("predicted_lo"),
-            get_predictions(model, coefs, hi_X)["estimate"].alias("predicted_hi"),
-        )
+        tmp = [
+            get_predictions(model, model.params.to_numpy(), nd_X).rename({"estimate": "predicted"}),
+            get_predictions(model, coefs, lo_X).rename({"estimate": "predicted_lo"}).select("predicted_lo"),
+            get_predictions(model, coefs, hi_X).rename({"estimate": "predicted_hi"}).select("predicted_hi"),
+        ]
+        tmp = reduce(lambda x, y: pl.concat([x, y], how = "horizontal"), tmp)
+        
+        # no group
+        if tmp.shape[0] == nd.shape[0]:
+            cols = [x for x in nd.columns if x not in tmp.columns]
+            tmp = pl.concat([tmp, nd.select(cols)], how = "horizontal")
+
+        # group
+        elif "group" in tmp.columns:
+            meta = nd.join(tmp.select("group").unique(), how = "cross")
+            cols = [x for x in meta.columns if x in tmp.columns]
+            tmp = meta.join(tmp, on = cols, how = "left")
+
+        # not sure what happens here
+        else:
+            raise ValueError("Something went wrong")
+
 
         if isinstance(by, str):
             by = ["term", "contrast"] + [by]
@@ -228,7 +244,7 @@ def comparisons(
 
         return tmp
 
-    outer = lambda x: inner(x, by=by, hypothesis=hypothesis, wts=wts)
+    outer = lambda x: inner(x, by=by, hypothesis=hypothesis, wts=wts, nd=nd)
 
     out = outer(model.params.to_numpy())
 

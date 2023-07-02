@@ -8,7 +8,11 @@ import scipy.stats as stats
 
 def get_jacobian(func, coefs):
     if coefs.ndim == 2:
-        coefs_flat = coefs.to_numpy().flatten()
+        if isinstance(coefs, np.ndarray):
+            coefs_flat = coefs.flatten()
+        else:
+            coefs_flat = coefs.to_numpy().flatten()
+
         eps = max(1e-8, 1e-4 * np.min(np.abs(coefs_flat)))
         baseline = func(coefs)["estimate"].to_numpy()
         jac = np.empty((baseline.shape[0], len(coefs_flat)), dtype=np.float64)
