@@ -1,4 +1,4 @@
-# Get Started
+# `marginaleffects` for Python
 
 The `marginaleffects` package allows `Python` users to compute and plot
 three principal quantities of interest: (1) predictions, (2)
@@ -102,7 +102,7 @@ print(mod.summary().as_text())
     Model:                            OLS   Adj. R-squared:                  0.866
     Method:                 Least Squares   F-statistic:                     29.55
     Date:                Sun, 02 Jul 2023   Prob (F-statistic):           2.60e-10
-    Time:                        17:27:41   Log-Likelihood:                -66.158
+    Time:                        17:28:44   Log-Likelihood:                -66.158
     No. Observations:                  32   AIC:                             148.3
     Df Residuals:                      24   BIC:                             160.0
     Df Model:                           7                                         
@@ -444,9 +444,9 @@ print(cmp)
 
     | term | contrast     | estimate  | std_error | … | p_value  | s_value  | conf_low  | conf_high |
     |------|--------------|-----------|-----------|---|----------|----------|-----------|-----------|
+    | hp   | +1           | -0.044244 | 0.014576  | … | 0.005266 | 7.569022 | -0.074151 | -0.014337 |
     | cyl  | 6 - 4        | -3.924578 | 1.537515  | … | 0.016663 | 5.907182 | -7.079298 | -0.769859 |
     | cyl  | 8 - 4        | -3.533414 | 2.502788  | … | 0.169433 | 2.561213 | -8.668711 | 1.601883  |
-    | hp   | +1           | -0.044244 | 0.014576  | … | 0.005266 | 7.569022 | -0.074151 | -0.014337 |
     | am   | mean(True) - | 4.157856  | 1.25655   | … | 0.00266  | 8.554463 | 1.579629  | 6.736084  |
     |      | mean(False)  |           |           |   |          |          |           |           |
 
