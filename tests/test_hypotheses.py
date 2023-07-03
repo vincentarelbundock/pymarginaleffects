@@ -1,30 +1,23 @@
-import numpy as np
-import statsmodels.api as sm
 import statsmodels.formula.api as smf
-from pytest import approx
+import numpy as np
 from marginaleffects import *
-from .utilities import *
-from rpy2.robjects.packages import importr
+import polars as pl
+from polars.testing import assert_series_equal
 
-# R packages
-marginaleffects = importr("marginaleffects")
-stats = importr("stats")
+dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv")
 
-# Guerry Data
-df, df_r = rdatasets("HistData", "Guerry", r = True)
-
-# fit models
-mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
-mod_r = stats.lm("Literacy ~ Pop1831 * Desertion", data = df_r)
+mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
 
 def test_coefs():
-    hyp_py = hypotheses(mod_py, hypothesis = np.array([1, -1, 0, 0]))
-    hyp_r = marginaleffects.hypotheses(mod_r, hypothesis = "b1 - b2 = 0")
-    hyp_r = r_to_polars(hyp_r)
-    compare_r_to_py(hyp_r, hyp_py)
+    hyp_py = hypotheses(mod, hypothesis = np.array([1, -1, 0, 0]))
+    hyp_r = pl.read_csv("tests/r/test_hypotheses_coefs.csv")
+    assert_series_equal(hyp_r["estimate"], hyp_py["estimate"])
+    assert_series_equal(hyp_r["std.error"], hyp_py["std_error"], check_names = False)
 
 
-def test_comparisons_hypothesis():
-    py = comparisons(mod_py, by = True, hypothesis = "b1 = b2")
-    r = r_to_polars(marginaleffects.comparisons(mod_r, by = True, hypothesis = "b1 = b2"))
-    compare_r_to_py(r, py)
+def test_comparisons():
+    hyp_py = comparisons(mod, by = True, hypothesis = "b1 = b2")
+    hyp_r = pl.read_csv("tests/r/test_hypotheses_comparisons.csv")
+    # absolute because the order of rows is different in R and Python `comparisons()` output
+    assert_series_equal(hyp_r["estimate"].abs(), hyp_py["estimate"].abs())
+    assert_series_equal(hyp_r["std.error"], hyp_py["std_error"], check_names = False)
