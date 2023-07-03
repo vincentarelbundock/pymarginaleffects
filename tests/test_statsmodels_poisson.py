@@ -1,12 +1,11 @@
 import polars as pl
 import statsmodels.formula.api as smf
-from marginaleffects import *
+from marginaleffects import comparisons, predictions
 from polars.testing import assert_series_equal
 
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv") \
     .with_columns(pl.col("cyl").cast(pl.Utf8))
 mod = smf.poisson("carb ~ mpg * qsec + cyl", data = dat).fit()
-unknown = comparisons(mod, by = "cyl").sort(["term", "contrast", "cyl"])
 
 
 def test_predictions_01():
