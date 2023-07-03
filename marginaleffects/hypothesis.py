@@ -87,7 +87,7 @@ def lincom_multiply(x, lincom):
 
 # TODO: improve labeling
 def get_hypothesis_row_labels(x):
-    return [f"i" for i in range(len(x))]
+    return ["i" for i in range(len(x))]
 
 
 def lincom_revreference(x):
@@ -97,7 +97,7 @@ def lincom_revreference(x):
     if len(lab) == 0 or len(set(lab)) != len(lab):
         lab = [f"Row 1 - Row {i+1}" for i in range(len(lincom))]
     else:
-        lab = [f"{lab[0]} - {l}" for l in lab]
+        lab = [f"{lab[0]} - {la}" for la in lab]
     lincom = pl.DataFrame(lincom, schema=lab)
     lincom = lincom.select(lab[1:])
     return lincom
@@ -110,7 +110,7 @@ def lincom_reference(x):
     if len(lab) == 0 or len(set(lab)) != len(lab):
         lab = [f"Row {i+1} - Row 1" for i in range(len(lincom))]
     else:
-        lab = [f"{l} - {lab[0]}" for l in lab]
+        lab = [f"{la} - {lab[0]}" for la in lab]
     lincom = pl.DataFrame(lincom.T, schema=lab)
     lincom = lincom.select(lab[1:])
     return lincom

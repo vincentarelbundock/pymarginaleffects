@@ -22,7 +22,7 @@ def get_equivalence(
         raise ValueError(msg)
 
     delta = np.abs(np.diff(equivalence)) / 2
-    null = np.min(equivalence) + delta
+    np.min(equivalence) + delta
 
     x = x.with_columns(
         ((x["estimate"] - equivalence[0]) / x["std_error"]).alias("statistic_noninf"),

@@ -1,14 +1,10 @@
 import numpy as np
-import patsy
 import polars as pl
-import statsmodels.api as sm
-import statsmodels.formula.api as smf
 
-from .by import *
-from .hypothesis import *
-from .sanity import *
-from .uncertainty import *
-from .utils import *
+from .hypothesis import get_hypothesis
+from .sanity import sanitize_vcov
+from .uncertainty import get_jacobian, get_se, get_z_p_ci
+from .utils import sort_columns
 
 
 def hypotheses(model, hypothesis=None, conf_int=0.95, vcov=True):

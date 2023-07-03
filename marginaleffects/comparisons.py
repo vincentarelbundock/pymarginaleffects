@@ -4,13 +4,13 @@ import numpy as np
 import patsy
 import polars as pl
 
-from .equivalence import *
+from .equivalence import get_equivalence
 from .estimands import estimands
 from .hypothesis import get_hypothesis
 from .predictions import get_predictions
 from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov
-from .transform import *
-from .uncertainty import *
+from .transform import get_transform
+from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
 
 
@@ -171,14 +171,9 @@ def comparisons(
         hi = hi[pad.shape[0] :]
         lo = lo[pad.shape[0] :]
 
-    baseline = nd.clone()
-
     def inner(coefs, by, hypothesis, wts, nd):
-        # we don't want a pandas series
-        try:
+        if hasattr(coefs, "to_numpy"):
             coefs = coefs.to_numpy()
-        except:
-            pass
 
         # estimates
         tmp = [
@@ -216,7 +211,8 @@ def comparisons(
         else:
             by = ["term", "contrast"]
 
-        # TODO: problem is that `cyl` is the modified hi and lo instead of the original, so when we group by it, we get only rows with cyl matching the contrast.
+        # TODO: problem is that `cyl` is the modified hi and lo instead of the original
+        # so when we group by it, we get only rows with cyl matching the contrast.
         def applyfun(x, by, wts=None):
             comp = x["marginaleffects_comparison"][0]
             xvar = x[x["term"][0]]
@@ -249,7 +245,8 @@ def comparisons(
 
         return tmp
 
-    outer = lambda x: inner(x, by=by, hypothesis=hypothesis, wts=wts, nd=nd)
+    def outer(x):
+        return inner(x, by=by, hypothesis=hypothesis, wts=wts, nd=nd)
 
     out = outer(model.params.to_numpy())
 

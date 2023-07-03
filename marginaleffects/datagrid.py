@@ -4,18 +4,17 @@ import polars as pl
 
 
 def datagrid(
-    model = None,
-    newdata = None,
+    model=None,
+    newdata=None,
     FUN_numeric=lambda x: x.mean(),
     FUN_other=lambda x: x.mode()[0],  # mode can return multiple values
     **kwargs
 ):
-    
     if model is None and newdata is None:
-        raise ValueError('One of model or newdata must be specified')
-    
+        raise ValueError("One of model or newdata must be specified")
+
     if newdata is None:
-        model_data_frame = model.model.data.frame 
+        model_data_frame = model.model.data.frame
         try:
             newdata = pl.from_pandas(model_data_frame)
         except ValueError:

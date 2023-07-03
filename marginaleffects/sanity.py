@@ -98,10 +98,6 @@ def sanitize_comparison(comparison, by, wts=None):
         "eyexavg": "mean(eY/eX)",
         "eydxavg": "mean(eY/dX)",
         "dyexavg": "mean(dY/eX)",
-        "dydxavg": "mean(dY/dX)",
-        "eyexavg": "mean(eY/eX)",
-        "eydxavg": "mean(eY/dX)",
-        "dyexavg": "mean(dY/eX)",
         "dydxavgwts": "mean(dY/dX)",
         "eyexavgwts": "mean(eY/eX)",
         "eydxavgwts": "mean(eY/dX)",
@@ -162,7 +158,9 @@ def clean_global(k, n):
 def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=None):
     msg = "`value` must be a numeric, a list of length two, or 'sd'"
     vartype = get_one_variable_type(variable, newdata)
-    clean = lambda k: clean_global(k, newdata.shape[0])
+
+    def clean(k):
+        return clean_global(k, newdata.shape[0])
 
     elasticities = [
         "eyexavg",
@@ -323,7 +321,8 @@ def get_variables_names(variables, model, newdata):
 def get_categorical_combinations(
     variable, uniqs, newdata, comparison, combo="reference"
 ):
-    clean = lambda k: clean_global(k, newdata.shape[0])
+    def clean(k):
+        return clean_global(k, newdata.shape[0])
 
     if not isinstance(combo, str):
         raise ValueError("The 'variables' value must be a string.")
@@ -336,7 +335,6 @@ def get_categorical_combinations(
     if combo == "reference":
         for u in uniqs:
             if u != uniqs[0]:
-                hi = [u]
                 hl = HiLo(
                     variable=variable,
                     hi=clean([u]),
@@ -407,7 +405,7 @@ def get_categorical_combinations(
                 out.append(hl)
     else:
         raise ValueError(
-            f"The supported comparisons are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', and 'revpairwise'."
+            "The supported comparisons are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', and 'revpairwise'."
         )
 
     return out

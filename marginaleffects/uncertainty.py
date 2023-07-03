@@ -1,7 +1,6 @@
 import warnings
 
 import numpy as np
-import patsy
 import polars as pl
 import scipy.stats as stats
 
