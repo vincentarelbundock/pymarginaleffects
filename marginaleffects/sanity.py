@@ -38,10 +38,12 @@ def sanitize_newdata(model, newdata, wts):
         newdata = model.model.data.frame
 
     elif isinstance(newdata, str) and newdata == "mean":
-        newdata = datagrid(newdata = model.model.data.frame)
+        newdata = datagrid(newdata=model.model.data.frame)
 
     elif isinstance(newdata, str) and newdata == "median":
-        newdata = datagrid(newdata = model.model.data.frame, FUN_numeric = lambda x: x.median())
+        newdata = datagrid(
+            newdata=model.model.data.frame, FUN_numeric=lambda x: x.median()
+        )
 
     try:
         out = pl.from_pandas(newdata)
@@ -171,7 +173,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
         "dyex",
         "eydx",
         "dydx",
-        ]
+    ]
 
     # default
     if value is None:
@@ -289,7 +291,6 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
             lab = lab.format(hi=hi[0], lo=lo[0])
         lo = clean(np.repeat(lo, newdata.shape[0]))
         hi = clean(np.repeat(hi, newdata.shape[0]))
-
 
     out = [
         HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad=None, comparison=comparison)

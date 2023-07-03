@@ -183,27 +183,32 @@ def comparisons(
 
         # estimates
         tmp = [
-            get_predictions(model, model.params.to_numpy(), nd_X).rename({"estimate": "predicted"}),
-            get_predictions(model, coefs, lo_X).rename({"estimate": "predicted_lo"}).select("predicted_lo"),
-            get_predictions(model, coefs, hi_X).rename({"estimate": "predicted_hi"}).select("predicted_hi"),
+            get_predictions(model, model.params.to_numpy(), nd_X).rename(
+                {"estimate": "predicted"}
+            ),
+            get_predictions(model, coefs, lo_X)
+            .rename({"estimate": "predicted_lo"})
+            .select("predicted_lo"),
+            get_predictions(model, coefs, hi_X)
+            .rename({"estimate": "predicted_hi"})
+            .select("predicted_hi"),
         ]
-        tmp = reduce(lambda x, y: pl.concat([x, y], how = "horizontal"), tmp)
-        
+        tmp = reduce(lambda x, y: pl.concat([x, y], how="horizontal"), tmp)
+
         # no group
         if tmp.shape[0] == nd.shape[0]:
             cols = [x for x in nd.columns if x not in tmp.columns]
-            tmp = pl.concat([tmp, nd.select(cols)], how = "horizontal")
+            tmp = pl.concat([tmp, nd.select(cols)], how="horizontal")
 
         # group
         elif "group" in tmp.columns:
-            meta = nd.join(tmp.select("group").unique(), how = "cross")
+            meta = nd.join(tmp.select("group").unique(), how="cross")
             cols = [x for x in meta.columns if x in tmp.columns]
-            tmp = meta.join(tmp, on = cols, how = "left")
+            tmp = meta.join(tmp, on=cols, how="left")
 
         # not sure what happens here
         else:
             raise ValueError("Something went wrong")
-
 
         if isinstance(by, str):
             by = ["term", "contrast"] + [by]

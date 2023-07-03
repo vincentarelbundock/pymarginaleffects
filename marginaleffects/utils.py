@@ -62,7 +62,7 @@ def upcast(dfs: list) -> list:
         pl.UInt32,
         pl.UInt64,
         pl.Float32,
-        pl.Float64
+        pl.Float64,
     ]
 
     tmp = [df for df in dfs if type(df) is pl.DataFrame]
@@ -72,7 +72,10 @@ def upcast(dfs: list) -> list:
 
     for col in tmp[0].columns:
         dtypes = [df[col].dtype for df in tmp]
-        match = [next((i for i, x in enumerate(numeric_types) if x == dtype), None) for dtype in dtypes]
+        match = [
+            next((i for i, x in enumerate(numeric_types) if x == dtype), None)
+            for dtype in dtypes
+        ]
         match = list(set(match))
         if len(match) > 1:
             match = max(match)
