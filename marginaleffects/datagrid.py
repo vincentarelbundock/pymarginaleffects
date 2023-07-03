@@ -2,6 +2,7 @@ from functools import reduce
 
 import polars as pl
 
+
 def datagrid(
         newdata,
         FUN_numeric = lambda x: x.mean(),

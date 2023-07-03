@@ -5,8 +5,8 @@ from warnings import warn
 import numpy as np
 import polars as pl
 
-from .estimands import estimands
 from .datagrid import datagrid
+from .estimands import estimands
 
 
 def sanitize_vcov(vcov, model):

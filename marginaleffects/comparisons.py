@@ -1,5 +1,6 @@
-import numpy as np
 from functools import reduce
+
+import numpy as np
 import patsy
 import polars as pl
 
@@ -11,7 +12,7 @@ from .predictions import get_predictions
 from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov
 from .transform import *
 from .uncertainty import *
-from .utils import upcast, get_pad, sort_columns
+from .utils import get_pad, sort_columns, upcast
 
 
 def comparisons(
