@@ -1,7 +1,7 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
-from pytest import approx
+from polars.testing import assert_series_equal
 
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv", null_values = "NA") \
     .drop_nulls(["species", "island", "bill_length_mm", "flipper_length_mm"]) \
@@ -17,13 +17,13 @@ r = {"0": "Torgersen", "1": "Biscoe", "2": "Dream"}
 def test_predictions_01():
     unknown = predictions(mod).with_columns(pl.col("group").map_dict(r))
     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_predictions_01.csv")
-    assert known["estimate"].to_numpy() == approx(unknown["estimate"].to_numpy(), rel = 1e-2)
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
 
 
 def test_predictions_02():
     unknown = predictions(mod, by = "species")
     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_predictions_02.csv")
-    assert known["estimate"].to_numpy() == approx(unknown["estimate"].to_numpy(), rel = 1e-2)
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
 
 
 def test_comparisons_01():
@@ -32,11 +32,11 @@ def test_comparisons_01():
         .sort(["term", "group"])
     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_01.csv") \
         .sort(["term", "group"]) 
-    unknown["estimate"].to_numpy() == approx(known["estimate"].to_numpy(), rel = 1e-2)
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
 
     unknown = comparisons(mod)
     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_01.csv")
-    assert known["estimate"].to_numpy() == approx(unknown["estimate"].to_numpy(), rel = 1e-2)
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
 
 
 def test_comparisons_02():
@@ -45,4 +45,4 @@ def test_comparisons_02():
         .sort(["term", "group", "species"])
     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_02.csv") \
         .sort(["term", "group", "species"])
-    assert known["estimate"].to_numpy() == approx(unknown["estimate"].to_numpy(), rel = 1e-2)
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
