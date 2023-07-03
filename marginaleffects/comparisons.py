@@ -4,7 +4,6 @@ import numpy as np
 import patsy
 import polars as pl
 
-from .by import get_by
 from .equivalence import *
 from .estimands import estimands
 from .hypothesis import get_hypothesis
