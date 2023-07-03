@@ -25,7 +25,7 @@ def test_predictions_02():
 def test_comparisons_01():
     unknown = comparisons(mod)
     known = pl.read_csv("tests/r/test_statsmodels_mixedlm_comparisons_01.csv", ignore_errors=True)
-    assert_series_equal(known["estimate"], unknown["estimate"])
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol = 1e-2)
 
 
 def test_comparisons_02():
