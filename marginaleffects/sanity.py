@@ -37,10 +37,10 @@ def sanitize_newdata(model, newdata, wts):
     if newdata is None:
         newdata = model.model.data.frame
 
-    elif newdata is "mean":
+    elif isinstance(newdata, str) and newdata == "mean":
         newdata = datagrid(newdata = model.model.data.frame)
 
-    elif newdata is "median":
+    elif isinstance(newdata, str) and newdata == "median":
         newdata = datagrid(newdata = model.model.data.frame, FUN_numeric = lambda x: x.median())
 
     try:
@@ -162,6 +162,17 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
     vartype = get_one_variable_type(variable, newdata)
     clean = lambda k: clean_global(k, newdata.shape[0])
 
+    elasticities = [
+        "eyexavg",
+        "dyexavg",
+        "eydxavg",
+        "dydxavg",
+        "eyex",
+        "dyex",
+        "eydx",
+        "dydx",
+        ]
+
     # default
     if value is None:
         # derivatives are not supported for character or boolean variables
@@ -172,16 +183,7 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
             elif comparison in ["eyex", "dyex", "eydx", "dydx"]:
                 comparison = "difference"
         else:
-            if comparison in [
-                "eyexavg",
-                "dyexavg",
-                "eydxavg",
-                "dydxavg",
-                "eyex",
-                "dyex",
-                "eydx",
-                "dydx",
-            ]:
+            if comparison in elasticities:
                 value = eps
             else:
                 value = 1
@@ -264,7 +266,8 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
         lab = lab.format(hi=value[1], lo=value[0])
 
     elif isinstance(value, (int, float)):
-        lab = f"+{value}"
+        if comparison not in elasticities:
+            lab = f"+{value}"
         hi = newdata[variable] + value / 2
         lo = newdata[variable] - value / 2
 
@@ -278,12 +281,15 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
     else:
         lo = newdata[variable] - value / 2
         hi = newdata[variable] + value / 2
-        lab = f"+{value}"
+        if comparison not in elasticities:
+            lab = f"+{value}"
 
     if len(lo) == 1:
-        lab = lab.format(hi=hi[0], lo=lo[0])
+        if comparison not in elasticities:
+            lab = lab.format(hi=hi[0], lo=lo[0])
         lo = clean(np.repeat(lo, newdata.shape[0]))
         hi = clean(np.repeat(hi, newdata.shape[0]))
+
 
     out = [
         HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad=None, comparison=comparison)

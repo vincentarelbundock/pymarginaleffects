@@ -102,7 +102,7 @@ print(mod.summary().as_text())
     Model:                            OLS   Adj. R-squared:                  0.866
     Method:                 Least Squares   F-statistic:                     29.55
     Date:                Sun, 02 Jul 2023   Prob (F-statistic):           2.60e-10
-    Time:                        17:28:44   Log-Likelihood:                -66.158
+    Time:                        21:01:20   Log-Likelihood:                -66.158
     No. Observations:                  32   AIC:                             148.3
     Df Residuals:                      24   BIC:                             160.0
     Df Model:                           7                                         
@@ -171,11 +171,11 @@ print(cmp.head())
 
     | rowid | term | contrast | estimate  | … | vs  | am  | gear | carb |
     |-------|------|----------|-----------|---|-----|-----|------|------|
-    | 0     | am   | 1 - 0    | 0.325174  | … | 0   | 1   | 4    | 4    |
-    | 1     | am   | 1 - 0    | -0.543864 | … | 0   | 1   | 4    | 4    |
-    | 2     | am   | 1 - 0    | 1.200713  | … | 1   | 1   | 4    | 1    |
-    | 3     | am   | 1 - 0    | -1.70258  | … | 1   | 0   | 3    | 1    |
-    | 4     | am   | 1 - 0    | -0.614695 | … | 0   | 0   | 3    | 2    |
+    | 0     | hp   | +1       | -0.036906 | … | 0   | 1   | 4    | 4    |
+    | 1     | hp   | +1       | -0.028689 | … | 0   | 1   | 4    | 4    |
+    | 2     | hp   | +1       | -0.046572 | … | 1   | 1   | 4    | 1    |
+    | 3     | hp   | +1       | -0.042271 | … | 1   | 0   | 3    | 1    |
+    | 4     | hp   | +1       | -0.039018 | … | 0   | 0   | 3    | 2    |
 
 The `comparisons()` function allows customized queries. For example,
 what happens to the predicted outcome when the `hp` variable increases
@@ -260,7 +260,7 @@ print(mfx)
 
     | term | contrast | estimate | std_error | … | p_value  | s_value   | conf_low | conf_high |
     |------|----------|----------|-----------|---|----------|-----------|----------|-----------|
-    | mpg  | +0.0001  | 0.066534 | 0.01779   | … | 0.000776 | 10.331677 | 0.030203 | 0.102866  |
+    | mpg  | dY/dX    | 0.066534 | 0.01779   | … | 0.000776 | 10.331677 | 0.030203 | 0.102866  |
 
 This is equivalent to the result we obtain by taking the analytical
 derivative using the chain rule:
@@ -285,7 +285,7 @@ print(mfx)
 
     | term | contrast | estimate | std_error | … | p_value  | s_value  | conf_low | conf_high |
     |------|----------|----------|-----------|---|----------|----------|----------|-----------|
-    | mpg  | +0.0001  | 0.073235 | 0.028289  | … | 0.014712 | 6.086849 | 0.015461 | 0.13101   |
+    | mpg  | dY/dX    | 0.073235 | 0.028289  | … | 0.014712 | 6.086849 | 0.015461 | 0.13101   |
 
 ``` python
 mfx = slopes(mod, newdata = "median")
@@ -294,7 +294,7 @@ print(mfx)
 
     | term | contrast | estimate | std_error | … | p_value  | s_value  | conf_low | conf_high |
     |------|----------|----------|-----------|---|----------|----------|----------|-----------|
-    | mpg  | +0.0001  | 0.067875 | 0.025298  | … | 0.011754 | 6.410751 | 0.01621  | 0.119539  |
+    | mpg  | dY/dX    | 0.067875 | 0.025298  | … | 0.011754 | 6.410751 | 0.01621  | 0.119539  |
 
 We can also compute an “average slope” or “average marginaleffects”
 
@@ -303,9 +303,9 @@ mfx = avg_slopes(mod)
 print(mfx)
 ```
 
-    | term | contrast | estimate | std_error | … | p_value  | s_value   | conf_low | conf_high |
-    |------|----------|----------|-----------|---|----------|-----------|----------|-----------|
-    | mpg  | +0.0001  | 0.046486 | 0.008864  | … | 0.000012 | 16.384139 | 0.028382 | 0.06459   |
+    | term | contrast    | estimate | std_error | … | p_value  | s_value   | conf_low | conf_high |
+    |------|-------------|----------|-----------|---|----------|-----------|----------|-----------|
+    | mpg  | mean(dY/dX) | 0.046486 | 0.008864  | … | 0.000012 | 16.384139 | 0.028382 | 0.06459   |
 
 Which again is equivalent to the analytical result:
 
@@ -445,10 +445,10 @@ print(cmp)
     | term | contrast     | estimate  | std_error | … | p_value  | s_value  | conf_low  | conf_high |
     |------|--------------|-----------|-----------|---|----------|----------|-----------|-----------|
     | hp   | +1           | -0.044244 | 0.014576  | … | 0.005266 | 7.569022 | -0.074151 | -0.014337 |
-    | cyl  | 6 - 4        | -3.924578 | 1.537515  | … | 0.016663 | 5.907182 | -7.079298 | -0.769859 |
-    | cyl  | 8 - 4        | -3.533414 | 2.502788  | … | 0.169433 | 2.561213 | -8.668711 | 1.601883  |
     | am   | mean(True) - | 4.157856  | 1.25655   | … | 0.00266  | 8.554463 | 1.579629  | 6.736084  |
     |      | mean(False)  |           |           |   |          |          |           |           |
+    | cyl  | 6 - 4        | -3.924578 | 1.537515  | … | 0.016663 | 5.907182 | -7.079298 | -0.769859 |
+    | cyl  | 8 - 4        | -3.533414 | 2.502788  | … | 0.169433 | 2.561213 | -8.668711 | 1.601883  |
 
 ## Hypothesis and equivalence tests
 

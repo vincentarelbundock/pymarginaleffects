@@ -14,6 +14,9 @@ def slopes(
     wts=None,
     eps=1e-4,
 ):
+
+    assert isinstance(eps, float)
+
     if slope not in ["dydx", "eyex", "eydx", "dyex"]:
         raise ValueError("slope must be one of 'dydx', 'eyex', 'eydx', 'dyex'")
 
