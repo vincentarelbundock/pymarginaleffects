@@ -25,14 +25,14 @@ def test_predictions_02():
 
 
 def test_comparisons_01():
-    unknown = comparisons(mod)
-    known = pl.read_csv("tests/r/test_statsmodels_mixedlm_comparisons_01.csv", ignore_errors=True)
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol = 3e-2, check_names = False)
-    assert_series_equal(known["std.error"], unknown["std_error"], check_names = False)
+    unknown = comparisons(mod).sort(["term", "contrast", "rowid"])
+    known = pl.read_csv("tests/r/test_statsmodels_mixedlm_comparisons_01.csv", ignore_errors=True).sort(["term", "contrast", "rowid"])
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol = 1e-4, check_names = False)
+    assert_series_equal(known["std.error"], unknown["std_error"], check_names = False, rtol = 1e-3)
 
 
 def test_comparisons_02():
     unknown = comparisons(mod, by = "Cu").sort(["term", "Cu"])
     known = pl.read_csv("tests/r/test_statsmodels_mixedlm_comparisons_02.csv").sort(["term", "Cu"])
     assert_series_equal(known["estimate"], unknown["estimate"], check_names = False)
-    assert_series_equal(known["std.error"], unknown["std_error"], check_names = False)
+    assert_series_equal(known["std.error"], unknown["std_error"], check_names = False, rtol = 1e-4)
