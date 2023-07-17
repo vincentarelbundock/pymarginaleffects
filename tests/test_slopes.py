@@ -13,3 +13,11 @@ def test_comparison_derivatives():
         cmp_py = comparisons(mod_py, comparison = e)
         cmp_r = pl.read_csv(f"tests/r/test_slopes_01_{e}.csv")
         compare_r_to_py(cmp_r, cmp_py, msg = e, tolr = 1e-5, tola = 1e-5)
+
+
+def test_slopes():
+    est = ["dydx", "dydx", "dyex", "eydx", "eyex"]
+    for e in est:
+        cmp_py = slopes(mod_py, slope = e)
+        cmp_r = pl.read_csv(f"tests/r/test_slopes_01_{e}.csv")
+        compare_r_to_py(cmp_r, cmp_py, msg = e, tolr = 1e-5, tola = 1e-5)
