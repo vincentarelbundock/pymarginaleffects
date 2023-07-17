@@ -59,7 +59,7 @@ def sanitize_newdata(model, newdata, wts):
         )
 
     if wts is not None:
-        if (isinstance(wts, str) is False) or (wts not in newdata.columns):
+        if (isinstance(wts, str) is False) or (wts not in out.columns):
             raise ValueError(f"`newdata` does not have a column named '{wts}'.")
 
     xnames = get_variables_names(variables=None, model=model, newdata=out)
