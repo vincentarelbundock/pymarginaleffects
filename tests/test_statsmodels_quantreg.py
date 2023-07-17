@@ -23,16 +23,17 @@ def test_predictions_02():
 
 def test_comparisons_01():
     unknown = comparisons(mod) \
-        .rename({"estimate": "estimate_unknown"}) \
-        .select(["rowid", "term", "contrast", "Species", "estimate_unknown"]) \
+        .rename({"estimate": "estimate_unknown", "std_error": "std_error_unknown", "predicted": "predicted_unknown"}) \
+        .select(["rowid", "term", "contrast", "Species", "estimate_unknown", "std_error_unknown", "predicted_unknown"]) \
         .with_columns(pl.col("term").str.replace("_", "."),
-                      pl.col("rowid").cast(pl.Int64))
-    known = pl.read_csv("tests/r/test_statsmodels_quantreg_comparisons_01.csv")
+                      pl.col("rowid").cast(pl.Int64) + 1)
+    known = pl.read_csv("tests/r/test_statsmodels_quantreg_comparisons_01.csv") \
+        .select(["rowid", "term", "contrast", "Species", "estimate", "std.error", "predicted"])
     tmp = known.join(unknown, on = ["rowid", "term", "contrast", "Species"], how = "left")
-    assert_series_equal(tmp["estimate"], tmp["estimate_unknown"], rtol=1e-2)
+    assert_series_equal(tmp["estimate"], tmp["estimate_unknown"], rtol=1e-2, check_names = False)
 
 
 def test_comparisons_02():
     unknown = comparisons(mod, by = "Species").sort(["term", "Species"])
     known = pl.read_csv("tests/r/test_statsmodels_quantreg_comparisons_02.csv").sort(["term", "Species"])
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-4)
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)

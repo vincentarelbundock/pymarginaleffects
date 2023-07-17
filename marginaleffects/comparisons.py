@@ -188,6 +188,8 @@ def comparisons(
             .select("predicted_hi"),
         ]
         tmp = reduce(lambda x, y: pl.concat([x, y], how="horizontal"), tmp)
+        if "rowid" in nd.columns and tmp.shape[0] == nd.shape[0]:
+            tmp = tmp.with_columns(nd["rowid"].alias("rowid"))
 
         # no group
         if tmp.shape[0] == nd.shape[0]:
