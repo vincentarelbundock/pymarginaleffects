@@ -1,5 +1,4 @@
 from typing import Union
-
 import numpy as np
 import polars as pl
 from scipy.stats import norm, t
@@ -21,9 +20,6 @@ def get_equivalence(
         msg = "The `equivalence` argument is not supported for `marginaleffects` commands which do not produce standard errors."
         raise ValueError(msg)
 
-    delta = np.abs(np.diff(equivalence)) / 2
-    np.min(equivalence) + delta
-
     x = x.with_columns(
         ((x["estimate"] - equivalence[0]) / x["std_error"]).alias("statistic_noninf"),
         ((x["estimate"] - equivalence[1]) / x["std_error"]).alias("statistic_nonsup"),
@@ -31,19 +27,13 @@ def get_equivalence(
 
     if np.isinf(df):
         x = x.with_columns(
-            pl.col("statistic_noninf")
-            .apply(lambda x: norm.sf(x))
-            .alias("p_value_noninf"),
-            pl.col("statistic_nonsup")
-            .apply(lambda x: norm.cdf(x))
-            .alias("p_value_nonsup"),
+            pl.col("statistic_noninf").apply(lambda x: norm.sf(x)).alias("p_value_noninf"),
+            pl.col("statistic_nonsup").apply(lambda x: norm.cdf(x)).alias("p_value_nonsup"),
         )
     else:
         x = x.with_columns(
-            pl.col("statistic.noninf").apply(lambda x: t.sf(x)).alias("p_value_noninf"),
-            pl.col("statistic.nonsup")
-            .apply(lambda x: t.cdf(x))
-            .alias("p_value_nonsup"),
+            pl.col("statistic_noninf").apply(lambda x: t.sf(x)).alias("p_value_noninf"),
+            pl.col("statistic_nonsup").apply(lambda x: t.cdf(x)).alias("p_value_nonsup"),
         )
 
     x = x.with_columns(
