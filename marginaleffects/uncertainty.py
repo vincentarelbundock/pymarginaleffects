@@ -15,7 +15,7 @@ def get_jacobian(func, coefs):
         baseline = func(coefs)["estimate"].to_numpy()
         jac = np.empty((baseline.shape[0], len(coefs_flat)), dtype=np.float64)
         for i, xi in enumerate(coefs_flat):
-            h = max(abs(coefs[i]) * np.sqrt(np.finfo(float).eps), 1e-10)
+            h = max(abs(xi) * np.sqrt(np.finfo(float).eps), 1e-10)
             dx = np.copy(coefs_flat)
             dx[i] = dx[i] + h
             tmp = dx.reshape(coefs.shape)
@@ -25,7 +25,7 @@ def get_jacobian(func, coefs):
         baseline = func(coefs)["estimate"].to_numpy()
         jac = np.empty((baseline.shape[0], len(coefs)), dtype=np.float64)
         for i, xi in enumerate(coefs):
-            h = max(abs(coefs[i]) * np.sqrt(np.finfo(float).eps), 1e-10)
+            h = max(abs(xi) * np.sqrt(np.finfo(float).eps), 1e-10)
             dx = np.copy(coefs)
             dx[i] = dx[i] + h
             jac[:, i] = (func(dx)["estimate"].to_numpy() - baseline) / h
