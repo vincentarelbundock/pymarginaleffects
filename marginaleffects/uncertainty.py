@@ -6,30 +6,29 @@ import scipy.stats as stats
 
 
 def get_jacobian(func, coefs):
+    # forward finite difference (faster)
     if coefs.ndim == 2:
         if isinstance(coefs, np.ndarray):
             coefs_flat = coefs.flatten()
         else:
             coefs_flat = coefs.to_numpy().flatten()
-
-        eps = max(1e-8, 1e-4 * np.min(np.abs(coefs_flat)))
         baseline = func(coefs)["estimate"].to_numpy()
         jac = np.empty((baseline.shape[0], len(coefs_flat)), dtype=np.float64)
         for i, xi in enumerate(coefs_flat):
+            h = max(abs(coefs[i]) * np.sqrt(np.finfo(float).eps), 1e-10)
             dx = np.copy(coefs_flat)
-            dx[i] = dx[i] + eps
+            dx[i] = dx[i] + h
             tmp = dx.reshape(coefs.shape)
-            jac[:, i] = (func(tmp)["estimate"].to_numpy() - baseline) / eps
+            jac[:, i] = (func(tmp)["estimate"].to_numpy() - baseline) / h
         return jac
     else:
-        # forward finite difference (faster)
-        eps = max(1e-8, 1e-4 * np.min(np.abs(coefs)))
         baseline = func(coefs)["estimate"].to_numpy()
         jac = np.empty((baseline.shape[0], len(coefs)), dtype=np.float64)
         for i, xi in enumerate(coefs):
+            h = max(abs(coefs[i]) * np.sqrt(np.finfo(float).eps), 1e-10)
             dx = np.copy(coefs)
-            dx[i] = dx[i] + eps
-            jac[:, i] = (func(dx)["estimate"].to_numpy() - baseline) / eps
+            dx[i] = dx[i] + h
+            jac[:, i] = (func(dx)["estimate"].to_numpy() - baseline) / h
         return jac
 
 
