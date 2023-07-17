@@ -7,6 +7,7 @@ import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
+from .utils import get_modeldata
 
 
 def sanitize_vcov(vcov, model):
@@ -34,21 +35,19 @@ def sanitize_vcov(vcov, model):
 
 
 def sanitize_newdata(model, newdata, wts):
+
+    modeldata = get_modeldata(model)
+
     if newdata is None:
-        newdata = model.model.data.frame
+        out = modeldata
 
     elif isinstance(newdata, str) and newdata == "mean":
-        newdata = datagrid(newdata=model.model.data.frame)
+        out = datagrid(newdata=modeldata)
 
     elif isinstance(newdata, str) and newdata == "median":
-        newdata = datagrid(
-            newdata=model.model.data.frame, FUN_numeric=lambda x: x.median()
+        out = datagrid(
+            newdata=modeldata, FUN_numeric=lambda x: x.median()
         )
-
-    try:
-        out = pl.from_pandas(newdata)
-    except:
-        out = newdata
 
     if "rowid" in out.columns:
         raise ValueError(
@@ -63,7 +62,7 @@ def sanitize_newdata(model, newdata, wts):
         if (isinstance(wts, str) is False) or (wts not in newdata.columns):
             raise ValueError(f"`newdata` does not have a column named '{wts}'.")
 
-    xnames = get_variables_names(variables=None, model=model, newdata=newdata)
+    xnames = get_variables_names(variables=None, model=model, newdata=out)
     ynames = model.model.data.ynames
     if isinstance(ynames, str):
         ynames = [ynames]

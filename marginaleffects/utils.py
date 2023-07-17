@@ -2,6 +2,15 @@ import numpy as np
 import polars as pl
 
 
+def get_modeldata(fit):
+    df = fit.model.data.frame
+    try:
+        out = pl.from_pandas(df)
+    except:
+        out = df
+    return out
+
+
 def sort_columns(df, by=None):
     cols = [
         "rowid",
