@@ -35,7 +35,6 @@ def sanitize_vcov(vcov, model):
 
 
 def sanitize_newdata(model, newdata, wts):
-
     modeldata = get_modeldata(model)
 
     if newdata is None:
@@ -45,9 +44,7 @@ def sanitize_newdata(model, newdata, wts):
         out = datagrid(newdata=modeldata)
 
     elif isinstance(newdata, str) and newdata == "median":
-        out = datagrid(
-            newdata=modeldata, FUN_numeric=lambda x: x.median()
-        )
+        out = datagrid(newdata=modeldata, FUN_numeric=lambda x: x.median())
 
     if "rowid" in out.columns:
         raise ValueError(

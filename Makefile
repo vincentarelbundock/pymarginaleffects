@@ -14,6 +14,11 @@ readme: ## render Quarto readme
 	poetry run quarto render docs/get_started.qmd --to gfm
 	mv -f docs/get_started.md README.md
 
+lint: ## run the lint checkers
+	poetry run isort marginaleffects --check
+	poetry run black marginaleffects --check
+	poetry run flake8 marginaleffects
+
 install: ## install in poetry venv
 	poetry install
 

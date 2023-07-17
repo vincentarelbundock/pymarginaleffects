@@ -1,4 +1,5 @@
 from typing import Union
+
 import numpy as np
 import polars as pl
 from scipy.stats import norm, t
@@ -27,13 +28,19 @@ def get_equivalence(
 
     if np.isinf(df):
         x = x.with_columns(
-            pl.col("statistic_noninf").apply(lambda x: norm.sf(x)).alias("p_value_noninf"),
-            pl.col("statistic_nonsup").apply(lambda x: norm.cdf(x)).alias("p_value_nonsup"),
+            pl.col("statistic_noninf")
+            .apply(lambda x: norm.sf(x))
+            .alias("p_value_noninf"),
+            pl.col("statistic_nonsup")
+            .apply(lambda x: norm.cdf(x))
+            .alias("p_value_nonsup"),
         )
     else:
         x = x.with_columns(
             pl.col("statistic_noninf").apply(lambda x: t.sf(x)).alias("p_value_noninf"),
-            pl.col("statistic_nonsup").apply(lambda x: t.cdf(x)).alias("p_value_nonsup"),
+            pl.col("statistic_nonsup")
+            .apply(lambda x: t.cdf(x))
+            .alias("p_value_nonsup"),
         )
 
     x = x.with_columns(
