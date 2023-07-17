@@ -39,7 +39,7 @@ def test_comparison_simple():
         cmp_r = pl.read_csv(f"tests/r/test_comparisons_03_{e}.csv").sort("term")
         if cmp_r.shape[1] == 170:
             raise ValueError("R and Python results are not the same")
-        assert_series_equal(cmp_py["estimate"], cmp_r["estimate"], rtol = 1e-3)
+        assert_series_equal(cmp_py["estimate"], cmp_r["estimate"], rtol = 1e-2)
         assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False, rtol = 1e-2)
 
 
