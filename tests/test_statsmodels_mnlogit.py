@@ -1,5 +1,4 @@
 import pytest
-
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
