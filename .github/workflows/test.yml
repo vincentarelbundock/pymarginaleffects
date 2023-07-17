@@ -10,7 +10,6 @@ jobs:
       fail-fast: true
       matrix:
         python:
-          - "3.9"
           - "3.11"
     runs-on: "ubuntu-latest"
     steps:
