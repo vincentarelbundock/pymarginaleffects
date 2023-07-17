@@ -5,7 +5,7 @@ help:  ## Display this help screen
 	@grep -E '^[a-z.A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' | sort
 
 test: install ## run pytest suite
-	poetry run pytest -n 12 -W ignore::DeprecationWarning
+	poetry run pytest -W ignore::DeprecationWarning
 
 snapshot: ## snapshot test
 	R CMD BATCH tests/r/run.R
