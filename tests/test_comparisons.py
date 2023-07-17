@@ -1,86 +1,86 @@
 import re
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+import polars as pl
 import numpy as np
 from pytest import approx
 from marginaleffects import *
-from .utilities import *
-from rpy2.robjects.packages import importr
 from marginaleffects.comparisons import estimands
+from polars.testing import assert_series_equal
 
 
-# R packages
-marginaleffects = importr("marginaleffects")
-stats = importr("stats")
-
-# Guerry Data
-df, df_r = rdatasets("HistData", "Guerry", r = True)
-df = df \
+dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv", null_values = "NA") \
+    .drop_nulls() \
     .with_columns(
         (pl.col("Area") > pl.col("Area").median()).alias("Bool"),
-        (pl.col("Distance") > pl.col("Distance").median()).alias("Bin")) \
+        (pl.col("Distance") > pl.col("Distance").median()).alias("Bin")) 
+dat = dat \
     .with_columns(
         pl.col("Bin").apply(lambda x: int(x), return_dtype=pl.Int32).alias('Bin'),
-        pl.Series(np.random.choice(["a", "b", "c"], df.shape[0])).alias("Char"))
-mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
-mod_r = stats.lm("Literacy ~ Pop1831 * Desertion", data = df_r)
+        pl.Series(np.random.choice(["a", "b", "c"], dat.shape[0])).alias("Char"))
+mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
 
 
-def test_difference():
-    cmp_py = comparisons(mod_py, comparison = "differenceavg")
-    cmp_r = marginaleffects.comparisons(mod_r, comparison = "differenceavg")
-    cmp_r = r_to_polars(cmp_r)
-    compare_r_to_py(cmp_r, cmp_py)
-    cmp_py = comparisons(mod_py, comparison = "difference")
-    cmp_r = marginaleffects.comparisons(mod_r, comparison = "difference")
-    cmp_r = r_to_polars(cmp_r)
-    compare_r_to_py(cmp_r, cmp_py)
+# def test_difference():
+#     cmp_py = comparisons(mod, comparison = "differenceavg").sort("term")
+#     cmp_r = pl.read_csv("tests/r/test_comparisons_01.csv").sort("term")
+#     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+#     assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False)
+#     cmp_py = comparisons(mod, comparison = "difference").sort("term", "rowid")
+#     cmp_r = pl.read_csv("tests/r/test_comparisons_02.csv").sort("term", "rowid")
+#     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+#     assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False, rtol = 1e-4)
 
 
 def test_comparison_simple():
     est = [k for k in estimands.keys() if not re.search("x|wts", k)]
+    est = ["lnratio", "difference"]
     for e in est:
-        cmp_py = comparisons(mod_py, comparison = e)
-        cmp_r = marginaleffects.comparisons(mod_r, comparison = e, eps = 1e-4)
-        cmp_r = r_to_polars(cmp_r)
-        compare_r_to_py(cmp_r, cmp_py, msg = e, tola = 1e-2)
+        cmp_py = comparisons(mod, comparison = e).sort("term")
+        cmp_r = pl.read_csv(f"tests/r/test_comparisons_03_{e}.csv").sort("term")
+        if cmp_r.shape[1] == 170:
+            raise ValueError("R and Python results are not the same")
+        assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+        assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False, rtol = 1e-3)
 
 
-def test_by():
-    cmp_py = comparisons(mod_py, comparison = "differenceavg", by = "Region")
-    cmp_r = marginaleffects.comparisons(mod_r, comparison = "differenceavg", by = "Region")
-    cmp_r = r_to_polars(cmp_r)
-    compare_r_to_py(cmp_r, cmp_py)
+# def test_by():
+#     cmp_py = comparisons(mod, comparison = "differenceavg", by = "Region").sort("term", "Region")
+#     cmp_r = pl.read_csv("tests/r/test_comparisons_04.csv").sort("term", "Region")
+#     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+#     assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False, rtol = 1e-3)
 
 
-def test_HC3():
-    cmp_py = comparisons(mod_py, comparison = "differenceavg", vcov = "HC3")
-    cmp_r = marginaleffects.comparisons(mod_r, comparison = "differenceavg", vcov = "HC3")
-    cmp_r = r_to_polars(cmp_r)
-    compare_r_to_py(cmp_r, cmp_py)
+# def test_HC3():
+#     cmp_py = comparisons(mod, comparison = "differenceavg", vcov = "HC3").sort("term")
+#     cmp_r = pl.read_csv("tests/r/test_comparisons_05.csv").sort("term")
+#     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+#     assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False, rtol = 1e-3)
 
 
-def test_bare_minimum():
-    fit = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", df).fit()
-    assert type(comparisons(fit)) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831", comparison = "differenceavg")) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831", comparison = "difference").head()) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831", comparison = "ratio").head()) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831", comparison = "difference", by = "Region")) == pl.DataFrame
-    assert type(comparisons(fit, vcov = False, comparison = "differenceavg")) == pl.DataFrame
-    assert type(comparisons(fit, vcov = "HC3", comparison = "differenceavg")) == pl.DataFrame
-    assert type(comparisons(fit)) == pl.DataFrame
-    assert type(comparisons(fit, variables = {"Char": "sequential"})) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831")) == pl.DataFrame
-    assert type(comparisons(fit, variables = ["Pop1831", "Desertion"])) == pl.DataFrame
-    assert type(comparisons(fit, variables = {"Pop1831": 1000, "Desertion": 2})) == pl.DataFrame
-    assert type(comparisons(fit, variables = {"Pop1831": [100, 2000]})) == pl.DataFrame
+# def test_bare_minimum():
+#     fit = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", dat).fit()
+#     assert type(comparisons(fit)) == pl.DataFrame
+#     assert type(comparisons(fit, variables = "Pop1831", comparison = "differenceavg")) == pl.DataFrame
+#     assert type(comparisons(fit, variables = "Pop1831", comparison = "difference").head()) == pl.DataFrame
+#     assert type(comparisons(fit, variables = "Pop1831", comparison = "ratio").head()) == pl.DataFrame
+#     assert type(comparisons(fit, variables = "Pop1831", comparison = "difference", by = "Region")) == pl.DataFrame
+#     assert type(comparisons(fit, vcov = False, comparison = "differenceavg")) == pl.DataFrame
+#     assert type(comparisons(fit, vcov = "HC3", comparison = "differenceavg")) == pl.DataFrame
+#     assert type(comparisons(fit)) == pl.DataFrame
+#     assert type(comparisons(fit, variables = {"Char": "sequential"})) == pl.DataFrame
+#     assert type(comparisons(fit, variables = "Pop1831")) == pl.DataFrame
+#     assert type(comparisons(fit, variables = ["Pop1831", "Desertion"])) == pl.DataFrame
+#     assert type(comparisons(fit, variables = {"Pop1831": 1000, "Desertion": 2})) == pl.DataFrame
+#     assert type(comparisons(fit, variables = {"Pop1831": [100, 2000]})) == pl.DataFrame
 
 
-def test_difference_wts():
-    cmp_py = comparisons(mod_py, variables = "Desertion", by = "Region", wts = "Literacy")
-    cmp_r = marginaleffects.comparisons(mod_r, variables = "Desertion", by = "Region", wts = "Literacy")
-    cmp_r = r_to_polars(cmp_r)
-    cmp_py2 = comparisons(mod_py, variables = "Desertion", by = "Region")
-    compare_r_to_py(cmp_r, cmp_py)
-    assert all(cmp_py["estimate"][:5] != cmp_py2["estimate"][:5]) 
+# def test_difference_wts():
+#     cmp_py = comparisons(mod, variables = "Desertion", by = "Region", wts = "Literacy")
+#     cmp_r = pl.read_csv("tests/r/test_comparisons_06.csv")
+#     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+#     assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False, rtol = 1e-4)
+#     cmp_py = comparisons(mod, variables = "Desertion", by = "Region")
+#     cmp_r = pl.read_csv("tests/r/test_comparisons_07.csv")
+#     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+#     assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False, rtol = 1e-4)

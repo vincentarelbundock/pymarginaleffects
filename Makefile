@@ -7,6 +7,9 @@ help:  ## Display this help screen
 test: install ## run pytest suite
 	poetry run pytest -n 12 -W ignore::DeprecationWarning
 
+snapshot: ## snapshot test
+	R CMD BATCH tests/r/run.R
+
 readme: ## render Quarto readme
 	poetry run quarto render docs/get_started.qmd --to gfm
 	mv -f docs/get_started.md README.md

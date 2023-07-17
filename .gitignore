@@ -12,3 +12,4 @@ debug.R
 /dist/
 *.egg-info/
 /.venv/
+run.Rout
