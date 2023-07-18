@@ -92,3 +92,24 @@ def upcast(dfs: list) -> list:
                 for i, v in enumerate(tmp):
                     tmp[i] = tmp[i].with_columns(pl.col(col).cast(numeric_types[match]))
     return tmp
+
+
+
+def get_variable_type(variable, newdata):
+    inttypes = [pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64]
+    if variable not in newdata.columns:
+        raise ValueError(f"`{variable}` is not in `newdata`")
+    if newdata[variable].dtype in [pl.Utf8, pl.Categorical]:
+        return "character"
+    elif newdata[variable].dtype == pl.Boolean:
+        return "boolean"
+    elif newdata[variable].dtype in inttypes:
+        if newdata[variable].is_in([0, 1]).all():
+            return "binary"
+        else:
+            return "numeric"
+    elif newdata[variable].dtype in [pl.Float32, pl.Float64]:
+        return "numeric"
+    else:
+        raise ValueError(f"Unknown type for `{variable}`: {newdata[variable].dtype}")
+
