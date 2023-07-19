@@ -4,6 +4,7 @@ from warnings import warn
 
 import numpy as np
 import polars as pl
+import pandas as pd
 
 from .datagrid import datagrid
 from .estimands import estimands
@@ -45,6 +46,12 @@ def sanitize_newdata(model, newdata, wts):
 
     elif isinstance(newdata, str) and newdata == "median":
         out = datagrid(newdata=modeldata, FUN_numeric=lambda x: x.median())
+
+    elif isinstance(newdata, pd.DataFrame):
+        out = pl.from_pandas(newdata)
+        
+    else:
+        raise ValueError("No values for newdata.")
 
     if "rowid" in out.columns:
         raise ValueError(
