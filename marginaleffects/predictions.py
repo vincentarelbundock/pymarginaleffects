@@ -9,6 +9,7 @@ from .sanity import sanitize_newdata, sanitize_vcov
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
+from .print import get_printout
 
 
 def get_predictions(model, params, newdata: pl.DataFrame):
@@ -87,7 +88,9 @@ def predictions(
         - conf_low: lower bound of the confidence interval (or equal-tailed interval for Bayesian models)
         - conf_high: upper bound of the confidence interval (or equal-tailed interval for Bayesian models)
     """
-    pass
+
+    J = None
+    V = None
 
     # sanity checks
     V = sanitize_vcov(vcov, model)
@@ -112,6 +115,12 @@ def predictions(
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by)
+
+    # nicer object
+    # out.__str__ = get_printout(out, by=by, conf_int=conf_int)
+    out.jacobian = J
+    out.vcov = V
+
     return out
 
 

@@ -59,7 +59,7 @@ import statsmodels.formula.api as smf
 mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
 mod = smf.ols("mpg ~ hp * wt * am", data = mtcars).fit()
 
-print(mod.summary().as_text())
+mod.summary()
 ```
 
 ```{python}
@@ -79,7 +79,7 @@ pre = predictions(mod)
 
 pre.shape
 
-print(pre.head())
+pre.head()
 ```
 
 #### Comparisons: Differences, Ratios, Log-Odds, Lift, etc.
@@ -91,21 +91,21 @@ cmp = comparisons(mod)
 
 cmp.shape
 
-print(cmp.head())
+cmp.head()
 ```
 
 The `comparisons()` function allows customized queries. For example, what happens to the predicted outcome when the `hp` variable increases from 100 to 120?
 
 ```{python}
 cmp = comparisons(mod, variables = {"hp": [120, 100]})
-print(cmp)
+cmp
 ```
 
 What happens to the predicted outcome when the `wt` variable increases by 1 standard deviation about its mean?
 
 ```{python}
 cmp = comparisons(mod, variables = {"hp": "sd"})
-print(cmp)
+cmp
 ```
 
 The `comparisons()` function also allows users to specify arbitrary functions of predictions, with the `comparison` argument. For example, what is the average ratio between predicted Miles per Gallon after an increase of 50 units in Horsepower?
@@ -115,7 +115,7 @@ cmp = comparisons(
   mod,
   variables = {"hp": 50},
   comparison = "ratioavg")
-print(cmp)
+cmp
 ```
 
 #### Slopes: Derivatives and elasticities
@@ -132,7 +132,7 @@ We can estimate the slope of the prediction function with respect to the `mpg` v
 
 ```{python}
 mfx = slopes(mod, newdata = datagrid(mpg = 24, newdata = mtcars))
-print(mfx)
+mfx
 ```
 
 This is equivalent to the result we obtain by taking the analytical derivative using the chain rule:
@@ -148,18 +148,18 @@ This computes a "marginal effect (or slope) at the mean" or "at the median", tha
 
 ```{python}
 mfx = slopes(mod, newdata = "mean")
-print(mfx)
+mfx
 ```
 ```{python}
 mfx = slopes(mod, newdata = "median")
-print(mfx)
+mfx
 ```
 
 We can also compute an "average slope" or "average marginaleffects"
 
 ```{python}
 mfx = avg_slopes(mod)
-print(mfx)
+mfx
 ```
 
 Which again is equivalent to the analytical result:
@@ -176,7 +176,7 @@ Predictions, comparisons, and slopes are typically "conditional" quantities whic
 
 ```{python}
 pre = predictions(mod, newdata = mtcars.tail(2))
-print(pre)
+pre
 ```
 
 The [`datagrid` function gives us a powerful way to define a grid of predictors.](https://vincentarelbundock.github.io/marginaleffects/reference/datagrid.html) All the variables not mentioned explicitly in `datagrid()` are fixed to their mean or mode:
@@ -189,7 +189,7 @@ pre = predictions(
     am = [0, 1],
     wt = [mtcars["wt"].max(), mtcars["wt"].min()]))
 
-print(pre)
+pre
 ```
 
 ## Averaging
@@ -202,7 +202,7 @@ To marginalize (average over) our unit-level estimates, we can use the `by` argu
 
 ```{python}
 pre = avg_predictions(mod)
-print(pre)
+pre
 ```
 
 This is equivalent to manual computation by:
@@ -215,7 +215,7 @@ The main `marginaleffects` functions all include a `by` argument, which allows u
 
 ```{python}
 cmp = avg_comparisons(mod, by = "am")
-print(cmp)
+cmp
 ```
 
 Marginal Means are a special case of predictions, which are marginalized (or averaged) across a balanced grid of categorical predictors. To illustrate, we estimate a new model with categorical predictors:
@@ -241,12 +241,12 @@ pre = avg_predictions(
     am = dat["am"].unique()),
   by = "am")
 
-print(pre)
+pre
 ```
 
 ```{python}
 cmp = avg_comparisons(mod_cat)
-print(cmp)
+cmp
 ```
 
 
@@ -265,7 +265,7 @@ Can we reject the null hypothesis that the `drat` coefficient is 2 times the siz
 
 ```{python}
 hyp = hypotheses(mod, "b3 = 2 * b2")
-print(hyp)
+hyp
 ```
 
 The main functions in `marginaleffects` all have a `hypothesis` argument, which means that we can do complex model testing. For example, consider two slope estimates:
@@ -276,7 +276,7 @@ cmp = comparisons(
   mod,
   variables = "drat",
   newdata = datagrid(newdata = mtcars, qsec = range(mtcars["qsec"])))
-print(cmp)
+cmp)
 ```
 
 Are these two contrasts significantly different from one another? To test this, we can use the `hypothesis` argument:
@@ -287,5 +287,5 @@ cmp = comparisons(
   hypothesis = "b1 = b2",
   variables = "drat",
   newdata = datagrid(newdata = mtcars, qsec = range(mtcars["qsec"])))
-print(cmp)
+cmp)
 ```

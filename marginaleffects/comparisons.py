@@ -8,6 +8,7 @@ from .equivalence import get_equivalence
 from .estimands import estimands
 from .hypothesis import get_hypothesis
 from .predictions import get_predictions
+from .print import get_printout
 from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
@@ -95,6 +96,7 @@ def comparisons(
 
     The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
     """
+    J = None
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata, wts)
 
@@ -261,6 +263,12 @@ def comparisons(
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
     out = sort_columns(out, by=by)
+
+    # nicer object
+    # out.__str__ = lambda: get_printout(out, by=by, conf_int=conf_int)
+    out.jacobian = J
+    out.vcov = V
+
     return out
 
 
