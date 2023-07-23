@@ -5,6 +5,7 @@ import polars as pl
 import numpy as np
 from pytest import approx
 from marginaleffects import *
+import marginaleffects
 from marginaleffects.comparisons import estimands
 from polars.testing import assert_series_equal
 
@@ -70,16 +71,16 @@ def test_difference_wts():
 
 def test_bare_minimum():
     fit = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", dat).fit()
-    assert type(comparisons(fit)) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831", comparison = "differenceavg")) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831", comparison = "difference").head()) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831", comparison = "ratio").head()) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831", comparison = "difference", by = "Region")) == pl.DataFrame
-    assert type(comparisons(fit, vcov = False, comparison = "differenceavg")) == pl.DataFrame
-    assert type(comparisons(fit, vcov = "HC3", comparison = "differenceavg")) == pl.DataFrame
-    assert type(comparisons(fit)) == pl.DataFrame
-    assert type(comparisons(fit, variables = {"Char": "sequential"})) == pl.DataFrame
-    assert type(comparisons(fit, variables = "Pop1831")) == pl.DataFrame
-    assert type(comparisons(fit, variables = ["Pop1831", "Desertion"])) == pl.DataFrame
-    assert type(comparisons(fit, variables = {"Pop1831": 1000, "Desertion": 2})) == pl.DataFrame
-    assert type(comparisons(fit, variables = {"Pop1831": [100, 2000]})) == pl.DataFrame
+    assert type(comparisons(fit)) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, variables = "Pop1831", comparison = "differenceavg")) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, variables = "Pop1831", comparison = "difference").head()) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, variables = "Pop1831", comparison = "ratio").head()) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, variables = "Pop1831", comparison = "difference", by = "Region")) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, vcov = False, comparison = "differenceavg")) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, vcov = "HC3", comparison = "differenceavg")) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit)) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, variables = {"Char": "sequential"})) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, variables = "Pop1831")) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, variables = ["Pop1831", "Desertion"])) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, variables = {"Pop1831": 1000, "Desertion": 2})) == marginaleffects.classes.MarginaleffectsDataFrame
+    assert type(comparisons(fit, variables = {"Pop1831": [100, 2000]})) == marginaleffects.classes.MarginaleffectsDataFrame

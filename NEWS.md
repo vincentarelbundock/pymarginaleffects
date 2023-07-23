@@ -1,3 +1,6 @@
+# Dev
+
+* `MarginaleffectsDataFrame` class inherits from `pl.DataFrame` for better printing and to host useful attributes.
 
 # 0.0.2
 

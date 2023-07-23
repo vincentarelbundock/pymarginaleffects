@@ -12,6 +12,7 @@ from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
+from .classes import MarginaleffectsDataFrame
 
 
 def comparisons(
@@ -261,6 +262,8 @@ def comparisons(
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
     out = sort_columns(out, by=by)
+
+    out = MarginaleffectsDataFrame(out, by=by, conf_int=conf_int)
     return out
 
 

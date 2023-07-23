@@ -9,6 +9,7 @@ from .sanity import sanitize_newdata, sanitize_vcov
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
+from .classes import MarginaleffectsDataFrame
 
 
 def get_predictions(model, params, newdata: pl.DataFrame):
@@ -112,6 +113,8 @@ def predictions(
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by)
+
+    out = MarginaleffectsDataFrame(out, by=by, conf_int=conf_int)
     return out
 
 

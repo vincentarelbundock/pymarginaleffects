@@ -51,16 +51,16 @@ def sanitize_newdata(model, newdata, wts):
         out = pl.from_pandas(newdata)
         
     else:
-        raise ValueError("No values for newdata.")
+        out = newdata
 
-    if "rowid" in out.columns:
-        raise ValueError(
-            "The newdata has a column named 'rowid', which is not allowed."
-        )
-    else:
-        out = out.with_columns(
-            pl.Series(range(out.height), dtype=pl.Int32).alias("rowid")
-        )
+    # if "rowid" in out.columns:
+    #     raise ValueError(
+    #         "The newdata has a column named 'rowid', which is not allowed."
+    #     )
+    # else:
+    out = out.with_columns(
+        pl.Series(range(out.height), dtype=pl.Int32).alias("rowid")
+    )
 
     if wts is not None:
         if (isinstance(wts, str) is False) or (wts not in out.columns):
