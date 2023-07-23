@@ -1,11 +1,11 @@
 import polars as pl
 
 class MarginaleffectsDataFrame(pl.DataFrame):
-    def __init__(self, data=None, by=None, conf_int=0.95):
+    def __init__(self, data=None, by=None, conf_level=0.95):
         if isinstance(data, pl.DataFrame):
             self._df = data._df
             self.by = by
-            self.conf_int = conf_int
+            self.conf_level = conf_level
             return
         super().__init__(data)
 
@@ -20,9 +20,9 @@ class MarginaleffectsDataFrame(pl.DataFrame):
             "s_value": "S"
         }
 
-        if hasattr(self, "conf_int"):
-            mapping["conf_low"] = f"{(1 - self.conf_int) / 2 * 100:.1f}%"
-            mapping["conf_high"] = f"{(1 - (1 - self.conf_int) / 2) * 100:.1f}%"
+        if hasattr(self, "conf_level"):
+            mapping["conf_low"] = f"{(1 - self.conf_level) / 2 * 100:.1f}%"
+            mapping["conf_high"] = f"{(1 - (1 - self.conf_level) / 2) * 100:.1f}%"
         else:
             mapping["conf_low"] = "["
             mapping["conf_high"] = "]"

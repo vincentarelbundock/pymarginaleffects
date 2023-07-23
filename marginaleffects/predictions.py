@@ -38,7 +38,7 @@ def get_predictions(model, params, newdata: pl.DataFrame):
 
 def predictions(
     model,
-    conf_int=0.95,
+    conf_level=0.95,
     vcov=True,
     by=False,
     newdata=None,
@@ -109,18 +109,18 @@ def predictions(
         J = get_jacobian(fun, model.params)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
-        out = get_z_p_ci(out, model, conf_int=conf_int)
+        out = get_z_p_ci(out, model, conf_level=conf_level)
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by)
 
-    out = MarginaleffectsDataFrame(out, by=by, conf_int=conf_int)
+    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level)
     return out
 
 
 def avg_predictions(
     model,
-    conf_int=0.95,
+    conf_level=0.95,
     vcov=True,
     by=True,
     newdata=None,
@@ -131,7 +131,7 @@ def avg_predictions(
 ):
     out = predictions(
         model=model,
-        conf_int=conf_int,
+        conf_level=conf_level,
         vcov=vcov,
         by=by,
         newdata=newdata,

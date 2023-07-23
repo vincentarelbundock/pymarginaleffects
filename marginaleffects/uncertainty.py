@@ -37,7 +37,7 @@ def get_se(J, V):
     return se
 
 
-def get_z_p_ci(df, model, conf_int):
+def get_z_p_ci(df, model, conf_level):
     if "std_error" not in df.columns:
         return df
     df = df.with_columns((pl.col("estimate") / pl.col("std_error")).alias("statistic"))
@@ -45,7 +45,7 @@ def get_z_p_ci(df, model, conf_int):
         dof = model.df_resid
     else:
         dof = np.Inf
-    critical_value = stats.t.ppf((1 + conf_int) / 2, dof)
+    critical_value = stats.t.ppf((1 + conf_level) / 2, dof)
 
     df = df.with_columns(
         (pl.col("estimate") - critical_value * pl.col("std_error")).alias("conf_low")

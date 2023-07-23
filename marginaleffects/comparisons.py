@@ -21,7 +21,7 @@ def comparisons(
     newdata=None,
     comparison="difference",
     vcov=True,
-    conf_int=0.95,
+    conf_level=0.95,
     by=False,
     wts=None,
     hypothesis=None,
@@ -257,13 +257,13 @@ def comparisons(
         J = get_jacobian(func=outer, coefs=model.params.to_numpy())
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
-        out = get_z_p_ci(out, model, conf_int=conf_int)
+        out = get_z_p_ci(out, model, conf_level=conf_level)
 
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
     out = sort_columns(out, by=by)
 
-    out = MarginaleffectsDataFrame(out, by=by, conf_int=conf_int)
+    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level)
     return out
 
 
@@ -273,7 +273,7 @@ def avg_comparisons(
     newdata=None,
     comparison="difference",
     vcov=True,
-    conf_int=0.95,
+    conf_level=0.95,
     by=True,
     wts=None,
     hypothesis=None,
@@ -287,7 +287,7 @@ def avg_comparisons(
         newdata=newdata,
         comparison=comparison,
         vcov=vcov,
-        conf_int=conf_int,
+        conf_level=conf_level,
         by=by,
         wts=wts,
         hypothesis=hypothesis,
