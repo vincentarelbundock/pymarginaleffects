@@ -102,7 +102,7 @@ print(mod.summary().as_text())
     Model:                            OLS   Adj. R-squared:                  0.866
     Method:                 Least Squares   F-statistic:                     29.55
     Date:                Sun, 23 Jul 2023   Prob (F-statistic):           2.60e-10
-    Time:                        11:32:26   Log-Likelihood:                -66.158
+    Time:                        11:34:39   Log-Likelihood:                -66.158
     No. Observations:                  32   AIC:                             148.3
     Df Residuals:                      24   BIC:                             160.0
     Df Model:                           7                                         
@@ -152,6 +152,7 @@ print(pre.head())
     | 25.264652 | 0.708531  | 35.657806 | 0.0        | inf       | 23.802316 | 26.726987 |
     | 20.255492 | 0.704464  | 28.753051 | 0.0        | inf       | 18.80155  | 21.709435 |
     | 16.997817 | 0.711866  | 23.87784  | 0.0        | inf       | 15.528599 | 18.467036 |
+
     Columns: rowid, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high, , mpg, cyl, disp, hp, drat, wt, qsec, vs, am, gear, carb
 
 #### Comparisons: Differences, Ratios, Log-Odds, Lift, etc.
@@ -170,13 +171,14 @@ cmp.shape
 print(cmp.head())
 ```
 
-    | Term | Contrast | Estimate  | Std.Error | … | P(>|z|)  | S        | [         | ]        |
-    |------|----------|-----------|-----------|---|----------|----------|-----------|----------|
-    | am   | 1 - 0    | 0.325174  | 1.682201  | … | 0.848349 | 0.237271 | -3.146718 | 3.797066 |
-    | am   | 1 - 0    | -0.543864 | 1.568211  | … | 0.73176  | 0.450558 | -3.780491 | 2.692764 |
-    | am   | 1 - 0    | 1.200713  | 2.347556  | … | 0.613693 | 0.70441  | -3.644405 | 6.045831 |
-    | am   | 1 - 0    | -1.70258  | 1.86713   | … | 0.370906 | 1.430875 | -5.556147 | 2.150986 |
-    | am   | 1 - 0    | -0.614695 | 1.680809  | … | 0.717782 | 0.478381 | -4.083713 | 2.854324 |
+    | Term | Contrast | Estimate  | Std.Error | … | P(>|z|)  | S         | [          | ]         |
+    |------|----------|-----------|-----------|---|----------|-----------|------------|-----------|
+    | wt   | +1       | -6.614549 | 1.866225  | … | 0.001651 | 9.242694  | -10.466248 | -2.762851 |
+    | wt   | +1       | -6.614549 | 1.866225  | … | 0.001651 | 9.242693  | -10.466248 | -2.76285  |
+    | wt   | +1       | -7.162295 | 1.799376  | … | 0.000554 | 10.818851 | -10.876024 | -3.448566 |
+    | wt   | +1       | -3.206559 | 2.008804  | … | 0.123517 | 3.017214  | -7.352528  | 0.939409  |
+    | wt   | +1       | -2.266852 | 1.062976  | … | 0.043393 | 4.526385  | -4.460727  | -0.072976 |
+
     Columns: rowid, term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high, predicted, predicted_lo, predicted_hi, , mpg, cyl, disp, hp, drat, wt, qsec, vs, am, gear, carb
 
 The `comparisons()` function allows customized queries. For example,
@@ -199,6 +201,7 @@ print(cmp)
     | hp   | 100 - 120 | 0.64145  | 0.334463  | … | 0.067105 | 3.897433 | -0.048849 | 1.331749 |
     | hp   | 100 - 120 | 0.125924 | 0.272165  | … | 0.647765 | 0.626459 | -0.435797 | 0.687645 |
     | hp   | 100 - 120 | 0.635006 | 0.332261  | … | 0.067998 | 3.878372 | -0.050746 | 1.320758 |
+
     Columns: rowid, term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high, predicted, predicted_lo, predicted_hi, , mpg, cyl, disp, hp, drat, wt, qsec, vs, am, gear, carb
 
 What happens to the predicted outcome when the `wt` variable increases
@@ -228,6 +231,7 @@ print(cmp)
     |      | 059             |           |           |   |          |          |           |           |
     | hp   | +68.56286848932 | -2.176891 | 1.139037  | … | 0.067998 | 3.87837  | -4.527749 | 0.173966  |
     |      | 059             |           |           |   |          |          |           |           |
+
     Columns: rowid, term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high, predicted, predicted_lo, predicted_hi, , mpg, cyl, disp, hp, drat, wt, qsec, vs, am, gear, carb
 
 The `comparisons()` function also allows users to specify arbitrary
@@ -246,6 +250,7 @@ print(cmp)
     | Term | Contrast | Estimate | Std.Error | … | P(>|z|) | S   | 2.5%     | 97.5%   |
     |------|----------|----------|-----------|---|---------|-----|----------|---------|
     | hp   | +50      | 0.909534 | 0.02906   | … | 0.0     | inf | 0.849557 | 0.96951 |
+
     Columns: term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high
 
 #### Slopes: Derivatives and elasticities
@@ -271,6 +276,12 @@ mfx = slopes(mod, newdata = datagrid(mpg = 24, newdata = mtcars))
 print(mfx)
 ```
 
+    | Term | Contrast | Estimate | Std.Error | … | P(>|z|)  | S        | 2.5%     | 97.5%    |
+    |------|----------|----------|-----------|---|----------|----------|----------|----------|
+    | mpg  | dY/dX    | 0.066534 | 0.017838  | … | 0.000798 | 10.29215 | 0.030104 | 0.102965 |
+
+    Columns: term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high
+
 This is equivalent to the result we obtain by taking the analytical
 derivative using the chain rule:
 
@@ -295,6 +306,7 @@ print(mfx)
     | Term | Contrast | Estimate | Std.Error | … | P(>|z|)  | S        | 2.5%     | 97.5%   |
     |------|----------|----------|-----------|---|----------|----------|----------|---------|
     | mpg  | dY/dX    | 0.073235 | 0.028324  | … | 0.014821 | 6.076202 | 0.015391 | 0.13108 |
+
     Columns: term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high
 
 ``` python
@@ -305,6 +317,7 @@ print(mfx)
     | Term | Contrast | Estimate | Std.Error | … | P(>|z|)  | S        | 2.5%     | 97.5%   |
     |------|----------|----------|-----------|---|----------|----------|----------|---------|
     | mpg  | dY/dX    | 0.067875 | 0.025308  | … | 0.011785 | 6.406929 | 0.016189 | 0.11956 |
+
     Columns: term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high
 
 We can also compute an “average slope” or “average marginaleffects”
@@ -317,6 +330,7 @@ print(mfx)
     | Term | Contrast    | Estimate | Std.Error | … | P(>|z|)  | S         | 2.5%     | 97.5%    |
     |------|-------------|----------|-----------|---|----------|-----------|----------|----------|
     | mpg  | mean(dY/dX) | 0.046486 | 0.008862  | … | 0.000012 | 16.391095 | 0.028388 | 0.064584 |
+
     Columns: term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high
 
 Which again is equivalent to the analytical result:
@@ -347,6 +361,7 @@ print(pre)
     |----------|-----------|----------|----------|----------|-----------|----------|
     | 0.119402 | 0.07784   | 1.533947 | 0.135522 | 2.883398 | -0.039568 | 0.278372 |
     | 0.49172  | 0.119613  | 4.110934 | 0.000281 | 11.79581 | 0.247438  | 0.736002 |
+
     Columns: rowid, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high, , mpg, cyl, disp, hp, drat, wt, qsec, vs, am, gear, carb
 
 The [`datagrid` function gives us a powerful way to define a grid of
@@ -371,6 +386,7 @@ print(pre)
     | 0.3929   | 0.108367  | 3.625655 | 0.001056 | 9.887147 | 0.171586 | 0.614214 |
     | 0.3929   | 0.108367  | 3.625655 | 0.001056 | 9.887147 | 0.171586 | 0.614214 |
     | 0.3929   | 0.108367  | 3.625655 | 0.001056 | 9.887147 | 0.171586 | 0.614214 |
+
     Columns: rowid, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high, am, wt, , mpg, cyl, disp, hp, drat, qsec, vs, gear, carb
 
 ## Averaging
@@ -401,6 +417,7 @@ print(pre)
     | Estimate | Std.Error | z        | P(>|z|)  | S         | 2.5%     | 97.5%    |
     |----------|-----------|----------|----------|-----------|----------|----------|
     | 0.40625  | 0.068785  | 5.906042 | 0.000002 | 19.072753 | 0.265771 | 0.546729 |
+
     Columns: estimate, std_error, statistic, p_value, s_value, conf_low, conf_high
 
 This is equivalent to manual computation by:
@@ -421,8 +438,9 @@ print(cmp)
 
     | am | Term | Contrast | Estimate | … | P(>|z|)   | S         | 2.5%     | 97.5%    |
     |----|------|----------|----------|---|-----------|-----------|----------|----------|
-    | 1  | mpg  | +1       | 0.044926 | … | 1.4403e-7 | 22.727144 | 0.031476 | 0.058376 |
-    | 0  | mpg  | +1       | 0.04751  | … | 0.000285  | 11.77591  | 0.023879 | 0.071141 |
+    | 1  | mpg  | +1       | 0.044926 | … | 1.4403e-7 | 22.727133 | 0.031476 | 0.058376 |
+    | 0  | mpg  | +1       | 0.04751  | … | 0.000285  | 11.775912 | 0.023879 | 0.071141 |
+
     Columns: am, term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high
 
 Marginal Means are a special case of predictions, which are marginalized
@@ -460,11 +478,12 @@ print(cmp)
 
     | Term | Contrast     | Estimate  | Std.Error | … | P(>|z|)  | S        | 2.5%      | 97.5%     |
     |------|--------------|-----------|-----------|---|----------|----------|-----------|-----------|
-    | hp   | +1           | -0.044244 | 0.014576  | … | 0.005266 | 7.56902  | -0.074151 | -0.014337 |
     | am   | mean(True) - | 4.157856  | 1.25655   | … | 0.00266  | 8.55446  | 1.579628  | 6.736085  |
     |      | mean(False)  |           |           |   |          |          |           |           |
+    | hp   | +1           | -0.044244 | 0.014576  | … | 0.005266 | 7.56902  | -0.074151 | -0.014337 |
     | cyl  | 6 - 4        | -3.924578 | 1.537515  | … | 0.016663 | 5.907182 | -7.079299 | -0.769858 |
     | cyl  | 8 - 4        | -3.533414 | 2.502788  | … | 0.169433 | 2.561213 | -8.668711 | 1.601883  |
+
     Columns: term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high
 
 ## Hypothesis and equivalence tests
@@ -515,6 +534,7 @@ print(cmp)
     |------|----------|-----------|-----------|---|----------|----------|-----------|-----------|
     | drat | +1       | 10.241374 | 5.161432  | … | 0.057112 | 4.130058 | -0.33134  | 20.814088 |
     | drat | +1       | 5.223926  | 3.791069  | … | 0.17913  | 2.480917 | -2.541727 | 12.989578 |
+
     Columns: rowid, term, contrast, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high, predicted, predicted_lo, predicted_hi, qsec, , mpg, cyl, disp, hp, drat, wt, vs, am, gear, carb
 
 Are these two contrasts significantly different from one another? To
@@ -532,4 +552,5 @@ print(cmp)
     | Term  | Estimate | Std.Error | z        | P(>|z|)  | S        | 2.5%       | 97.5%     |
     |-------|----------|-----------|----------|----------|----------|------------|-----------|
     | b1=b2 | 5.017448 | 8.519298  | 0.588951 | 0.560616 | 0.834915 | -12.433542 | 22.468439 |
+
     Columns: term, estimate, std_error, statistic, p_value, s_value, conf_low, conf_high

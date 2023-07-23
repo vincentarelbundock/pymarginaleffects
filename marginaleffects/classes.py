@@ -46,5 +46,5 @@ class MarginaleffectsDataFrame(pl.DataFrame):
         mapping = {key: mapping[key] for key in mapping if key in valid}
         tmp = self.select(valid).rename(mapping)
         out = tmp.__str__()
-        out = out + f"\nColumns: {', '.join(self.columns)}\n"
+        out = out + f"\n\nColumns: {', '.join(self.columns)}\n"
         return out
