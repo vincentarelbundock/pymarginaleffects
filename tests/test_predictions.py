@@ -1,4 +1,5 @@
 import polars as pl
+import marginaleffects
 import statsmodels.formula.api as smf
 from marginaleffects import *
 from .utilities import *
@@ -28,3 +29,12 @@ def test_by_hypothesis():
     pre_py = predictions(mod_py, by = "Region", hypothesis = "b1 * b3 = b3*2")
     pre_r = pl.read_csv("tests/r/test_predictions_03.csv")
     compare_r_to_py(pre_r, pre_py)
+
+
+def test_class_manipulation():
+    p = predictions(mod_py)
+    assert isinstance(p, pl.DataFrame)
+    assert isinstance(p, marginaleffects.classes.MarginaleffectsDataFrame)
+    p = p.head()
+    assert isinstance(p, pl.DataFrame)
+    assert isinstance(p, marginaleffects.classes.MarginaleffectsDataFrame)

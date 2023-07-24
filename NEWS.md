@@ -1,8 +1,11 @@
-# Dev
+# 0.0.3
 
 Breaking change:
 
 * Rename argument to match `R` `marginaleffects`: `conf_int` -> `conf_level`
+
+Misc:
+
 * `MarginaleffectsDataFrame` class inherits from `pl.DataFrame` for better printing and to host useful attributes.
 
 # 0.0.2
