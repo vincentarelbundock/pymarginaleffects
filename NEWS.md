@@ -1,3 +1,7 @@
+# dev
+
+* New function: `datagridcf()`
+
 # 0.0.3
 
 Breaking change:

@@ -1,7 +1,6 @@
 from marginaleffects import *
 import statsmodels.formula.api as smf
 import polars as pl
-
 mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
 
 def test_FUN_numeric():
@@ -17,3 +16,6 @@ def test_simple_grid():
     assert d.shape == (4, 12)
 
 
+def test_cf():
+    assert datagrid(newdata = mtcars, mpg = 32).shape[0] == 1
+    assert datagridcf(newdata = mtcars, mpg = [30, 32]).shape[0] == 64
