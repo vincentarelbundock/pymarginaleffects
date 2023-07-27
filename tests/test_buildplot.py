@@ -14,7 +14,9 @@ mod = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
 
 def test_build_plot():
     con = {'dept' : [1, 3] , 'Region' : "W", 'Department' : "Allier"}
-    assert build_plot(mod, con).shape[0] == 2
+    bp = build_plot(mod, con)
+    assert bp.shape[0] == 2
+    assert (bp["Region"] == "W").all()
     con = "Area"
     assert build_plot(mod, con).shape[0] == 100
     con = ["Area"]
