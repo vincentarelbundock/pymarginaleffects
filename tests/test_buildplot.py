@@ -23,6 +23,8 @@ def test_build_plot():
     assert build_plot(mod, con).shape[0] == 100
     con = ["Region", "Area"]
     assert build_plot(mod, con).shape[0] == 25
+    con = {"Region": None, "Department": "Allier"}
+    assert build_plot(mod, con).shape[0] == 5
     con = ["Region", "Area", "Pop1831"]
     assert build_plot(mod, con).shape[0] == 125
     con = {"Area": None, "Region": "W"}
