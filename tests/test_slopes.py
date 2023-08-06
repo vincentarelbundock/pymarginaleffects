@@ -1,6 +1,6 @@
 import statsmodels.formula.api as smf
 from marginaleffects import *
-from .utilities import *
+# from .utilities import *
 from marginaleffects.comparisons import estimands
 from polars.testing import assert_series_equal
 import polars as pl
@@ -30,3 +30,9 @@ def test_slopes_padding():
     mod = smf.ols("mpg ~ cyl + hp", dat).fit()
     s = slopes(mod, newdata = "mean")
     assert s.shape[0] == 3
+
+
+dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv") \
+    .with_columns(pl.col("cyl").cast(pl.Utf8))
+mod = smf.ols("mpg ~ cyl + hp", dat).fit()
+s = slopes(mod, newdata = "mean", variables = "hp")

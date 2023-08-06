@@ -139,7 +139,12 @@ def comparisons(
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
         )
-        pad.append(get_pad(newdata, v.variable, v.pad))
+
+    # we must pad with *all* variables in the model, not just the ones in the `variables` argument
+    for v in model.model.exog_names:
+        if v in newdata.columns:
+            if newdata[v].dtype in [pl.Utf8, pl.Boolean]:
+                pad.append(get_pad(newdata, v, newdata[v].unique()))
 
     # ugly hack, but polars is very strict and `value / 2`` is float
     nd = upcast(nd)

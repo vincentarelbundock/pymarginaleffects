@@ -424,7 +424,7 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
         if variables not in newdata.columns:
             raise ValueError(f"Variable {variables} is not in newdata.")
         out.append(
-            get_one_variable_hi_lo(variables, None, modeldata, comparison, eps, by, wts, modeldata=modeldata)
+            get_one_variable_hi_lo(variables, None, newdata, comparison, eps, by, wts, modeldata=modeldata)
         )
 
     elif isinstance(variables, list):
