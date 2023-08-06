@@ -105,9 +105,8 @@ def predictions(
                 pad.append(get_pad(modeldata, v, uniqs))
     if len(pad) > 0:
         pad = pl.concat(pad)
-        pad = upcast(pad)
-        newdata = upcast(newdata)
-        newdata = pl.concat([newdata, pad], how = "diagonal")
+        tmp = upcast([newdata, pad])
+        newdata = pl.concat(tmp, how = "diagonal")
     else:
         pad = pl.DataFrame()
 
@@ -132,7 +131,7 @@ def predictions(
     out = sort_columns(out, by=by)
 
     # unpad
-    if "rowid" in out.columns:
+    if "rowid" in out.columns and pad.shape[0] > 0:
         out = out[:-pad.shape[0]:]
 
     out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level)

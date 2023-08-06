@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 import polars as pl
 
@@ -79,8 +80,11 @@ def upcast(dfs: list) -> list:
     if len(tmp) == 0:
         return dfs
 
-    for col in tmp[0].columns:
-        dtypes = [df[col].dtype for df in tmp]
+    cols = [df.columns for df in tmp]
+    cols = set(list(itertools.chain(*cols)))
+
+    for col in cols:
+        dtypes = [df[col].dtype for df in tmp if col in df.columns]
         match = [
             next((i for i, x in enumerate(numeric_types) if x == dtype), None)
             for dtype in dtypes
@@ -91,6 +95,7 @@ def upcast(dfs: list) -> list:
             if match is not None:
                 for i, v in enumerate(tmp):
                     tmp[i] = tmp[i].with_columns(pl.col(col).cast(numeric_types[match]))
+
     return tmp
 
 
