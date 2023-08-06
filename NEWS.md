@@ -1,3 +1,7 @@
+# dev
+
+* `predictions()` supports categorical predictors when `newdata` does not include all levels (internal padding).
+
 # 0.0.4
 
 * New function: `datagridcf()`
