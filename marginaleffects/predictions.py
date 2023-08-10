@@ -5,10 +5,10 @@ import polars as pl
 from .by import get_by
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
-from .sanity import sanitize_newdata, sanitize_vcov
+from .sanity import sanitize_newdata, sanitize_vcov, get_variables_names
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import sort_columns
+from .utils import sort_columns, get_modeldata, get_pad, upcast
 from .classes import MarginaleffectsDataFrame
 
 
@@ -94,6 +94,22 @@ def predictions(
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata, wts=wts)
 
+    # pad
+    modeldata = get_modeldata(model)
+    pad = []
+    vs = get_variables_names(variables = None, model = model, newdata = modeldata)
+    for v in vs:
+        if not newdata[v].is_numeric():
+            uniqs = modeldata[v].unique()
+            if not all(uniq in newdata[v] for uniq in uniqs):
+                pad.append(get_pad(modeldata, v, uniqs))
+    if len(pad) > 0:
+        pad = pl.concat(pad)
+        tmp = upcast([newdata, pad])
+        newdata = pl.concat(tmp, how = "diagonal")
+    else:
+        pad = pl.DataFrame()
+
     # predictors
     y, exog = patsy.dmatrices(model.model.formula, newdata.to_pandas())
 
@@ -113,6 +129,10 @@ def predictions(
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by)
+
+    # unpad
+    if "rowid" in out.columns and pad.shape[0] > 0:
+        out = out[:-pad.shape[0]:]
 
     out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level)
     return out

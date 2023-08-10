@@ -3,6 +3,7 @@ from functools import reduce
 import numpy as np
 import patsy
 import polars as pl
+import re
 
 from .equivalence import get_equivalence
 from .estimands import estimands
@@ -11,7 +12,7 @@ from .predictions import get_predictions
 from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, upcast
+from .utils import get_pad, sort_columns, upcast, get_modeldata
 from .classes import MarginaleffectsDataFrame
 
 
@@ -98,6 +99,7 @@ def comparisons(
     """
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata, wts)
+    modeldata = get_modeldata(model)
 
     # after sanitize_newdata()
     variables = sanitize_variables(
@@ -139,7 +141,14 @@ def comparisons(
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
         )
-        pad.append(get_pad(newdata, v.variable, v.pad))
+
+    # we must pad with *all* variables in the model, not just the ones in the `variables` argument
+    vars = [re.sub("\[.*", "", x) for x in model.model.exog_names]
+    vars = set(vars)
+    for v in vars:
+        if v in modeldata.columns:
+            if modeldata[v].dtype in [pl.Utf8, pl.Boolean]:
+                pad.append(get_pad(newdata, v, modeldata[v].unique()))
 
     # ugly hack, but polars is very strict and `value / 2`` is float
     nd = upcast(nd)

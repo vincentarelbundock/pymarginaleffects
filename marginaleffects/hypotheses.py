@@ -5,6 +5,7 @@ from .hypothesis import get_hypothesis
 from .sanity import sanitize_vcov
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
+from .classes import MarginaleffectsDataFrame
 
 
 def hypotheses(model, hypothesis=None, conf_level=0.95, vcov=True):
@@ -24,4 +25,5 @@ def hypotheses(model, hypothesis=None, conf_level=0.95, vcov=True):
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_level=conf_level)
     out = sort_columns(out, by=None)
+    out = MarginaleffectsDataFrame(out, conf_level=conf_level)
     return out
