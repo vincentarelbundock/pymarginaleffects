@@ -5,7 +5,7 @@ import polars as pl
 from .by import get_by
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
-from .sanity import sanitize_newdata, sanitize_vcov, get_variables_names
+from .sanity import sanitize_newdata, sanitize_vcov, get_variables_names, sanitize_by
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns, get_modeldata, get_pad, upcast
@@ -91,8 +91,9 @@ def predictions(
     pass
 
     # sanity checks
+    by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
-    newdata = sanitize_newdata(model, newdata, wts=wts)
+    newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
 
     # pad
     modeldata = get_modeldata(model)
