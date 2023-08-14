@@ -118,7 +118,6 @@ def comparisons(
     hi = []
     lo = []
     nd = []
-    variables.sort()
     for v in variables:
         nd.append(
             newdata.with_columns(

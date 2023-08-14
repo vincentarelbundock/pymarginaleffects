@@ -417,6 +417,7 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
 
     if variables is None:
         vlist = get_variables_names(variables, model, newdata)
+        vlist.sort()
         for v in vlist:
             out.append(
                 get_one_variable_hi_lo(v, None, newdata, comparison, eps, by, wts, modeldata=modeldata)
