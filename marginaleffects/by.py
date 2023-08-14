@@ -4,9 +4,9 @@ import polars as pl
 def get_by(model, estimand, newdata, by=None, wts=None):
 
     if by is True:
-        return out.select(["estimate"]).mean()
+        return estimand.select(["estimate"]).mean()
     elif by is False:
-        return out
+        return estimand
 
     if "group" in estimand.columns:
         by = ["group"] + by
