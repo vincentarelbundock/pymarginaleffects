@@ -60,11 +60,11 @@ def test_HC3():
 
 def test_difference_wts():
     cmp_py = comparisons(mod, variables = "Desertion", by = "Region", wts = "Literacy")
-    cmp_r = pl.read_csv("tests/r/test_comparisons_06.csv")
+    cmp_r = pl.read_csv("tests/r/test_comparisons_06.csv").sort("Region")
     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
     assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False, rtol = 1e-4)
     cmp_py = comparisons(mod, variables = "Desertion", by = "Region")
-    cmp_r = pl.read_csv("tests/r/test_comparisons_07.csv")
+    cmp_r = pl.read_csv("tests/r/test_comparisons_07.csv").sort("Region")
     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
     assert_series_equal(cmp_py["std_error"], cmp_r["std.error"], check_names = False, rtol = 1e-4)
 
