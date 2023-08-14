@@ -118,6 +118,7 @@ def comparisons(
     hi = []
     lo = []
     nd = []
+    variables.sort()
     for v in variables:
         nd.append(
             newdata.with_columns(
@@ -145,7 +146,7 @@ def comparisons(
 
     # we must pad with *all* variables in the model, not just the ones in the `variables` argument
     vars = [re.sub("\[.*", "", x) for x in model.model.exog_names]
-    vars = set(vars)
+    vars = list(set(vars))
     for v in vars:
         if v in modeldata.columns:
             if modeldata[v].dtype in [pl.Utf8, pl.Boolean]:
