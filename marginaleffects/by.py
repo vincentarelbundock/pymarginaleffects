@@ -3,6 +3,11 @@ import polars as pl
 
 def get_by(model, estimand, newdata, by=None, wts=None):
 
+    if by is True:
+        return out.select(["estimate"]).mean()
+    elif by is False:
+        return out
+
     if "group" in estimand.columns:
         by = ["group"] + by
 
@@ -11,10 +16,6 @@ def get_by(model, estimand, newdata, by=None, wts=None):
     else:
         out = pl.DataFrame({"estimate": estimand["estimate"]})
 
-    if by is True:
-        return out.select(["estimate"]).mean()
-    elif by is False:
-        return out
     
     by = [x for x in by if x in out.columns]
     if isinstance(by, list) and len(by) == 0:
