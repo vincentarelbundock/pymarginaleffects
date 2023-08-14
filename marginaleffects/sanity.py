@@ -43,7 +43,7 @@ def sanitize_by(by):
     elif isinstance(by, list):
         by = ["group"] + by
     elif by is False:
-        by = []
+        by = False
     else:
         raise ValueError("The `by` argument must be True, False, a string, or a list of strings.")
     return by
