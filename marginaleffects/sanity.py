@@ -35,7 +35,21 @@ def sanitize_vcov(vcov, model):
     return V
 
 
-def sanitize_newdata(model, newdata, wts):
+def sanitize_by(by):
+    if by is True:
+        by = ["group"]
+    elif isinstance(by, str):
+        by = ["group", by]
+    elif isinstance(by, list):
+        by = ["group"] + by
+    elif by is False:
+        by = []
+    else:
+        raise ValueError("The `by` argument must be True, False, a string, or a list of strings.")
+    return by
+
+
+def sanitize_newdata(model, newdata, wts, by = []):
     modeldata = get_modeldata(model)
 
     if newdata is None:
@@ -53,11 +67,11 @@ def sanitize_newdata(model, newdata, wts):
     else:
         out = newdata
 
-    # if "rowid" in out.columns:
-    #     raise ValueError(
-    #         "The newdata has a column named 'rowid', which is not allowed."
-    #     )
-    # else:
+    if isinstance(by, list) and len(by) > 0:
+        by = [x for x in by if x in out.columns]
+        if len(by) > 0:
+            out = out.sort(by)
+
     out = out.with_columns(
         pl.Series(range(out.height), dtype=pl.Int32).alias("rowid")
     )

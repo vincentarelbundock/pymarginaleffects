@@ -1,6 +1,7 @@
 # dev
 
 * `predictions()` supports categorical predictors when `newdata` does not include all levels (internal padding).
+* Better sorting of output, using the `by` argument.
 
 # 0.0.4
 

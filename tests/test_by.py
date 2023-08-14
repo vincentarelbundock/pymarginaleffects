@@ -1,4 +1,5 @@
-import re
+import pytest
+import polars as pl
 from pytest import approx
 import polars as pl
 from marginaleffects import *
@@ -11,7 +12,7 @@ mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", Guerry).fit()
 
 def test_predictions_by_string():
     cmp_py = predictions(mod_py, by = "Region")
-    cmp_r = pl.read_csv("tests/r/test_by_01.csv")
+    cmp_r = pl.read_csv("tests/r/test_by_01.csv").sort("Region")
     compare_r_to_py(cmp_r, cmp_py)
 
 
@@ -29,5 +30,17 @@ def test_comparisons_by_false():
 
 def test_predictions_by_wts():
     pre_py = predictions(mod_py, by = "Region", wts = "Donations")
-    pre_r = pl.read_csv("tests/r/test_by_04.csv")
+    pre_r = pl.read_csv("tests/r/test_by_04.csv").sort("Region")
     compare_r_to_py(pre_r, pre_py)
+
+
+@pytest.fixture
+def predictions_fixture():
+    df = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv") \
+        .with_columns(pl.col("cyl").cast(pl.Utf8))
+    mod = smf.ols("mpg ~ hp * qsec + cyl", df).fit()
+    p = predictions(mod, by = "cyl")
+    return p
+
+def test_predictions_snapshot_order(predictions_fixture, snapshot):
+    snapshot.assert_match(predictions_fixture.to_csv(index=False))
