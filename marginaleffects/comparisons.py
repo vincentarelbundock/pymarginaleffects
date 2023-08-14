@@ -252,6 +252,7 @@ def comparisons(
             return applyfun(x, by=by, wts=wts)
 
         # maintain_order is extremely important
+        by = [x for x in by if x in tmp.columns]
         tmp = tmp.groupby(by, maintain_order=True).apply(applyfun_outer)
 
         tmp = get_hypothesis(tmp, hypothesis=hypothesis)
