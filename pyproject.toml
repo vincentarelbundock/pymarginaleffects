@@ -16,7 +16,6 @@ scipy = ">1.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
-exclude = ["tests"]
 jupyter = "^1.0.0"
 mkdocs = "^1.4.3"
 mkdocs-material = "^9.1.17"
