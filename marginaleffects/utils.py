@@ -3,6 +3,10 @@ import numpy as np
 import polars as pl
 
 
+def find_response(model):
+    return model.model.endog_names
+
+
 def get_modeldata(fit):
     df = fit.model.data.frame
     try:

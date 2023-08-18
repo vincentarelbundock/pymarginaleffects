@@ -14,6 +14,9 @@ mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
 
 def test_predictions():
     pre_py = predictions(mod_py)
+    #
+    print(pre_py)
+    #
     pre_r = pl.read_csv("tests/r/test_predictions_01.csv")
     compare_r_to_py(pre_r, pre_py)
 
