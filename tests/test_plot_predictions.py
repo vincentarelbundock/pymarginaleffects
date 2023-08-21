@@ -16,42 +16,56 @@ def test_plot_predictions():
 
     con = {'Region' : None, 'Area' : None, 'Desertion' : [0, 30, 90]}
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = {'Pop1831' : None, 'Area' : None, 'Desertion' : [0, 30, 90]}
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = {'Region' : None, 'Desertion' : [0, 30, 90]}
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = {'Pop1831' : None, 'Desertion' : [0, 30, 90]}
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = {'Region' : None}
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = {'Pop1831' : None}
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = ['Region', 'Area', 'Desertion']
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = ['Pop1831', 'Area', 'Desertion']
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = ['Region', 'Area']
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = ['Pop1831', 'Area']
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = ['Region']
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = ['Pop1831']
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = 'Region'
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")
 
     con = 'Pop1831'
     bp = plot_predictions(mod, con)
+    assert hasattr(bp, "show")

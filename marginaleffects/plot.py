@@ -144,4 +144,4 @@ def plot_predictions(model, condition):
     plt.xlabel(con_names[0], fontsize=titles_fontsize)
     plt.ylabel(find_response(model), fontsize=titles_fontsize)
 
-    plt.show()
+    return plt
