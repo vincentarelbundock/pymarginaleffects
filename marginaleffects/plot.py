@@ -2,6 +2,7 @@ import polars as pl
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
 from .utils import get_modeldata, get_variable_type, find_response
 from .datagrid import datagrid
@@ -9,7 +10,6 @@ from .predictions import predictions
 from .slopes import slopes
 from .comparisons import comparisons
 
-import pytest
 
 def build_plot(model, condition):
 
@@ -70,14 +70,14 @@ def build_plot(model, condition):
 
     exec("global dt; dt = " + dt_code)
 
-    return to_datagrid, dt
+    return dt
 
 
-def filter_and_plot(dt, x_name, x_type, filter_expr=True, fig=None, axes_i=None, label=None):
+def common_plot(dt, x_name, x_type, fig=None, axes_i=None, label=None, color=None):
 
-    x = dt.filter(filter_expr).select(x_name).to_numpy().flatten()
-    y = dt.filter(filter_expr).select("estimate").to_numpy().flatten()
-    y_std = dt.filter(filter_expr).select("std_error").to_numpy().flatten()
+    x = dt.select(x_name).to_numpy().flatten()
+    y = dt.select("estimate").to_numpy().flatten()
+    y_std = dt.select("std_error").to_numpy().flatten()
 
     if fig is not None:
         plot_obj = fig.axes[axes_i] if axes_i is not None else plt
@@ -86,62 +86,108 @@ def filter_and_plot(dt, x_name, x_type, filter_expr=True, fig=None, axes_i=None,
         plot_obj = plt
     
     if x_type == "numeric":
-        plot_obj.fill_between(x, y-y_std, y+y_std, alpha=0.2)
-        plot_obj.plot(x, y, label=label)
+        if color is None:
+            plot_obj.fill_between(x, y-y_std, y+y_std, alpha=0.2)
+            plot_obj.plot(x, y, label=label)
+        else:
+            plot_obj.fill_between(x, y-y_std, y+y_std, color=color, alpha=0.2)
+            plot_obj.plot(x, y, color=color, label=label)
 
     elif x_type == "character" or x_type == "boolean":
-        plot_obj.errorbar(x, y, yerr=y_std, fmt='o', label=label)
+        if color is None:
+            plot_obj.errorbar(x, y, yerr=y_std, fmt='o', label=label)
+        else:
+            plot_obj.errorbar(x, y, yerr=y_std, fmt='o', color=color, label=label)
 
     return fig
 
 
-def plot_predictions(model, condition):
+def plot_predictions(
+    model,
+    condition=None,
+    by=False,
+    newdata=None,
+    vcov=True,
+    conf_level=0.95,
+    transform=None,
+    draw=True
+):
+
+    assert not (not by and newdata is not None), "The 'newdata' argument requires a 'by' argument"
+
+    assert (condition is None and by) or (condition is not None and not by), "One of the 'condition' and 'by' arguments must be supplied, but not both"
+
+    if by:
+        if isinstance(by, str):
+            by = [by]
+
+        if newdata is not None:
+            dt = predictions(model, newdata=newdata, conf_level=conf_level, vcov=vcov, transform=transform)
+        else:
+            dt = predictions(model, by=by, conf_level=conf_level, vcov=vcov, transform=transform)
+
+        dt = dt.sort(by[0])
+
+    if condition is not None:
+        built_dt = build_plot(model, condition)
+        dt = predictions(model, newdata=built_dt, conf_level=conf_level, vcov=vcov, transform=transform)
+        if isinstance(condition, str):
+            by = [condition]
+        elif isinstance(condition, list):
+            by = condition
+        elif isinstance(condition, dict):
+            by = list(condition.keys())
+
+    if not draw:
+        return dt
 
     titles_fontsize = 16
 
-    grid, dt = build_plot(model, condition)
+    x_type = get_variable_type(by[0], dt)
 
-    con_names = list(grid.keys())
+    if len(by) == 3:
+        fig, axes = plt.subplots(1, dt.n_unique(subset=[by[2]]))
+        color_i = 0
+        color_dict = {}
 
-    for key in con_names:
-        grid[key] = [grid[key]] if not isinstance(grid[key], list) else grid[key]
+        for axes_i, by_2val in enumerate(dt.select(by[2]).unique().to_numpy().flatten()):
+            subplot_dt = dt.filter(pl.col(by[2])==by_2val)
 
-    pred_dt = predictions(model, newdata=dt)
+            for by_1val in subplot_dt.select(by[1]).unique().to_numpy().flatten():
+                if by_1val not in color_dict:
+                    color_dict[by_1val] = plt.rcParams['axes.prop_cycle'].by_key()['color'][color_i]
+                    color_i += 1
 
-    x_type = get_variable_type(con_names[0], pred_dt)
+                color_dt = subplot_dt.filter(pl.col(by[1])==by_1val)
 
-    if len(grid) == 3:
-        fig, axes = plt.subplots(1, len(grid[con_names[2]]))
+                common_plot(color_dt, by[0], x_type, fig=fig, axes_i=axes_i, label=by_1val, color=color_dict[by_1val])
 
-        for axes_i, con_2val in enumerate(grid[con_names[2]]):
 
-            for con_1val in grid[con_names[1]]:
-                filter_expr = (pl.col(con_names[2]) == con_2val) & (pl.col(con_names[1]) == con_1val)
-                filter_and_plot(pred_dt, con_names[0], x_type, filter_expr=filter_expr, fig=fig, axes_i=axes_i, label=con_1val)
+            fig.axes[axes_i].set_title(by_2val, fontsize=titles_fontsize)
 
-            fig.axes[axes_i].set_title(con_2val, fontsize=titles_fontsize)
+        legend_elements = [Line2D([0], [0], color=val, label=key) for key,val in color_dict.items()]
+        fig.axes[axes_i].legend(handles=legend_elements, loc='center left', bbox_to_anchor=(1, 0.5), title=by[1], fontsize=titles_fontsize, title_fontsize=titles_fontsize)
 
-        fig.axes[axes_i].legend(loc='center left', bbox_to_anchor=(1, 0.5), title=con_names[1], fontsize=titles_fontsize, title_fontsize=titles_fontsize)
-                    
-    elif len(grid) == 2:
+    elif len(by) == 2:
         fig = plt.figure()
         ax = plt.subplot(111)
 
-        for con_1val in grid[con_names[1]]:
-            filter_expr = pl.col(con_names[1]) == con_1val
-            filter_and_plot(pred_dt, con_names[0], x_type, filter_expr=filter_expr, fig=fig, label=con_1val)
+        for by_1val in dt.select(by[1]).unique().to_numpy().flatten():
+            color_dt = dt.filter(pl.col(by[1])==by_1val)
 
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title=con_names[1], fontsize=titles_fontsize, title_fontsize=titles_fontsize)
+            common_plot(color_dt, by[0], x_type, fig=fig, label=by_1val)
 
-    elif len(grid) == 1:
-        fig = filter_and_plot(pred_dt, con_names[0], x_type)
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title=by[1], fontsize=titles_fontsize, title_fontsize=titles_fontsize)
+
+    elif len(by) == 1:
+        fig = common_plot(dt, by[0], x_type)
 
     else:
         raise ValueError("Condition's length must be inbetween 1 and 3.")
 
     fig.add_subplot(111, frameon=False)
     plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
-    plt.xlabel(con_names[0], fontsize=titles_fontsize)
+    plt.xlabel(by[0], fontsize=titles_fontsize)
     plt.ylabel(find_response(model), fontsize=titles_fontsize)
 
     return plt
