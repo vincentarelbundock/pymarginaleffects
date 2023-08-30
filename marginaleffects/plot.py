@@ -11,7 +11,7 @@ from .slopes import slopes
 from .comparisons import comparisons
 
 
-def build_plot(model, condition):
+def dt_on_condition(model, condition):
 
 
     modeldata = get_modeldata(model)
@@ -19,19 +19,19 @@ def build_plot(model, condition):
     if isinstance(condition, str):
         condition = [condition]
 
-    assert 1 <= len(condition) <= 3, f"Lenght of condition must be inclusively between 1 and 3. Got : {len(condition)}"
+    assert 1 <= len(condition) <= 3, f"Lenght of condition must be inclusively between 1 and 3. Got : {len(condition)}."
 
 
     to_datagrid = {}
     first_key = ""  # special case when the first element is numeric
 
     if isinstance(condition, list):
-        assert all(ele in modeldata.columns for ele in condition), "All elements of condition must be columns of the model"
+        assert all(ele in modeldata.columns for ele in condition), "All elements of condition must be columns of the model."
         first_key = condition[0]
         to_datagrid = {key: None for key in condition}
 
     elif isinstance(condition, dict):
-        assert all(key in modeldata.columns for key in condition.keys()), "All keys of condition must be columns of the model"
+        assert all(key in modeldata.columns for key in condition.keys()), "All keys of condition must be columns of the model."
         first_key = next(iter(condition))
         to_datagrid = condition    
 
@@ -110,33 +110,37 @@ def plot_predictions(
     vcov=True,
     conf_level=0.95,
     transform=None,
-    draw=True
+    draw=True,
+    wts=None
 ):
 
-    assert not (not by and newdata is not None), "The 'newdata' argument requires a 'by' argument"
+    assert not (not by and newdata is not None), "The `newdata` argument requires a `by` argument."
 
-    assert (condition is None and by) or (condition is not None and not by), "One of the 'condition' and 'by' arguments must be supplied, but not both"
+    assert (condition is None and by) or (condition is not None and not by), "One of the `condition` and `by` arguments must be supplied, but not both."
+
+    assert not (wts is not None and not by), "The `wts` argument requires a `by` argument."
 
     if by:
         if isinstance(by, str):
             by = [by]
 
         if newdata is not None:
-            dt = predictions(model, newdata=newdata, conf_level=conf_level, vcov=vcov, transform=transform)
+            dt = predictions(model, by=by, newdata=newdata, conf_level=conf_level, vcov=vcov, transform=transform, wts=wts)
         else:
-            dt = predictions(model, by=by, conf_level=conf_level, vcov=vcov, transform=transform)
-
-        dt = dt.sort(by[0])
+            dt = predictions(model, by=by, conf_level=conf_level, vcov=vcov, transform=transform, wts=wts)
 
     if condition is not None:
-        built_dt = build_plot(model, condition)
-        dt = predictions(model, newdata=built_dt, conf_level=conf_level, vcov=vcov, transform=transform)
+        dt_condition = dt_on_condition(model, condition)
         if isinstance(condition, str):
             by = [condition]
         elif isinstance(condition, list):
             by = condition
         elif isinstance(condition, dict):
             by = list(condition.keys())
+        dt = predictions(model, by=by, newdata=dt_condition, conf_level=conf_level, vcov=vcov, transform=transform)
+
+    dt = dt.drop_nulls(by[0])
+    dt = dt.sort(by[0])
 
     if not draw:
         return dt

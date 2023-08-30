@@ -1,7 +1,7 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
-from marginaleffects.plot import build_plot
+from marginaleffects.plot import dt_on_condition
 from .utilities import *
 
 
@@ -12,7 +12,7 @@ df = df.with_columns(pl.Series(range(df.shape[0])).alias("row_id")) \
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
 
 
-def test_build_plot():
+def test_dt_on_condition():
     con = {'dept' : [1, 3] , 'Region' : "W", 'Department' : "Allier"}
     bp = build_plot(mod, con)[1]
     assert bp.shape[0] == 2
