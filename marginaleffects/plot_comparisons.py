@@ -108,4 +108,4 @@ def plot_comparisons(
         return plot_common(dt, "Comparison", var_list[0], color=color, subplot=subplot)
 
     else:
-        raise ArgumentError("Too much variables sepcified")
+        raise ArgumentError("Too much variables specified")

@@ -92,4 +92,4 @@ def plot_slopes(
         return plot_common(dt, "Slope", var_list[0], color=color, subplot=subplot)
 
     else:
-        raise ArgumentError("Too much variables sepcified")
+        raise ArgumentError("Too much variables specified")
