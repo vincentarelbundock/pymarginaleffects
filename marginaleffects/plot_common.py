@@ -1,14 +1,10 @@
 import polars as pl
 import numpy as np
-import sys
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-from .utils import get_modeldata, get_variable_type, find_response
+from .utils import get_modeldata, get_variable_type
 from .datagrid import datagrid
-from .predictions import predictions
-from .slopes import slopes
-from .comparisons import comparisons
 
 
 def dt_on_condition(model, condition):
@@ -73,7 +69,7 @@ def dt_on_condition(model, condition):
     return dt
 
 
-def common_plot(dt, x_name, x_type, fig=None, axes_i=None, label=None, color=None):
+def plotter(dt, x_name, x_type, fig=None, axes_i=None, label=None, color=None):
 
     x = dt.select(x_name).to_numpy().flatten()
     y = dt.select("estimate").to_numpy().flatten()
@@ -102,96 +98,54 @@ def common_plot(dt, x_name, x_type, fig=None, axes_i=None, label=None, color=Non
     return fig
 
 
-def plot_predictions(
-    model,
-    condition=None,
-    by=False,
-    newdata=None,
-    vcov=True,
-    conf_level=0.95,
-    transform=None,
-    draw=True,
-    wts=None
-):
-
-    assert not (not by and newdata is not None), "The `newdata` argument requires a `by` argument."
-
-    assert (condition is None and by) or (condition is not None and not by), "One of the `condition` and `by` arguments must be supplied, but not both."
-
-    assert not (wts is not None and not by), "The `wts` argument requires a `by` argument."
-
-    if by:
-        if isinstance(by, str):
-            by = [by]
-
-        if newdata is not None:
-            dt = predictions(model, by=by, newdata=newdata, conf_level=conf_level, vcov=vcov, transform=transform, wts=wts)
-        else:
-            dt = predictions(model, by=by, conf_level=conf_level, vcov=vcov, transform=transform, wts=wts)
-
-    if condition is not None:
-        dt_condition = dt_on_condition(model, condition)
-        if isinstance(condition, str):
-            by = [condition]
-        elif isinstance(condition, list):
-            by = condition
-        elif isinstance(condition, dict):
-            by = list(condition.keys())
-        dt = predictions(model, by=by, newdata=dt_condition, conf_level=conf_level, vcov=vcov, transform=transform)
-
-    dt = dt.drop_nulls(by[0])
-    dt = dt.sort(by[0])
-
-    if not draw:
-        return dt
+def plot_common(dt, y_label, x_name, color=None, subplot=None):
 
     titles_fontsize = 16
 
-    x_type = get_variable_type(by[0], dt)
+    x_type = get_variable_type(x_name, dt)
 
-    if len(by) == 3:
-        fig, axes = plt.subplots(1, dt.n_unique(subset=[by[2]]))
+    if subplot is not None:
+        fig, axes = plt.subplots(1, dt.n_unique(subset=[subplot]))
         color_i = 0
         color_dict = {}
+        for axes_i, subplot_val in enumerate(dt.select(subplot).unique().to_numpy().flatten()):
+            subplot_dt = dt.filter(pl.col(subplot) == subplot_val)
 
-        for axes_i, by_2val in enumerate(dt.select(by[2]).unique().to_numpy().flatten()):
-            subplot_dt = dt.filter(pl.col(by[2])==by_2val)
+            if color is None:
+                plotter(subplot_dt, x_name, x_type, fig=fig, axes_i=axes_i)
 
-            for by_1val in subplot_dt.select(by[1]).unique().to_numpy().flatten():
-                if by_1val not in color_dict:
-                    color_dict[by_1val] = plt.rcParams['axes.prop_cycle'].by_key()['color'][color_i]
-                    color_i += 1
+            else:
+                for color_val in subplot_dt.select(color).unique().to_numpy().flatten():
+                    if color_val not in color_dict:
+                        color_dict[color_val] = plt.rcParams['axes.prop_cycle'].by_key()['color'][color_i]
+                        color_i += 1
 
-                color_dt = subplot_dt.filter(pl.col(by[1])==by_1val)
+                    color_dt = subplot_dt.filter(pl.col(color)==color_val)
 
-                common_plot(color_dt, by[0], x_type, fig=fig, axes_i=axes_i, label=by_1val, color=color_dict[by_1val])
+                    plotter(color_dt, x_name, x_type, fig=fig, axes_i=axes_i, label=color_val, color=color_dict[color_val])
 
+            fig.axes[axes_i].set_title(subplot_val, fontsize=titles_fontsize)
+        if color is not None:
+            legend_elements = [Line2D([0], [0], color=val, label=key) for key,val in color_dict.items()]
+            fig.axes[axes_i].legend(handles=legend_elements, loc='center left', bbox_to_anchor=(1, 0.5), title=color, fontsize=titles_fontsize, title_fontsize=titles_fontsize)
 
-            fig.axes[axes_i].set_title(by_2val, fontsize=titles_fontsize)
-
-        legend_elements = [Line2D([0], [0], color=val, label=key) for key,val in color_dict.items()]
-        fig.axes[axes_i].legend(handles=legend_elements, loc='center left', bbox_to_anchor=(1, 0.5), title=by[1], fontsize=titles_fontsize, title_fontsize=titles_fontsize)
-
-    elif len(by) == 2:
+    elif color is not None:
         fig = plt.figure()
         ax = plt.subplot(111)
 
-        for by_1val in dt.select(by[1]).unique().to_numpy().flatten():
-            color_dt = dt.filter(pl.col(by[1])==by_1val)
+        for color_val in dt.select(color).unique().to_numpy().flatten():
+            color_dt = dt.filter(pl.col(color) == color_val)
 
-            common_plot(color_dt, by[0], x_type, fig=fig, label=by_1val)
+            plotter(color_dt, x_name, x_type, fig=fig, label=color_val)
 
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title=by[1], fontsize=titles_fontsize, title_fontsize=titles_fontsize)
-
-    elif len(by) == 1:
-        fig = common_plot(dt, by[0], x_type)
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title=color, fontsize=titles_fontsize, title_fontsize=titles_fontsize)
 
     else:
-        raise ValueError("Condition's length must be inbetween 1 and 3.")
+        fig = plotter(dt, x_name, x_type)
 
     fig.add_subplot(111, frameon=False)
     plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
-    plt.xlabel(by[0], fontsize=titles_fontsize)
-    plt.ylabel(find_response(model), fontsize=titles_fontsize)
+    plt.xlabel(x_name, fontsize=titles_fontsize)
+    plt.ylabel(y_label, fontsize=titles_fontsize)
 
     return plt

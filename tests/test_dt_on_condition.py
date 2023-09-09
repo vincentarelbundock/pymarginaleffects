@@ -1,7 +1,7 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
-from marginaleffects.plot import dt_on_condition
+from marginaleffects.plot_common import dt_on_condition
 from .utilities import *
 
 
@@ -14,18 +14,18 @@ mod = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
 
 def test_dt_on_condition():
     con = {'dept' : [1, 3] , 'Region' : "W", 'Department' : "Allier"}
-    bp = build_plot(mod, con)[1]
+    bp = test_dt_on_condition(mod, con)[1]
     assert bp.shape[0] == 2
     assert (bp["Region"] == "W").all()
     con = "Area"
-    assert build_plot(mod, con)[1].shape[0] == 100
+    assert test_dt_on_condition(mod, con)[1].shape[0] == 100
     con = ["Area"]
-    assert build_plot(mod, con)[1].shape[0] == 100
+    assert test_dt_on_condition(mod, con)[1].shape[0] == 100
     con = ["Region", "Area"]
-    assert build_plot(mod, con)[1].shape[0] == 25
+    assert test_dt_on_condition(mod, con)[1].shape[0] == 25
     con = {"Region": None, "Department": "Allier"}
-    assert build_plot(mod, con)[1].shape[0] == 5
+    assert test_dt_on_condition(mod, con)[1].shape[0] == 5
     con = ["Region", "Area", "Pop1831"]
-    assert build_plot(mod, con)[1].shape[0] == 125
+    assert test_dt_on_condition(mod, con)[1].shape[0] == 125
     con = {"Area": None, "Region": "W"}
-    assert build_plot(mod, con)[1].shape[0] == 100
+    assert test_dt_on_condition(mod, con)[1].shape[0] == 100

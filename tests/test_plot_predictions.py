@@ -1,7 +1,7 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
-from marginaleffects.plot import *
+from marginaleffects.plot_predictions import *
 from .utilities import *
 
 
