@@ -237,12 +237,12 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
 
     if vartype == "numeric" and isinstance(value, str):
         if value == "sd":
-            value = newdata[variable].std()
+            value = modeldata[variable].std()
             hi = newdata[variable] + value / 2
             lo = newdata[variable] - value / 2
             lab = lab.format(hi="(x+sd/2)", lo="(x-sd/2)")
         elif value == "2sd":
-            value = newdata[variable].std()
+            value = modeldata[variable].std()
             hi = newdata[variable] + value
             lo = newdata[variable] - value
             lab = lab.format(hi="(x+sd)", lo="(x-sd)")
