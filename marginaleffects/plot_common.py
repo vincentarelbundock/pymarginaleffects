@@ -69,14 +69,14 @@ def dt_on_condition(model, condition):
     return dt
 
 
-def plotter(dt, x_name, x_type, fig=None, axes_i=None, label=None, color=None):
+def plotter(dt, x_name, x_type, fig=None, axe=None, label=None, color=None):
 
     x = dt.select(x_name).to_numpy().flatten()
     y = dt.select("estimate").to_numpy().flatten()
     y_std = dt.select("std_error").to_numpy().flatten()
 
     if fig is not None:
-        plot_obj = fig.axes[axes_i] if axes_i is not None else plt
+        plot_obj = fig.axes[axe] if axe is not None else plt
     else:
         fig = plt.figure()
         plot_obj = plt
@@ -98,54 +98,115 @@ def plotter(dt, x_name, x_type, fig=None, axes_i=None, label=None, color=None):
     return fig
 
 
-def plot_common(dt, y_label, x_name, color=None, subplot=None):
+def plot_common(dt, y_label, var_list):
 
-    titles_fontsize = 16
+    titles_fontsize = 12
 
+    x_name = var_list[0]
     x_type = get_variable_type(x_name, dt)
 
-    if subplot is not None:
-        fig, axes = plt.subplots(1, dt.n_unique(subset=[subplot]))
+    if len(var_list) == 2:
+        color = var_list[1]
+        subplot = [None]
+    elif len(var_list) == 3:
+        color = var_list[1]
+        subplot = dt.select(var_list[2]).unique(maintain_order=True).to_numpy().flatten()
+    else:
+        color = None
+        subplot = [None]
+
+    # when 'contrast' is a column containing more than 1 unique value, we subplot all intersections 
+    # of these values with explicit subplots
+    if 'contrast' in dt.columns:
+        contrast = dt.select('contrast').unique(maintain_order=True).to_numpy().flatten()
+        if len(contrast) == 1:
+            contrast = [None]
+    else:
+        contrast = [None]
+
+
+    if subplot[0] is not None or contrast[0] is not None:
+
         color_i = 0
         color_dict = {}
-        for axes_i, subplot_val in enumerate(dt.select(subplot).unique().to_numpy().flatten()):
-            subplot_dt = dt.filter(pl.col(subplot) == subplot_val)
 
-            if color is None:
-                plotter(subplot_dt, x_name, x_type, fig=fig, axes_i=axes_i)
+        if len(subplot) >= len(contrast):
+            dim_max = subplot
+            dim_min = contrast
+            max_name = var_list[2] if len(var_list) == 3 else None
+            min_name = 'contrast'
+        else:
+            dim_max = contrast
+            dim_min = subplot
+            max_name = 'contrast'
+            min_name = var_list[2] if len(var_list) == 3 else None
 
-            else:
-                for color_val in subplot_dt.select(color).unique().to_numpy().flatten():
-                    if color_val not in color_dict:
-                        color_dict[color_val] = plt.rcParams['axes.prop_cycle'].by_key()['color'][color_i]
-                        color_i += 1
+        max_len = len(dim_max)
+        min_len = len(dim_min)
 
-                    color_dt = subplot_dt.filter(pl.col(color)==color_val)
+        figsize_def = plt.rcParams.get('figure.figsize')
+        figsize = [max(figsize_def[0], (2/3)*figsize_def[0]*max_len), max(figsize_def[1], (2/3)*figsize_def[1]*min_len)]
 
-                    plotter(color_dt, x_name, x_type, fig=fig, axes_i=axes_i, label=color_val, color=color_dict[color_val])
+        fig, axes = plt.subplots(min_len, max_len, squeeze=False, layout="constrained", figsize=figsize)
 
-            fig.axes[axes_i].set_title(subplot_val, fontsize=titles_fontsize)
+
+        for i, dim_min_i in enumerate(dim_min):
+            for j, dim_max_j in enumerate(dim_max):
+
+                subplot_dt = dt
+
+                subplot_dt = subplot_dt.filter(pl.col(max_name) == dim_max_j)
+                if dim_min_i is not None:
+                    subplot_dt = subplot_dt.filter(pl.col(min_name) == dim_min_i)
+
+                axe = max_len * i + j
+
+
+                if color is None:
+                    plotter(subplot_dt, x_name, x_type, fig=fig, axe=axe)
+
+                else:
+
+                    for color_val in subplot_dt.select(color).unique(maintain_order=True).to_numpy().flatten():
+                        if color_val not in color_dict:
+                            color_dict[color_val] = plt.rcParams['axes.prop_cycle'].by_key()['color'][color_i]
+                            color_i += 1
+
+                        color_dt = subplot_dt.filter(pl.col(color) == color_val)
+
+                        plotter(color_dt, x_name, x_type, fig=fig, axe=axe, label=color_val, color=color_dict[color_val])
+
+                if max_name == 'contrast':
+                    title = dim_min_i if dim_min_i is not None else ""
+                    title += "\n" + subplot_dt.select(pl.first('term')).item() + ", " + dim_max_j if dim_max_j is not None else ""
+                else:
+                    title = dim_max_j
+                    title += "\n" + subplot_dt.select(pl.first('term')).item() + ", " + dim_min_i if dim_min_i is not None else ""
+
+                fig.axes[axe].set_title(title, fontsize=titles_fontsize)
+
+
         if color is not None:
             legend_elements = [Line2D([0], [0], color=val, label=key) for key,val in color_dict.items()]
-            fig.axes[axes_i].legend(handles=legend_elements, loc='center left', bbox_to_anchor=(1, 0.5), title=color, fontsize=titles_fontsize, title_fontsize=titles_fontsize)
+
 
     elif color is not None:
-        fig = plt.figure()
-        ax = plt.subplot(111)
+        fig = plt.figure(layout="constrained")
 
-        for color_val in dt.select(color).unique().to_numpy().flatten():
+        for color_val in dt.select(color).unique(maintain_order=True).to_numpy().flatten():
             color_dt = dt.filter(pl.col(color) == color_val)
 
             plotter(color_dt, x_name, x_type, fig=fig, label=color_val)
 
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title=color, fontsize=titles_fontsize, title_fontsize=titles_fontsize)
+        fig.legend(loc='outside center right', title=color, fontsize=titles_fontsize, title_fontsize=titles_fontsize)
+
 
     else:
         fig = plotter(dt, x_name, x_type)
 
-    fig.add_subplot(111, frameon=False)
-    plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
-    plt.xlabel(x_name, fontsize=titles_fontsize)
-    plt.ylabel(y_label, fontsize=titles_fontsize)
+    if (subplot[0] is not None or contrast[0] is not None) and color is not None:
+        fig.legend(handles=legend_elements, loc='outside center right', title=color, fontsize=titles_fontsize, title_fontsize=titles_fontsize)
+    fig.supxlabel(x_name, fontsize=titles_fontsize)
+    fig.supylabel(y_label, fontsize=titles_fontsize)
 
     return plt

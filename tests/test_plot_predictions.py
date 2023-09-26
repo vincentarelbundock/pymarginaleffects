@@ -1,104 +1,53 @@
+import os
 import polars as pl
 import statsmodels.formula.api as smf
+from matplotlib.testing.compare import compare_images
 from marginaleffects import *
 from marginaleffects.plot_predictions import *
 from .utilities import *
 
-
-df = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv", null_values = "NA") \
-    .drop_nulls()
-df = df.with_columns(pl.Series(range(df.shape[0])).alias("row_id")) \
-    .sort("Region", "row_id")
-con_mod = smf.ols("Literacy ~ Pop1831 * Desertion + Region + Area + MainCity", df).fit()
-
 df = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv", null_values = "NA") \
     .drop_nulls()
-by_mod = smf.ols("body_mass_g ~ flipper_length_mm * species * bill_length_mm + island", df).fit()
+mod = smf.ols("body_mass_g ~ flipper_length_mm * species * bill_length_mm + island", df).fit()
 
 def test_plot_predictions():
 
-    # by
+    tolerance = 0.001
 
-    bp = plot_predictions(by_mod, by='bill_length_mm')
-    assert hasattr(bp, "show")
+    baseline_path = "./tests/images/plot_predictions/"
+    result_path = "./tests/images/.tmp_plot_predictions/"
+    os.mkdir(result_path)
 
-    bp = plot_predictions(by_mod, by='bill_length_mm', newdata=datagrid(by_mod, bill_length_mm=[37,39]))
-    assert hasattr(bp, "show")
+    fig = plot_predictions(mod, by='species')
+    fig.savefig(result_path + "Figure_1.png")
+    assert compare_images(baseline_path + "Figure_1.png", result_path + "Figure_1.png", tolerance) is None
+    os.remove(result_path + "Figure_1.png")
 
-    bp = plot_predictions(by_mod, by=['bill_length_mm'])
-    assert hasattr(bp, "show")
+    fig = plot_predictions(mod, by='bill_length_mm', newdata=datagrid(mod, bill_length_mm=[37,39]))
+    fig.savefig(result_path + "Figure_2.png")
+    assert compare_images(baseline_path + "Figure_2.png", result_path + "Figure_2.png", tolerance) is None
+    os.remove(result_path + "Figure_2.png")
 
-    bp = plot_predictions(by_mod, by=['bill_length_mm'], newdata=datagrid(by_mod, bill_length_mm=[37,39]))
-    assert hasattr(bp, "show")
+    fig = plot_predictions(mod, by=['bill_length_mm', 'island', 'species'], newdata = datagrid(mod, bill_length_mm = [72, 431], species = ['Adelie', 'Chinstrap', 'Gentoo']))
+    fig.savefig(result_path + "Figure_3.png")
+    assert compare_images(baseline_path + "Figure_3.png", result_path + "Figure_3.png", tolerance) is None
+    os.remove(result_path + "Figure_3.png")
 
-    bp = plot_predictions(by_mod, by=['bill_length_mm', 'island'])
-    assert hasattr(bp, "show")
+    fig = plot_predictions(mod, condition='bill_length_mm')
+    fig.savefig(result_path + "Figure_4.png")
+    assert compare_images(baseline_path + "Figure_4.png", result_path + "Figure_4.png", tolerance) is None
+    os.remove(result_path + "Figure_4.png")
 
-    bp = plot_predictions(by_mod, by=['bill_length_mm', 'island'], newdata=datagrid(by_mod, bill_length_mm=[37,39]))
-    assert hasattr(bp, "show")
+    fig = plot_predictions(mod, condition={'flipper_length_mm': [i for i in range(180,220)], 'species':None})
+    fig.savefig(result_path + "Figure_5.png")
+    assert compare_images(baseline_path + "Figure_5.png", result_path + "Figure_5.png", tolerance) is None
+    os.remove(result_path + "Figure_5.png")
 
-    bp = plot_predictions(by_mod, by=['bill_length_mm', 'island', 'species'])
-    assert hasattr(bp, "show")
+    fig = plot_predictions(mod, condition=['bill_length_mm', 'species', 'island'])
+    fig.savefig(result_path + "Figure_6.png")
+    assert compare_images(baseline_path + "Figure_6.png", result_path + "Figure_6.png", tolerance) is None
+    os.remove(result_path + "Figure_6.png")
 
-    bp = plot_predictions(by_mod, by=['bill_length_mm', 'island', 'species'], newdata=datagrid(by_mod, bill_length_mm=[37,39]))
-    assert hasattr(bp, "show")
+    os.rmdir(result_path)
 
-
-
-    # condition
-
-    con = {'Region' : None, 'Area' : None, 'Desertion' : [0, 30, 90]}
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = {'Pop1831' : None, 'Area' : None, 'Desertion' : [0, 30, 90]}
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = {'Region' : None, 'Desertion' : [0, 30, 90]}
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = {'Pop1831' : None, 'Desertion' : [0, 30, 90]}
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = {'Region' : None}
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = {'Pop1831' : None}
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = ['Region', 'Area', 'Desertion']
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = ['Pop1831', 'Area', 'Desertion']
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = ['Region', 'Area']
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = ['Pop1831', 'Area']
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = ['Region']
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = ['Pop1831']
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = 'Region'
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
-
-    con = 'Pop1831'
-    bp = plot_predictions(con_mod, condition=con)
-    assert hasattr(bp, "show")
+    return

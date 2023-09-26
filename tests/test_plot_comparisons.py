@@ -1,5 +1,7 @@
+import os
 import polars as pl
 import statsmodels.formula.api as smf
+from matplotlib.testing.compare import compare_images
 from marginaleffects import *
 from marginaleffects.plot_comparisons import *
 from .utilities import *
@@ -11,27 +13,42 @@ mod = smf.ols("body_mass_g ~ flipper_length_mm * species * bill_length_mm + isla
 
 def test_plot_comparisons():
 
-    # book
-    bp = plot_comparisons(mod, variables = "flipper_length_mm", condition = ["bill_length_mm", "species"])
-    assert hasattr(bp, "show")
+    tolerance = 0.001
 
-    bp = plot_comparisons(mod, variables = {'flipper_length_mm' : 'sd'}, condition = ["bill_length_mm", "species"])
-    assert hasattr(bp, "show")
+    baseline_path = "./tests/images/plot_comparisons/"
+    result_path = "./tests/images/.tmp_plot_comparisons/"
+    os.mkdir(result_path)
 
-    bp = plot_comparisons(mod, variables = {"flipper_length_mm" : 10}, condition = ["bill_length_mm", "species"])
-    assert hasattr(bp, "show")
+    fig = plot_comparisons(mod, variables='species', by='island')
+    fig.savefig(result_path + "Figure_1.png")
+    assert compare_images(baseline_path + "Figure_1.png", result_path + "Figure_1.png", tolerance) is None
+    os.remove(result_path + "Figure_1.png")
 
-    bp = plot_comparisons(mod, variables = "species", condition = "bill_length_mm", comparison = "ratio")
-    assert hasattr(bp, "show")
+    fig = plot_comparisons(mod, variables='bill_length_mm', newdata=datagrid(mod, bill_length_mm=[37,39]), by='island')
+    fig.savefig(result_path + "Figure_2.png")
+    assert compare_images(baseline_path + "Figure_2.png", result_path + "Figure_2.png", tolerance) is None
+    os.remove(result_path + "Figure_2.png")
 
-    bp = plot_comparisons(mod, variables = "species", condition = "bill_length_mm")
-    assert hasattr(bp, "show")
+    fig = plot_comparisons(mod, variables='bill_length_mm', condition=['flipper_length_mm', 'species'])
+    fig.savefig(result_path + "Figure_3.png")
+    assert compare_images(baseline_path + "Figure_3.png", result_path + "Figure_3.png", tolerance) is None
+    os.remove(result_path + "Figure_3.png")
 
-    bp = plot_comparisons(mod, variables = "flipper_length_mm", by = "species")
-    assert hasattr(bp, "show")
+    fig = plot_comparisons(mod, variables='species', condition='bill_length_mm')
+    fig.savefig(result_path + "Figure_4.png")
+    assert compare_images(baseline_path + "Figure_4.png", result_path + "Figure_4.png", tolerance) is None
+    os.remove(result_path + "Figure_4.png")
 
-    bp = plot_comparisons(mod, variables = "flipper_length_mm", by = ["species", "island"])
-    assert hasattr(bp, "show")
+    fig = plot_comparisons(mod, variables='island', condition='bill_length_mm')
+    fig.savefig(result_path + "Figure_5.png")
+    assert compare_images(baseline_path + "Figure_5.png", result_path + "Figure_5.png", tolerance) is None
+    os.remove(result_path + "Figure_5.png")
 
-    bp = plot_comparisons(mod, variables = ["flipper_length_mm", "bill_length_mm"], by = ["species", "island"])
-    assert hasattr(bp, "show")
+    fig = plot_comparisons(mod, variables='species', condition=['bill_length_mm', 'species', 'island'])
+    fig.savefig(result_path + "Figure_6.png")
+    assert compare_images(baseline_path + "Figure_6.png", result_path + "Figure_6.png", tolerance) is None
+    os.remove(result_path + "Figure_6.png")
+
+    os.rmdir(result_path)
+
+    return
