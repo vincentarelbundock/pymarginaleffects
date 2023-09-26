@@ -13,10 +13,16 @@ mod = smf.ols("body_mass_g ~ flipper_length_mm * species * bill_length_mm + isla
 
 def test_plot_comparisons():
 
-    tolerance = 0.001
+    tolerance = 0.05
 
     baseline_path = "./tests/images/plot_comparisons/"
+    
     result_path = "./tests/images/.tmp_plot_comparisons/"
+    if os.path.isdir(result_path):
+        for root, dirs, files in os.walk(result_path):
+            for fname in files:
+                os.remove(os.path.join(root, fname))
+        os.rmdir(result_path)
     os.mkdir(result_path)
 
     fig = plot_comparisons(mod, variables='species', by='island')

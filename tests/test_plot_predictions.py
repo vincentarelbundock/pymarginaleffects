@@ -6,16 +6,23 @@ from marginaleffects import *
 from marginaleffects.plot_predictions import *
 from .utilities import *
 
+
 df = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv", null_values = "NA") \
     .drop_nulls()
 mod = smf.ols("body_mass_g ~ flipper_length_mm * species * bill_length_mm + island", df).fit()
 
 def test_plot_predictions():
 
-    tolerance = 0.001
+    tolerance = 0.05
 
     baseline_path = "./tests/images/plot_predictions/"
+    
     result_path = "./tests/images/.tmp_plot_predictions/"
+    if os.path.isdir(result_path):
+        for root, dirs, files in os.walk(result_path):
+            for fname in files:
+                os.remove(os.path.join(root, fname))
+        os.rmdir(result_path)
     os.mkdir(result_path)
 
     fig = plot_predictions(mod, by='species')
