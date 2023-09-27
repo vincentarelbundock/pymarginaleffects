@@ -73,7 +73,8 @@ def plotter(dt, x_name, x_type, fig=None, axe=None, label=None, color=None):
 
     x = dt.select(x_name).to_numpy().flatten()
     y = dt.select("estimate").to_numpy().flatten()
-    y_std = dt.select("std_error").to_numpy().flatten()
+    y_low = dt.select("conf_low").to_numpy().flatten()
+    y_high = dt.select("conf_high").to_numpy().flatten()
 
     if fig is not None:
         plot_obj = fig.axes[axe] if axe is not None else plt
@@ -83,17 +84,19 @@ def plotter(dt, x_name, x_type, fig=None, axe=None, label=None, color=None):
     
     if x_type == "numeric":
         if color is None:
-            plot_obj.fill_between(x, y-y_std, y+y_std, alpha=0.2)
+            plot_obj.fill_between(x, y_low, y_high, alpha=0.2)
             plot_obj.plot(x, y, label=label)
         else:
-            plot_obj.fill_between(x, y-y_std, y+y_std, color=color, alpha=0.2)
+            plot_obj.fill_between(x, y_low, y_high, color=color, alpha=0.2)
             plot_obj.plot(x, y, color=color, label=label)
 
     elif x_type == "character" or x_type == "boolean":
+        y_low = np.absolute(y - y_low)
+        y_high = np.absolute(y_high - y)
         if color is None:
-            plot_obj.errorbar(x, y, yerr=y_std, fmt='o', label=label)
+            plot_obj.errorbar(x, y, yerr=(y_low, y_high), fmt='o', label=label)
         else:
-            plot_obj.errorbar(x, y, yerr=y_std, fmt='o', color=color, label=label)
+            plot_obj.errorbar(x, y, yerr=(y_low, y_high), fmt='o', color=color, label=label)
 
     return fig
 
