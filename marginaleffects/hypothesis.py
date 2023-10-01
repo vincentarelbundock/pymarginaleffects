@@ -47,8 +47,9 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
 
 # function extracts the estimate column from a data frame and sets it to x. If `hypothesis` argument is a numpy array, it feeds it directly to lincome_multiply. If lincome is a string, it checks if the string is valid, and then calls the corresponding function.
 def get_hypothesis(x, hypothesis):
-    msg = f"Invalid hypothesis argument: {hypothesis}. Valid arguments are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', 'revpairwise' or a numpy array."
-    if hypothesis is None:
+    msg = f"Invalid hypothesis argument: {hypothesis}. Valid arguments are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', 'revpairwise' or a numpy array or a float."
+
+    if hypothesis is None or isinstance(hypothesis, (int, float)):
         return x
     if isinstance(hypothesis, np.ndarray):
         out = lincom_multiply(x, hypothesis)
@@ -70,6 +71,7 @@ def get_hypothesis(x, hypothesis):
         elif hypothesis == "revpairwise":
             hypmat = lincom_revpairwise(x)
         else:
+            
             raise ValueError(msg)
         out = lincom_multiply(x, hypmat.to_numpy())
         out = out.with_columns(pl.Series(hypothesis.columns).alias("term"))

@@ -5,7 +5,7 @@ import polars as pl
 from .by import get_by
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
-from .sanity import sanitize_newdata, sanitize_vcov, get_variables_names, sanitize_by
+from .sanity import sanitize_newdata, sanitize_vcov, get_variables_names, sanitize_by, sanitize_hypothesis_null
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns, get_modeldata, get_pad, upcast
@@ -88,12 +88,12 @@ def predictions(
         - conf_low: lower bound of the confidence interval (or equal-tailed interval for Bayesian models)
         - conf_high: upper bound of the confidence interval (or equal-tailed interval for Bayesian models)
     """
-    pass
 
     # sanity checks
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
+    hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     # pad
     modeldata = get_modeldata(model)
@@ -126,7 +126,7 @@ def predictions(
         J = get_jacobian(fun, model.params)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
-        out = get_z_p_ci(out, model, conf_level=conf_level)
+        out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by)

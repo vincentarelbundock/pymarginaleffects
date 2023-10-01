@@ -455,3 +455,12 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
     out = [item for sublist in out for item in sublist]
 
     return out
+
+
+
+def sanitize_hypothesis_null(hypothesis):
+    if isinstance(hypothesis, (int, float)):
+        hypothesis_null = hypothesis
+    else:
+        hypothesis_null = 0
+    return hypothesis_null

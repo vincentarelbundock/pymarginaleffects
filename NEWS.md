@@ -1,5 +1,7 @@
 # dev
 
+* `hypothesis` accepts a float or integer to specify a different null hypothesis.
+
 # 0.0.5
 
 * `predictions()` supports categorical predictors when `newdata` does not include all levels (internal padding).

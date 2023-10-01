@@ -9,7 +9,7 @@ from .equivalence import get_equivalence
 from .estimands import estimands
 from .hypothesis import get_hypothesis
 from .predictions import get_predictions
-from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov, sanitize_by
+from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov, sanitize_by, sanitize_hypothesis_null
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast, get_modeldata
@@ -101,6 +101,7 @@ def comparisons(
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)
     modeldata = get_modeldata(model)
+    hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     # after sanitize_newdata()
     variables = sanitize_variables(
@@ -268,7 +269,7 @@ def comparisons(
         J = get_jacobian(func=outer, coefs=model.params.to_numpy())
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
-        out = get_z_p_ci(out, model, conf_level=conf_level)
+        out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)
 
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
