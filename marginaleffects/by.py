@@ -3,6 +3,10 @@ import polars as pl
 
 def get_by(model, estimand, newdata, by=None, wts=None):
 
+    # for predictions
+    if isinstance(by, list) and len(by) == 1 and by[0] == "group" and "group" not in estimand.columns:
+        by = True
+
     if by is True:
         return estimand.select(["estimate"]).mean()
     elif by is False:

@@ -38,3 +38,10 @@ def test_class_manipulation():
     p = p.head()
     assert isinstance(p, pl.DataFrame)
     assert isinstance(p, marginaleffects.classes.MarginaleffectsDataFrame)
+
+
+def issue_38():
+    p = avg_predictions(mod_py, by = True)
+    assert p.shape[0] == 1
+    p = avg_predictions(mod_py)
+    assert p.shape[0] == 1
