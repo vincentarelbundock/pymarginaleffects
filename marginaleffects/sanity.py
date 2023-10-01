@@ -49,7 +49,7 @@ def sanitize_by(by):
     return by
 
 
-def sanitize_newdata(model, newdata, wts, by = []):
+def sanitize_newdata(model, newdata, wts, by=[]):
     modeldata = get_modeldata(model)
 
     if newdata is None:
@@ -63,9 +63,13 @@ def sanitize_newdata(model, newdata, wts, by = []):
 
     elif isinstance(newdata, pd.DataFrame):
         out = pl.from_pandas(newdata)
-        
+
     else:
         out = newdata
+
+    datagrid_explicit = None
+    if isinstance(out, pl.DataFrame) and hasattr(out, "datagrid_explicit"):
+        datagrid_explicit = out.datagrid_explicit
 
     if isinstance(by, list) and len(by) > 0:
         by = [x for x in by if x in out.columns]
@@ -90,8 +94,10 @@ def sanitize_newdata(model, newdata, wts, by = []):
     if any([isinstance(out[x], pl.Categorical) for x in out.columns]):
         raise ValueError("Categorical type columns are not supported in `newdata`.")
 
-    return out
+    if datagrid_explicit is not None:
+        out.datagrid_explicit = datagrid_explicit
 
+    return out
 
 def sanitize_comparison(comparison, by, wts=None):
     out = comparison

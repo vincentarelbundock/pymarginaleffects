@@ -89,6 +89,8 @@ def datagrid(
 
     out = reduce(lambda x, y: x.join(y, how="cross"), out.values())
 
+    out.datagrid_explicit = list(kwargs.keys())
+
     return out
 
 
@@ -131,5 +133,7 @@ def datagridcf(model=None, newdata=None, **kwargs):
 
     # Create rowid and rowidcf
     result = result.with_columns(pl.Series(range(result.shape[0])).alias("rowidcf"))
+
+    result.datagrid_explicit = list(kwargs.keys())
 
     return result

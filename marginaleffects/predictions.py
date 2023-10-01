@@ -115,27 +115,43 @@ def predictions(
     y, exog = patsy.dmatrices(model.model.formula, newdata.to_pandas())
 
     # estimands
-    def fun(x):
+    def inner(x):
         out = get_predictions(model, np.array(x), exog)
+
+        if out.shape[0] == newdata.shape[0]:
+            cols = [x for x in newdata.columns if x not in out.columns]
+            out = pl.concat([out, newdata.select(cols)], how="horizontal")
+
+        # group
+        elif "group" in out.columns:
+            meta = newdata.join(out.select("group").unique(), how="cross")
+            cols = [x for x in meta.columns if x in out.columns]
+            out = meta.join(out, on=cols, how="left")
+
+        # not sure what happens here
+        else:
+            raise ValueError("Something went wrong")
+
         out = get_by(model, out, newdata=newdata, by=by, wts=wts)
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
 
-    out = fun(model.params)
+    out = inner(model.params)
+
     if vcov is not None:
-        J = get_jacobian(fun, model.params)
+        J = get_jacobian(inner, model.params)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
-    out = sort_columns(out, by=by)
+    out = sort_columns(out, by=by, newdata=newdata)
 
     # unpad
     if "rowid" in out.columns and pad.shape[0] > 0:
         out = out[:-pad.shape[0]:]
 
-    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level)
+    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level, newdata=newdata)
     return out
 
 

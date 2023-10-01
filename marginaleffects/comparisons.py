@@ -273,9 +273,9 @@ def comparisons(
 
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
-    out = sort_columns(out, by=by)
+    out = sort_columns(out, by=by, newdata=newdata)
 
-    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level)
+    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level, newdata=newdata)
     return out
 
 

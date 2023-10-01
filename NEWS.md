@@ -1,6 +1,7 @@
 # dev
 
 * `hypothesis` accepts a float or integer to specify a different null hypothesis.
+* Better column order in printout when using `datagrid()` or `by`
 
 # 0.0.5
 

@@ -1,11 +1,15 @@
 import polars as pl
 
 class MarginaleffectsDataFrame(pl.DataFrame):
-    def __init__(self, data=None, by=None, conf_level=0.95):
+    def __init__(self, data=None, by=None, conf_level=0.95, newdata=None):
         if isinstance(data, pl.DataFrame):
             self._df = data._df
             self.by = by
             self.conf_level = conf_level
+            if hasattr(newdata, "datagrid_explicit"):
+                self.datagrid_explicit = newdata.datagrid_explicit
+            else:
+                self.datagrid_explicit = []
             return
         super().__init__(data)
 
@@ -42,6 +46,9 @@ class MarginaleffectsDataFrame(pl.DataFrame):
                 raise ValueError("by must be None or a string or a list of strings")
         else:
             valid = list(mapping.keys())
+
+        valid = self.datagrid_explicit + valid
+        
         valid = [x for x in valid if x in self.columns]
         mapping = {key: mapping[key] for key in mapping if key in valid}
         tmp = self.select(valid).rename(mapping)

@@ -16,7 +16,7 @@ def get_modeldata(fit):
     return out
 
 
-def sort_columns(df, by=None):
+def sort_columns(df, by=None, newdata=None):
     cols = [
         "rowid",
         "group",
@@ -30,11 +30,16 @@ def sort_columns(df, by=None):
         "conf_low",
         "conf_high",
     ] + df.columns
+
     if by is not None:
         if isinstance(by, list):
             cols = by + cols
         else:
             cols = [by] + cols
+
+    if isinstance(newdata, pl.DataFrame) and hasattr(newdata, "datagrid_explicit"):
+        cols = newdata.datagrid_explicit + cols
+
     cols = [x for x in cols if x in df.columns]
     cols_unique = []
     for item in cols:
