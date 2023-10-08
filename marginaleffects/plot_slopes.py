@@ -1,7 +1,8 @@
 import polars as pl
 import numpy as np
 
-from .utils import get_variable_type, get_modeldata
+from .utils import get_variable_type
+from .getters import get_modeldata
 from .plot_common import dt_on_condition, plot_common
 from .slopes import slopes
 

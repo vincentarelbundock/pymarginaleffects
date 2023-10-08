@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-from .utils import get_modeldata, get_variable_type
+from .utils import get_variable_type
+from .getters import get_modeldata
 from .datagrid import datagrid
 
 

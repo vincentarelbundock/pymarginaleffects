@@ -8,11 +8,11 @@ import re
 from .equivalence import get_equivalence
 from .estimands import estimands
 from .hypothesis import get_hypothesis
-from .predictions import get_predictions
 from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov, sanitize_by, sanitize_hypothesis_null
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, upcast, get_modeldata
+from .utils import get_pad, sort_columns, upcast
+from .getters import get_modeldata, get_predict, get_coef
 from .classes import MarginaleffectsDataFrame
 
 
@@ -189,13 +189,13 @@ def comparisons(
 
         # estimates
         tmp = [
-            get_predictions(model, model.params.to_numpy(), nd_X).rename(
+            get_predict(model, get_coef(model)(), nd_X).rename(
                 {"estimate": "predicted"}
             ),
-            get_predictions(model, coefs, lo_X)
+            get_predict(model, coefs, lo_X)
             .rename({"estimate": "predicted_lo"})
             .select("predicted_lo"),
-            get_predictions(model, coefs, hi_X)
+            get_predict(model, coefs, hi_X)
             .rename({"estimate": "predicted_hi"})
             .select("predicted_hi"),
         ]
@@ -263,10 +263,10 @@ def comparisons(
     def outer(x):
         return inner(x, by=by, hypothesis=hypothesis, wts=wts, nd=nd)
 
-    out = outer(model.params.to_numpy())
+    out = outer(get_coef(model)())
 
     if vcov is not None and vcov is not False:
-        J = get_jacobian(func=outer, coefs=model.params.to_numpy())
+        J = get_jacobian(func=outer, coefs=get_coef(model)())
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)

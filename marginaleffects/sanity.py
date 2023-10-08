@@ -8,7 +8,8 @@ import pandas as pd
 
 from .datagrid import datagrid
 from .estimands import estimands
-from .utils import get_modeldata, get_variable_type
+from .utils import get_variable_type
+from .getters import get_modeldata
 
 
 def sanitize_vcov(vcov, model):
@@ -300,27 +301,6 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
     ]
     return out
 
-
-def get_variables_names(variables, model, newdata):
-    if variables is None:
-        variables = model.model.exog_names
-        variables = [re.sub("\[.*\]", "", x) for x in variables]
-        variables = [x for x in variables if x in newdata.columns]
-        variables = pl.Series(variables).unique().to_list()
-    elif isinstance(variables, str):
-        variables = [variables]
-    else:
-        assert isinstance(
-            variables, dict
-        ), "`variables` must be None, a dict, string, or list of strings"
-    good = [x for x in variables if x in newdata.columns]
-    bad = [x for x in variables if x not in newdata.columns]
-    if len(bad) > 0:
-        bad = ", ".join(bad)
-        warn(f"Variable(s) not in newdata: {bad}")
-    if len(good) == 0:
-        raise ValueError("There is no valid column name in `variables`.")
-    return variables
 
 
 def get_categorical_combinations(

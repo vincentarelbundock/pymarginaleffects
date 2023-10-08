@@ -1,7 +1,7 @@
 import polars as pl
 import numpy as np
 
-from .utils import find_response
+from .getters import find_response
 from .plot_common import dt_on_condition, plot_common
 from .predictions import predictions
 

@@ -1,5 +1,5 @@
 from functools import reduce
-from .utils import get_modeldata
+from .getters import get_modeldata
 
 import polars as pl
 

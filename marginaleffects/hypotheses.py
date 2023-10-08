@@ -6,6 +6,7 @@ from .sanity import sanitize_vcov, sanitize_hypothesis_null
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .equivalence import get_equivalence
 from .utils import sort_columns
+from .getters import get_coef
 from .classes import MarginaleffectsDataFrame
 
 
@@ -80,9 +81,9 @@ def hypotheses(model, hypothesis=None, conf_level=0.95, vcov=True, equivalence=N
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
 
-    out = fun(np.array(model.params))
+    out = fun(get_coef(model))
     if vcov is not None:
-        J = get_jacobian(fun, model.params.to_numpy())
+        J = get_jacobian(fun, get_coef(model)())
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)

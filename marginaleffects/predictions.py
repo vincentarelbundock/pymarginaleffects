@@ -5,35 +5,14 @@ import polars as pl
 from .by import get_by
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
-from .sanity import sanitize_newdata, sanitize_vcov, get_variables_names, sanitize_by, sanitize_hypothesis_null
+from .sanity import sanitize_newdata, sanitize_vcov, sanitize_by, sanitize_hypothesis_null
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import sort_columns, get_modeldata, get_pad, upcast
+from .utils import sort_columns, get_pad, upcast
+from .getters import get_modeldata, get_variables_names, get_predict
 from .classes import MarginaleffectsDataFrame
 
 
-def get_predictions(model, params, newdata: pl.DataFrame):
-    if isinstance(newdata, np.ndarray):
-        exog = newdata
-    else:
-        y, exog = patsy.dmatrices(model.model.formula, newdata.to_pandas())
-    p = model.model.predict(params, exog)
-    if p.ndim == 1:
-        p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
-    elif p.ndim == 2:
-        colnames = {f"column_{i}": str(i) for i in range(p.shape[1])}
-        p = (
-            pl.DataFrame(p)
-            .rename(colnames)
-            .with_columns(pl.Series(range(p.shape[0]), dtype=pl.Int32).alias("rowid"))
-            .melt(id_vars="rowid", variable_name="group", value_name="estimate")
-        )
-    else:
-        raise ValueError(
-            "The `predict()` method must return an array with 1 or 2 dimensions."
-        )
-    p = p.with_columns(pl.col("rowid").cast(pl.Int32))
-    return p
 
 
 def predictions(
@@ -116,7 +95,7 @@ def predictions(
 
     # estimands
     def inner(x):
-        out = get_predictions(model, np.array(x), exog)
+        out = get_predict(model, np.array(x), exog)
 
         if out.shape[0] == newdata.shape[0]:
             cols = [x for x in newdata.columns if x not in out.columns]
@@ -136,10 +115,10 @@ def predictions(
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
 
-    out = inner(model.params)
+    out = inner(get_coef(model))
 
     if vcov is not None:
-        J = get_jacobian(inner, model.params)
+        J = get_jacobian(inner, get_coef(model))
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)
