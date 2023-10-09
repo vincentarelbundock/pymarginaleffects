@@ -3,7 +3,7 @@ import polars as pl
 from pytest import approx
 import polars as pl
 from marginaleffects import *
-# from .utilities import *
+from .utilities import *
 import statsmodels.formula.api as smf
 
 Guerry = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv", null_values = "NA").drop_nulls()

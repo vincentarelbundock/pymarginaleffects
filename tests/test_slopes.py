@@ -15,6 +15,8 @@ def test_comparison_derivatives():
         cmp_r = pl.read_csv(f"tests/r/test_slopes_01_{e}.csv")
         compare_r_to_py(cmp_r, cmp_py, msg = e, tolr = 1e-5, tola = 1e-5)
 
+test_comparison_derivatives()
+
 
 def test_slopes():
     est = ["dydx", "dydx", "dyex", "eydx", "eyex"]

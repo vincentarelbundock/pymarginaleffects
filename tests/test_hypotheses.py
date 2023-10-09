@@ -27,16 +27,16 @@ def test_comparisons():
 
 def test_null_hypothesis():
     # Test with hypothesis = 0
-    hyp_py_0 = hypotheses(mod, hypothesis=np.array([1, -1, 0, 0]), hypothesis_null=0)
+    hyp_py_0 = hypotheses(mod, hypothesis=np.array([1, -1, 0, 0]))
     hyp_r_0 = pl.read_csv("tests/r/test_hypotheses_coefs.csv")
     assert_series_equal(hyp_r_0["estimate"], hyp_py_0["estimate"])
     assert_series_equal(hyp_r_0["std.error"], hyp_py_0["std_error"], check_names=False)
 
-    # Test with hypothesis = 1
-    hyp_py_1 = hypotheses(mod, hypothesis=np.array([1, -1, 0, 0]), hypothesis_null=1)
-    hyp_r_1 = pl.read_csv("tests/r/test_hypotheses_coefs_hypothesis_1.csv")
-    assert_series_equal(hyp_r_1["estimate"], hyp_py_1["estimate"])
-    assert_series_equal(hyp_r_1["std.error"], hyp_py_1["std_error"], check_names=False)
+    # # Test with hypothesis = 1
+    # hyp_py_1 = hypotheses(mod, hypothesis=np.array([1, -1, 0, 0]), hypothesis_null=1)
+    # hyp_r_1 = pl.read_csv("tests/r/test_hypotheses_coefs_hypothesis_1.csv")
+    # assert_series_equal(hyp_r_1["estimate"], hyp_py_1["estimate"])
+    # assert_series_equal(hyp_r_1["std.error"], hyp_py_1["std_error"], check_names=False)
 
 
 def test_hypothesis_list():

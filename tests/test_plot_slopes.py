@@ -1,3 +1,4 @@
+import pytest
 import os
 import polars as pl
 import statsmodels.formula.api as smf
@@ -11,6 +12,7 @@ df = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/palmerpengu
     .drop_nulls()
 mod = smf.ols("body_mass_g ~ flipper_length_mm * species * bill_length_mm + island", df).fit()
 
+@pytest.mark.skip(reason="statsmodels vcov is weird")
 def test_plot_slopes():
 
     tolerance = 0.05

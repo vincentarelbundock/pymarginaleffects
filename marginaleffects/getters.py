@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import polars as pl
 
@@ -16,7 +17,7 @@ def find_response(model):
 
 
 def get_coef(model):
-    return get_coef(model)()
+    return np.array(model.params)
 
 
 def get_variables_names(variables, model, newdata):

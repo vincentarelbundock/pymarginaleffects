@@ -9,7 +9,7 @@ import pandas as pd
 from .datagrid import datagrid
 from .estimands import estimands
 from .utils import get_variable_type
-from .getters import get_modeldata
+from .getters import get_modeldata, get_variables_names
 
 
 def sanitize_vcov(vcov, model):

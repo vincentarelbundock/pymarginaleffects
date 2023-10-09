@@ -9,7 +9,7 @@ from .sanity import sanitize_newdata, sanitize_vcov, sanitize_by, sanitize_hypot
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns, get_pad, upcast
-from .getters import get_modeldata, get_variables_names, get_predict
+from .getters import get_modeldata, get_variables_names, get_predict, get_coef
 from .classes import MarginaleffectsDataFrame
 
 

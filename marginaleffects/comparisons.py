@@ -189,7 +189,7 @@ def comparisons(
 
         # estimates
         tmp = [
-            get_predict(model, get_coef(model)(), nd_X).rename(
+            get_predict(model, get_coef(model), nd_X).rename(
                 {"estimate": "predicted"}
             ),
             get_predict(model, coefs, lo_X)
@@ -263,10 +263,10 @@ def comparisons(
     def outer(x):
         return inner(x, by=by, hypothesis=hypothesis, wts=wts, nd=nd)
 
-    out = outer(get_coef(model)())
+    out = outer(get_coef(model))
 
     if vcov is not None and vcov is not False:
-        J = get_jacobian(func=outer, coefs=get_coef(model)())
+        J = get_jacobian(func=outer, coefs=get_coef(model))
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)

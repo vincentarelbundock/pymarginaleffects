@@ -83,7 +83,7 @@ def hypotheses(model, hypothesis=None, conf_level=0.95, vcov=True, equivalence=N
 
     out = fun(get_coef(model))
     if vcov is not None:
-        J = get_jacobian(fun, get_coef(model)())
+        J = get_jacobian(fun, get_coef(model))
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)
