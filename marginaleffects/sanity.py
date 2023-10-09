@@ -1,4 +1,3 @@
-import re
 from collections import namedtuple
 from warnings import warn
 
@@ -9,30 +8,13 @@ import pandas as pd
 from .datagrid import datagrid
 from .estimands import estimands
 from .utils import get_variable_type
-from .getters import get_modeldata, get_variables_names
+from .getters import get_modeldata, get_variables_names, get_vcov
 
 
 def sanitize_vcov(vcov, model):
-    if isinstance(vcov, bool):
-        if vcov is True:
-            V = model.cov_params()
-        else:
-            V = None
-    elif isinstance(vcov, str):
-        lab = f"cov_{vcov}"
-        if hasattr(model, lab):
-            V = getattr(model, lab)
-        else:
-            raise ValueError(f"The model object has no {lab} attribute.")
-    else:
-        raise ValueError(
-            '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".'
-        )
-    # mnlogit returns pandas
-    try:
-        V = V.to_numpy()
-    except:
-        pass
+    V = get_vcov(model, vcov)
+    if V is not None:
+        assert isinstance(V, np.ndarray), "get_vcov(model) must return None or a NumPy array"
     return V
 
 

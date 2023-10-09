@@ -20,6 +20,29 @@ def get_coef(model):
     return np.array(model.params)
 
 
+def get_vcov(model, vcov=True):
+
+    if isinstance(vcov, bool):
+        if vcov is True:
+            V = model.cov_params()
+        else:
+            V = None
+
+    elif isinstance(vcov, str):
+        lab = f"cov_{vcov}"
+        if hasattr(model, lab):
+            V = getattr(model, lab)
+        else:
+            raise ValueError(f"The model object has no {lab} attribute.")
+
+    else:
+        raise ValueError('`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".')
+    
+    V = np.array(V)
+
+    return V
+
+
 def get_variables_names(variables, model, newdata):
     if variables is None:
         variables = model.model.exog_names
