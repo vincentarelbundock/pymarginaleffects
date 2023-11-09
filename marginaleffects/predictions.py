@@ -17,6 +17,7 @@ from .classes import MarginaleffectsDataFrame
 
 def predictions(
     model,
+    variables=None,
     conf_level=0.95,
     vcov=True,
     by=False,
@@ -74,8 +75,42 @@ def predictions(
     newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
-    # pad
     modeldata = get_modeldata(model)
+
+    if variables:
+        if not isinstance(variables, dict):
+            raise TypeError("`variables` argument must be a dictionary")
+        for variable, value in variables.items():
+            if callable(value):
+                val = value()
+            elif value == "sd":
+                std = modeldata[variable].std()
+                mean = modeldata[variable].mean()
+                val = [mean - std / 2, mean + std / 2]
+            elif value == "2sd":
+                std = modeldata[variable].std()
+                mean = modeldata[variable].mean()
+                val = [mean - std, mean + std]
+            elif value == "iqr":
+                val = [np.percentile(newdata[variable], 75), np.percentile(newdata[variable], 25)]
+            elif value == "minmax":
+                val = [np.max(newdata[variable]), np.min(newdata[variable])]
+            elif value == "threenum":
+                std = modeldata[variable].std()
+                mean = modeldata[variable].mean()
+                val = [mean - std / 2, mean, mean + std / 2]
+            elif value == "fivenum":
+                val = np.percentile(modeldata[variable], [0, 25, 50, 75, 100], method="midpoint")
+            else:
+                val = value
+
+            newdata = newdata.drop(variable)
+            newdata = newdata.join(pl.DataFrame({variable:val}), how = "cross")
+            newdata = newdata.sort(variable)
+
+        newdata.datagrid_explicit = list(variables.keys())
+
+    # pad
     pad = []
     vs = get_variables_names(variables = None, model = model, newdata = modeldata)
     for v in vs:
