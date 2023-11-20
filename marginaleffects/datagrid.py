@@ -9,6 +9,7 @@ def datagrid(
     newdata=None,
     FUN_numeric=lambda x: x.mean(),
     FUN_other=lambda x: x.mode()[0],  # mode can return multiple values
+    grid_type = "typical",
     **kwargs
 ):
     """
@@ -25,6 +26,9 @@ def datagrid(
     - `newdata`: DataFrame (one and only one of the `model` and `newdata` arguments can be used.)
     - `FUN_numeric`: The function to be applied to numeric variables.
     - `FUN_other`: The function to be applied to other variable types.
+    - `grid_type`:
+        * "typical": variables whose values are not explicitly specified by the user in `...` are set to their mean or mode, or to the output of the functions supplied to `FUN_type` arguments.
+        * "counterfactual": the entire dataset is duplicated for each combination of the variable values specified in `...`. Variables not explicitly supplied to `datagrid()` are set to their observed values in the original dataset.
 
     Returns:
 
@@ -56,6 +60,9 @@ def datagrid(
 
     if model is None and newdata is None:
         raise ValueError("One of model or newdata must be specified")
+
+    if grid_type == "counterfactual":
+        return datagridcf(**kwargs, model=model, newdata=newdata)
 
     if newdata is None:
         newdata = get_modeldata(model)
