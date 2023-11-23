@@ -132,7 +132,8 @@ def datagridcf(model=None, newdata=None, **kwargs):
     result = newdata.join(df_cross, how = "cross")
 
     # Create rowid and rowidcf
-    result = result.with_columns(pl.Series(range(result.shape[0])).alias("rowidcf"))
+    rowidcf = [i for i in range(newdata.shape[0]) for _ in range(result.select(pl.count()).item() // newdata.select(pl.count()).item())]
+    result = result.with_columns(pl.Series(rowidcf).alias("rowidcf"))
 
     result.datagrid_explicit = list(kwargs.keys())
 
