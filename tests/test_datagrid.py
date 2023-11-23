@@ -19,4 +19,8 @@ def test_simple_grid():
 def test_cf():
     assert datagrid(newdata = mtcars, mpg = 32).shape[0] == 1
     assert datagridcf(newdata = mtcars, mpg = [30, 32]).shape[0] == 64
+    assert datagridcf(newdata = mtcars, mpg = 32, am = 0, hp = 100).shape[0] == 32
+    assert datagridcf(newdata = mtcars, am = [0, 1], hp = [100, 110, 120]).shape[0] == 192
     assert datagridcf(newdata = mtcars, mpg = [30, 32]).unique("rowidcf").shape[0] == 32
+    assert set(datagridcf(newdata = mtcars, mpg = [30, 32]).columns) \
+        == {'gear', 'qsec', 'mpg', 'cyl', 'am', 'wt', 'vs', 'drat', 'rowidcf', 'disp', 'rownames', 'hp', 'carb'}
