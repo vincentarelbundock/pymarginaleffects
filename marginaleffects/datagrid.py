@@ -122,6 +122,7 @@ def datagridcf(model=None, newdata=None, **kwargs):
 
     if "rowid" not in newdata.columns:
         newdata = newdata.with_columns(pl.Series(range(newdata.shape[0])).alias("rowid"))
+    newdata = newdata.rename({"rowid" : "rowidcf"})
 
     # Create dataframe from kwargs
     dfs = [pl.DataFrame({k: v}) for k, v in kwargs.items()]
@@ -129,11 +130,10 @@ def datagridcf(model=None, newdata=None, **kwargs):
     # Perform cross join
     df_cross = reduce(lambda df1, df2: df1.join(df2, how='cross'), dfs)
 
-    result = newdata.join(df_cross, how = "cross")
+    # Drop would-be duplicates
+    newdata = newdata.drop(df_cross.columns)
 
-    # Create rowid and rowidcf
-    rowidcf = [i for i in range(newdata.shape[0]) for _ in range(result.select(pl.count()).item() // newdata.select(pl.count()).item())]
-    result = result.with_columns(pl.Series(rowidcf).alias("rowidcf"))
+    result = newdata.join(df_cross, how = "cross")
 
     result.datagrid_explicit = list(kwargs.keys())
 
