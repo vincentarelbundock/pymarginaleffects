@@ -13,3 +13,7 @@ debug.R
 *.egg-info/
 /.venv/
 run.Rout
+
+trash.Rmd
+trash.py
+trash.R
