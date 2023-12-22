@@ -1,8 +1,9 @@
 import numpy as np
-import polars as pl
 import pandas as pd
-from marginaleffects import predictions
+import polars as pl
 import statsmodels.formula.api as smf
+
+from marginaleffects import predictions
 
 
 def test_issue_25():

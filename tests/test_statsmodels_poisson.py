@@ -1,7 +1,8 @@
 import polars as pl
 import statsmodels.formula.api as smf
-from marginaleffects import comparisons, predictions
 from polars.testing import assert_series_equal
+
+from marginaleffects import comparisons, predictions
 
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv") \
     .with_columns(pl.col("cyl").cast(pl.Utf8))

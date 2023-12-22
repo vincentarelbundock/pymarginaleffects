@@ -1,8 +1,9 @@
-import pytest
 import polars as pl
+import pytest
 import statsmodels.formula.api as smf
-from marginaleffects import *
 from polars.testing import assert_series_equal
+
+from marginaleffects import *
 
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv", null_values = "NA") \
     .drop_nulls(["species", "island", "bill_length_mm", "flipper_length_mm"]) \

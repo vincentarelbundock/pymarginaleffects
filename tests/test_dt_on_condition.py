@@ -1,9 +1,10 @@
 import polars as pl
 import statsmodels.formula.api as smf
+
 from marginaleffects import *
 from marginaleffects.plot_common import dt_on_condition
-from .utilities import *
 
+from .utilities import *
 
 df = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv", null_values = "NA") \
     .drop_nulls()

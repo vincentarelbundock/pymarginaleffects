@@ -2,13 +2,13 @@ from collections import namedtuple
 from warnings import warn
 
 import numpy as np
-import polars as pl
 import pandas as pd
+import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
-from .utils import get_variable_type
 from .getters import get_modeldata, get_variables_names, get_vcov
+from .utils import get_variable_type
 
 
 def sanitize_vcov(vcov, model):

@@ -1,9 +1,11 @@
-import statsmodels.formula.api as smf
-from marginaleffects import *
-from .utilities import *
-from marginaleffects.comparisons import estimands
-from polars.testing import assert_series_equal
 import polars as pl
+import statsmodels.formula.api as smf
+from polars.testing import assert_series_equal
+
+from marginaleffects import *
+from marginaleffects.comparisons import estimands
+
+from .utilities import *
 
 mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
 mod_py = smf.ols("mpg ~ wt * hp", mtcars).fit()

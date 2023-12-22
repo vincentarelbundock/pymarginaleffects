@@ -1,19 +1,20 @@
+import re
 from functools import reduce
 
 import numpy as np
 import patsy
 import polars as pl
-import re
 
+from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .estimands import estimands
+from .getters import get_coef, get_modeldata, get_predict
 from .hypothesis import get_hypothesis
-from .sanity import sanitize_newdata, sanitize_variables, sanitize_vcov, sanitize_by, sanitize_hypothesis_null
+from .sanity import (sanitize_by, sanitize_hypothesis_null, sanitize_newdata,
+                     sanitize_variables, sanitize_vcov)
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
-from .getters import get_modeldata, get_predict, get_coef
-from .classes import MarginaleffectsDataFrame
 
 
 def comparisons(

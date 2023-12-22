@@ -1,5 +1,6 @@
 import polars as pl
 
+
 class MarginaleffectsDataFrame(pl.DataFrame):
     def __init__(self, data=None, by=None, conf_level=0.95, newdata=None):
         if isinstance(data, pl.DataFrame):

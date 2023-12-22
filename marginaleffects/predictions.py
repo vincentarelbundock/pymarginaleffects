@@ -3,16 +3,15 @@ import patsy
 import polars as pl
 
 from .by import get_by
+from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
+from .getters import get_coef, get_modeldata, get_predict, get_variables_names
 from .hypothesis import get_hypothesis
-from .sanity import sanitize_newdata, sanitize_vcov, sanitize_by, sanitize_hypothesis_null
+from .sanity import (sanitize_by, sanitize_hypothesis_null, sanitize_newdata,
+                     sanitize_vcov)
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import sort_columns, get_pad, upcast
-from .getters import get_modeldata, get_variables_names, get_predict, get_coef
-from .classes import MarginaleffectsDataFrame
-
-
+from .utils import get_pad, sort_columns, upcast
 
 
 def predictions(

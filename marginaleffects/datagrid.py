@@ -1,7 +1,8 @@
 from functools import reduce
-from .getters import get_modeldata
 
 import polars as pl
+
+from .getters import get_modeldata
 
 
 def datagrid(

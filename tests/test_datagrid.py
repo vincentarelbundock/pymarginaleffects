@@ -1,6 +1,8 @@
-from marginaleffects import *
-import statsmodels.formula.api as smf
 import polars as pl
+import statsmodels.formula.api as smf
+
+from marginaleffects import *
+
 mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
 
 def test_FUN_numeric():

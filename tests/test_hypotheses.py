@@ -1,8 +1,9 @@
-import statsmodels.formula.api as smf
 import numpy as np
-from marginaleffects import *
 import polars as pl
+import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
+
+from marginaleffects import *
 
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv")
 

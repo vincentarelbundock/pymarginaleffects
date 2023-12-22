@@ -1,9 +1,10 @@
 import polars as pl
-import marginaleffects
 import statsmodels.formula.api as smf
-from marginaleffects import *
-from .utilities import *
 
+import marginaleffects
+from marginaleffects import *
+
+from .utilities import *
 
 df = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv", null_values = "NA").drop_nulls()
 df = df \

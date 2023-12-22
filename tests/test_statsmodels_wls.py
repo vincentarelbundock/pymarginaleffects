@@ -1,8 +1,9 @@
 import numpy as np
 import polars as pl
 import statsmodels.formula.api as smf
-from marginaleffects import *
 from polars.testing import assert_series_equal
+
+from marginaleffects import *
 
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/iris.csv")
 dat = dat.rename({"Sepal.Length": "Sepal_Length", "Sepal.Width": "Sepal_Width", "Petal.Length": "Petal_Length", "Petal.Width": "Petal_Width"})

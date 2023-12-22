@@ -1,12 +1,14 @@
 import os
-import pytest
+
 import polars as pl
+import pytest
 import statsmodels.formula.api as smf
 from matplotlib.testing.compare import compare_images
+
 from marginaleffects import *
 from marginaleffects.plot_predictions import *
-from .utilities import *
 
+from .utilities import *
 
 df = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv", null_values = "NA") \
     .drop_nulls()

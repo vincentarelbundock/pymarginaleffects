@@ -1,7 +1,8 @@
 import polars as pl
-from polars.testing import assert_series_equal
-from marginaleffects import *
 import statsmodels.formula.api as smf
+from polars.testing import assert_series_equal
+
+from marginaleffects import *
 
 Guerry = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv", null_values = "NA").drop_nulls()
 mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", Guerry.to_pandas()).fit()

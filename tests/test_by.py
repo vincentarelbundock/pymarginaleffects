@@ -1,10 +1,11 @@
+import polars as pl
 import pytest
-import polars as pl
-from pytest import approx
-import polars as pl
-from marginaleffects import *
-from .utilities import *
 import statsmodels.formula.api as smf
+from pytest import approx
+
+from marginaleffects import *
+
+from .utilities import *
 
 Guerry = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv", null_values = "NA").drop_nulls()
 mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", Guerry).fit()

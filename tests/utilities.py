@@ -1,7 +1,9 @@
 import re
+
 import numpy as np
-from marginaleffects import *
 import polars as pl
+
+from marginaleffects import *
 
 
 def compare_r_to_py(r_obj, py_obj, tolr = 1e-3, tola = 1e-3, msg = ""):

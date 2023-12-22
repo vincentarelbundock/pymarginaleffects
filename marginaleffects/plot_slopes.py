@@ -1,10 +1,10 @@
-import polars as pl
 import numpy as np
+import polars as pl
 
-from .utils import get_variable_type
 from .getters import get_modeldata
 from .plot_common import dt_on_condition, plot_common
 from .slopes import slopes
+from .utils import get_variable_type
 
 
 def plot_slopes(

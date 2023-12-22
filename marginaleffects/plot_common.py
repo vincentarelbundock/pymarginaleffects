@@ -1,11 +1,11 @@
-import polars as pl
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import polars as pl
 from matplotlib.lines import Line2D
 
-from .utils import get_variable_type
-from .getters import get_modeldata
 from .datagrid import datagrid
+from .getters import get_modeldata
+from .utils import get_variable_type
 
 
 def dt_on_condition(model, condition):

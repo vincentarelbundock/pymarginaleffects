@@ -1,24 +1,27 @@
 import re
+
+import numpy as np
+import polars as pl
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-import polars as pl
-import numpy as np
-from pytest import approx
-from marginaleffects import *
-import marginaleffects
-from marginaleffects.comparisons import estimands
 from polars.testing import assert_series_equal
+from pytest import approx
 
+import marginaleffects
+from marginaleffects import *
+from marginaleffects.comparisons import estimands
 
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv", null_values = "NA") \
     .drop_nulls() \
     .with_columns(
-        (pl.col("Area") > pl.col("Area").median()).alias("Bool"),
+        (pl.col("Area") > pl.col("Area").median()).alias("Boolea"),
         (pl.col("Distance") > pl.col("Distance").median()).alias("Bin")) 
 dat = dat \
     .with_columns(
-        pl.col("Bin").apply(lambda x: int(x), return_dtype=pl.Int32).alias('Bin'),
-        pl.Series(np.random.choice(["a", "b", "c"], dat.shape[0])).alias("Char"))
+        pl.col("Bin").cast(pl.Int32),
+        pl.Series(np.random.choice(["a", "b", "c"], dat.shape[0])).alias("Char")) \
+    .to_pandas()
+
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
 
 
@@ -70,7 +73,7 @@ def test_difference_wts():
 
 
 def test_bare_minimum():
-    fit = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", data = dat.to_pandas).fit()
+    fit = smf.ols("Literacy ~ Pop1831 * Desertion + Boolea + Bin + Char", data = dat).fit()
     assert type(comparisons(fit)) == marginaleffects.classes.MarginaleffectsDataFrame
     assert type(comparisons(fit, variables = "Pop1831", comparison = "differenceavg")) == marginaleffects.classes.MarginaleffectsDataFrame
     assert type(comparisons(fit, variables = "Pop1831", comparison = "difference").head()) == marginaleffects.classes.MarginaleffectsDataFrame

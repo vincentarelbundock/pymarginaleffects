@@ -1,13 +1,13 @@
 import numpy as np
 import polars as pl
 
-from .hypothesis import get_hypothesis
-from .sanity import sanitize_vcov, sanitize_hypothesis_null
-from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .equivalence import get_equivalence
-from .utils import sort_columns
-from .getters import get_coef
 from .classes import MarginaleffectsDataFrame
+from .equivalence import get_equivalence
+from .getters import get_coef
+from .hypothesis import get_hypothesis
+from .sanity import sanitize_hypothesis_null, sanitize_vcov
+from .uncertainty import get_jacobian, get_se, get_z_p_ci
+from .utils import sort_columns
 
 
 def hypotheses(model, hypothesis=None, conf_level=0.95, vcov=True, equivalence=None):
