@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import polars as pl
 from matplotlib.lines import Line2D
+from .datagrid import datagrid  # noqa
 
 from .getters import get_modeldata
 from .utils import get_variable_type
