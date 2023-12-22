@@ -11,8 +11,6 @@ dat = pl.read_csv(
 
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
 
-avg_predictions(mod, by="Region")
-
 
 def test_coefs():
     hyp_py = hypotheses(mod, hypothesis=np.array([1, -1, 0, 0]))
