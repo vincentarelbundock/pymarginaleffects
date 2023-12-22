@@ -26,14 +26,7 @@ jobs:
         run: |
           poetry install --with=dev
 
-      - name: Check isort formatting
+      - name: Check
         run: |
-          poetry run isort marginaleffects --check
-
-      - name: Check black formatting
-        run: | 
-          poetry run black marginaleffects --check
-
-      - name: Check flake8
-        run: | 
-          poetry run flake8 marginaleffects
+          poetry run ruff --check
+          poetry run ruff format --check
