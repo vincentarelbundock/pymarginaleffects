@@ -44,7 +44,7 @@ def get_equivalence(
         )
 
     x = x.with_columns(
-        pl.max(["p_value_nonsup", "p_value_noninf"]).alias("p_value_equiv")
+        pl.max_horizontal("p_value_nonsup", "p_value_noninf").alias("p_value_equiv")
     )
 
     return x
