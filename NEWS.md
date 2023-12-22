@@ -1,7 +1,11 @@
-# dev
+# 0.0.6
 
 * `hypothesis` accepts a float or integer to specify a different null hypothesis.
 * Better column order in printout when using `datagrid()` or `by`
+* Version bump for dependencies.
+* Equivalence test bug with duplicated column names.
+* Minor bugs in plot_*() with unknown consequences.
+* Linting.
 
 # 0.0.5
 
