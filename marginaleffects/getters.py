@@ -10,7 +10,7 @@ def get_modeldata(fit):
     df = fit.model.data.frame
     try:
         out = pl.from_pandas(df)
-    except ValueError:
+    except: # noqa: E722
         out = df
     return out
 
