@@ -96,7 +96,6 @@ def upcast(dfs: list) -> list:
     return tmp
 
 
-
 def get_variable_type(variable, newdata):
     inttypes = [pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64]
     if variable not in newdata.columns:
@@ -114,4 +113,3 @@ def get_variable_type(variable, newdata):
         return "numeric"
     else:
         raise ValueError(f"Unknown type for `{variable}`: {newdata[variable].dtype}")
-

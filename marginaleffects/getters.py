@@ -22,7 +22,6 @@ def get_coef(model):
 
 
 def get_vcov(model, vcov=True):
-
     if isinstance(vcov, bool):
         if vcov is True:
             V = model.cov_params()
@@ -37,8 +36,10 @@ def get_vcov(model, vcov=True):
             raise ValueError(f"The model object has no {lab} attribute.")
 
     else:
-        raise ValueError('`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".')
-    
+        raise ValueError(
+            '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".'
+        )
+
     V = np.array(V)
 
     return V

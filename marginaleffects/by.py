@@ -2,9 +2,13 @@ import polars as pl
 
 
 def get_by(model, estimand, newdata, by=None, wts=None):
-
     # for predictions
-    if isinstance(by, list) and len(by) == 1 and by[0] == "group" and "group" not in estimand.columns:
+    if (
+        isinstance(by, list)
+        and len(by) == 1
+        and by[0] == "group"
+        and "group" not in estimand.columns
+    ):
         by = True
 
     if by is True:
@@ -20,11 +24,9 @@ def get_by(model, estimand, newdata, by=None, wts=None):
     else:
         out = pl.DataFrame({"estimate": estimand["estimate"]})
 
-    
     by = [x for x in by if x in out.columns]
     if isinstance(by, list) and len(by) == 0:
         return out
-
 
     if wts is None:
         out = out.groupby(by, maintain_order=True).agg(pl.col("estimate").mean())

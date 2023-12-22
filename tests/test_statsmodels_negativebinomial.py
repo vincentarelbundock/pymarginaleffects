@@ -1,7 +1,6 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from pytest import approx
-from scipy.stats import pearsonr
 
 from marginaleffects import *
 

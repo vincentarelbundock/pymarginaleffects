@@ -14,7 +14,9 @@ from .utils import get_variable_type
 def sanitize_vcov(vcov, model):
     V = get_vcov(model, vcov)
     if V is not None:
-        assert isinstance(V, np.ndarray), "get_vcov(model) must return None or a NumPy array"
+        assert isinstance(
+            V, np.ndarray
+        ), "get_vcov(model) must return None or a NumPy array"
     return V
 
 
@@ -28,7 +30,9 @@ def sanitize_by(by):
     elif by is False:
         by = False
     else:
-        raise ValueError("The `by` argument must be True, False, a string, or a list of strings.")
+        raise ValueError(
+            "The `by` argument must be True, False, a string, or a list of strings."
+        )
     return by
 
 
@@ -59,9 +63,7 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         if len(by) > 0:
             out = out.sort(by)
 
-    out = out.with_columns(
-        pl.Series(range(out.height), dtype=pl.Int32).alias("rowid")
-    )
+    out = out.with_columns(pl.Series(range(out.height), dtype=pl.Int32).alias("rowid"))
 
     if wts is not None:
         if (isinstance(wts, str) is False) or (wts not in out.columns):
@@ -81,6 +83,7 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         out.datagrid_explicit = datagrid_explicit
 
     return out
+
 
 def sanitize_comparison(comparison, by, wts=None):
     out = comparison
@@ -128,7 +131,6 @@ def sanitize_comparison(comparison, by, wts=None):
 HiLo = namedtuple("HiLo", ["variable", "hi", "lo", "lab", "pad", "comparison"])
 
 
-
 def clean_global(k, n):
     if (
         not isinstance(k, list)
@@ -143,7 +145,9 @@ def clean_global(k, n):
     return out
 
 
-def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=None, modeldata=None):
+def get_one_variable_hi_lo(
+    variable, value, newdata, comparison, eps, by, wts=None, modeldata=None
+):
     msg = "`value` must be a numeric, a list of length two, or 'sd'"
     vartype = get_variable_type(variable, newdata)
 
@@ -284,7 +288,6 @@ def get_one_variable_hi_lo(variable, value, newdata, comparison, eps, by, wts=No
     return out
 
 
-
 def get_categorical_combinations(
     variable, uniqs, newdata, comparison, combo="reference"
 ):
@@ -388,7 +391,9 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
         vlist.sort()
         for v in vlist:
             out.append(
-                get_one_variable_hi_lo(v, None, newdata, comparison, eps, by, wts, modeldata=modeldata)
+                get_one_variable_hi_lo(
+                    v, None, newdata, comparison, eps, by, wts, modeldata=modeldata
+                )
             )
 
     elif isinstance(variables, dict):
@@ -399,7 +404,14 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
             else:
                 out.append(
                     get_one_variable_hi_lo(
-                        v, variables[v], newdata, comparison, eps, by, wts, modeldata=modeldata
+                        v,
+                        variables[v],
+                        newdata,
+                        comparison,
+                        eps,
+                        by,
+                        wts,
+                        modeldata=modeldata,
                     )
                 )
 
@@ -407,7 +419,9 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
         if variables not in newdata.columns:
             raise ValueError(f"Variable {variables} is not in newdata.")
         out.append(
-            get_one_variable_hi_lo(variables, None, newdata, comparison, eps, by, wts, modeldata=modeldata)
+            get_one_variable_hi_lo(
+                variables, None, newdata, comparison, eps, by, wts, modeldata=modeldata
+            )
         )
 
     elif isinstance(variables, list):
@@ -416,14 +430,15 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
                 warn(f"Variable {v} is not in newdata.")
             else:
                 out.append(
-                    get_one_variable_hi_lo(v, None, newdata, comparison, eps, by, wts, modeldata=modeldata)
+                    get_one_variable_hi_lo(
+                        v, None, newdata, comparison, eps, by, wts, modeldata=modeldata
+                    )
                 )
 
     # unnest list of list of HiLo
     out = [item for sublist in out for item in sublist]
 
     return out
-
 
 
 def sanitize_hypothesis_null(hypothesis):

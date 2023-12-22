@@ -41,7 +41,9 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
     if "std_error" not in df.columns:
         return df
     df = df.with_columns(
-        ((pl.col("estimate") - float(hypothesis_null)) / pl.col("std_error")).alias("statistic")
+        ((pl.col("estimate") - float(hypothesis_null)) / pl.col("std_error")).alias(
+            "statistic"
+        )
     )
     if hasattr(model, "df_resid") and isinstance(model.df_resid, float):
         dof = model.df_resid

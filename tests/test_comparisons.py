@@ -2,10 +2,8 @@ import re
 
 import numpy as np
 import polars as pl
-import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-from pytest import approx
 
 import marginaleffects
 from marginaleffects import *

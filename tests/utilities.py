@@ -1,7 +1,5 @@
 import re
 
-import numpy as np
-import polars as pl
 
 from marginaleffects import *
 

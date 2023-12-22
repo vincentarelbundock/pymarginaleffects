@@ -7,8 +7,12 @@ from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .getters import get_coef, get_modeldata, get_predict, get_variables_names
 from .hypothesis import get_hypothesis
-from .sanity import (sanitize_by, sanitize_hypothesis_null, sanitize_newdata,
-                     sanitize_vcov)
+from .sanity import (
+    sanitize_by,
+    sanitize_hypothesis_null,
+    sanitize_newdata,
+    sanitize_vcov,
+)
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
@@ -91,7 +95,10 @@ def predictions(
                 mean = modeldata[variable].mean()
                 val = [mean - std, mean + std]
             elif value == "iqr":
-                val = [np.percentile(newdata[variable], 75), np.percentile(newdata[variable], 25)]
+                val = [
+                    np.percentile(newdata[variable], 75),
+                    np.percentile(newdata[variable], 25),
+                ]
             elif value == "minmax":
                 val = [np.max(newdata[variable]), np.min(newdata[variable])]
             elif value == "threenum":
@@ -99,19 +106,21 @@ def predictions(
                 mean = modeldata[variable].mean()
                 val = [mean - std / 2, mean, mean + std / 2]
             elif value == "fivenum":
-                val = np.percentile(modeldata[variable], [0, 25, 50, 75, 100], method="midpoint")
+                val = np.percentile(
+                    modeldata[variable], [0, 25, 50, 75, 100], method="midpoint"
+                )
             else:
                 val = value
 
             newdata = newdata.drop(variable)
-            newdata = newdata.join(pl.DataFrame({variable:val}), how = "cross")
+            newdata = newdata.join(pl.DataFrame({variable: val}), how="cross")
             newdata = newdata.sort(variable)
 
         newdata.datagrid_explicit = list(variables.keys())
 
     # pad
     pad = []
-    vs = get_variables_names(variables = None, model = model, newdata = modeldata)
+    vs = get_variables_names(variables=None, model=model, newdata=modeldata)
     for v in vs:
         if not newdata[v].is_numeric():
             uniqs = modeldata[v].unique()
@@ -120,7 +129,7 @@ def predictions(
     if len(pad) > 0:
         pad = pl.concat(pad)
         tmp = upcast([newdata, pad])
-        newdata = pl.concat(tmp, how = "diagonal")
+        newdata = pl.concat(tmp, how="diagonal")
     else:
         pad = pl.DataFrame()
 
@@ -155,14 +164,16 @@ def predictions(
         J = get_jacobian(inner, get_coef(model))
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
-        out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)
+        out = get_z_p_ci(
+            out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
+        )
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by, newdata=newdata)
 
     # unpad
     if "rowid" in out.columns and pad.shape[0] > 0:
-        out = out[:-pad.shape[0]:]
+        out = out[: -pad.shape[0] :]
 
     out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level, newdata=newdata)
     return out

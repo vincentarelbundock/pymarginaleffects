@@ -71,7 +71,6 @@ def get_hypothesis(x, hypothesis):
         elif hypothesis == "revpairwise":
             hypmat = lincom_revpairwise(x)
         else:
-            
             raise ValueError(msg)
         out = lincom_multiply(x, hypmat.to_numpy())
         out = out.with_columns(pl.Series(hypothesis.columns).alias("term"))

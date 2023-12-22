@@ -26,7 +26,7 @@ estimands = {
     "dydxavg": lambda hi, lo, eps, x, y, w: prep(((hi - lo) / eps).mean()),
     "eyexavg": lambda hi, lo, eps, x, y, w: prep(((hi - lo) / eps * (x / y)).mean()),
     "eydxavg": lambda hi, lo, eps, x, y, w: prep((((hi - lo) / eps) / y).mean()),
-    "dyexavg": lambda hi, lo, eps, x, y, w: prep(((((hi - lo) / eps) * x)).mean()),
+    "dyexavg": lambda hi, lo, eps, x, y, w: prep((((hi - lo) / eps) * x).mean()),
     "dydxavgwts": lambda hi, lo, eps, x, y, w: prep(
         (((hi - lo) / eps) * w).sum() / w.sum()
     ),

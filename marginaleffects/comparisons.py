@@ -10,8 +10,13 @@ from .equivalence import get_equivalence
 from .estimands import estimands
 from .getters import get_coef, get_modeldata, get_predict
 from .hypothesis import get_hypothesis
-from .sanity import (sanitize_by, sanitize_hypothesis_null, sanitize_newdata,
-                     sanitize_variables, sanitize_vcov)
+from .sanity import (
+    sanitize_by,
+    sanitize_hypothesis_null,
+    sanitize_newdata,
+    sanitize_variables,
+    sanitize_vcov,
+)
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
@@ -190,9 +195,7 @@ def comparisons(
 
         # estimates
         tmp = [
-            get_predict(model, get_coef(model), nd_X).rename(
-                {"estimate": "predicted"}
-            ),
+            get_predict(model, get_coef(model), nd_X).rename({"estimate": "predicted"}),
             get_predict(model, coefs, lo_X)
             .rename({"estimate": "predicted_lo"})
             .select("predicted_lo"),
@@ -270,7 +273,9 @@ def comparisons(
         J = get_jacobian(func=outer, coefs=get_coef(model))
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
-        out = get_z_p_ci(out, model, conf_level=conf_level, hypothesis_null=hypothesis_null)
+        out = get_z_p_ci(
+            out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
+        )
 
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)

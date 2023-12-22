@@ -1,10 +1,5 @@
-import numpy as np
-import polars as pl
-
 from .comparisons import comparisons
-from .getters import get_modeldata
 from .plot_common import dt_on_condition, plot_common
-from .utils import get_variable_type
 
 
 def plot_comparisons(
@@ -64,7 +59,7 @@ def plot_comparisons(
         Aggregate unit-level estimates (aka, marginalize, average over).
 
     newdata : dataframe
-        When newdata is NULL, the grid is determined by the condition argument. When newdata is not NULL, the argument behaves in the same way as in the predictions() function. 
+        When newdata is NULL, the grid is determined by the condition argument. When newdata is not NULL, the argument behaves in the same way as in the predictions() function.
 
     wts: Column name of weights to use for marginalization. Must be a column in `newdata`
 
@@ -75,39 +70,48 @@ def plot_comparisons(
     draw : True returns a matplotlib plot. False returns a dataframe of the underlying data.
     """
 
-    assert not (not by and newdata is not None), "The `newdata` argument requires a `by` argument."
+    assert not (
+        not by and newdata is not None
+    ), "The `newdata` argument requires a `by` argument."
 
-    assert (condition is None and by) or (condition is not None and not by), "One of the `condition` and `by` arguments must be supplied, but not both."
+    assert (condition is None and by) or (
+        condition is not None and not by
+    ), "One of the `condition` and `by` arguments must be supplied, but not both."
 
-    assert not (wts is not None and not by), "The `wts` argument requires a `by` argument."
+    assert not (
+        wts is not None and not by
+    ), "The `wts` argument requires a `by` argument."
 
     if by:
-
         if newdata is not None:
-            dt = comparisons(model,
-                    variables=variables,
-                    newdata=newdata,
-                    comparison=comparison,
-                    vcov=vcov,
-                    conf_level=conf_level,
-                    by=by,
-                    wts=wts,
-                    hypothesis=hypothesis,
-                    equivalence=equivalence,
-                    transform=transform,
-                    eps=eps)
+            dt = comparisons(
+                model,
+                variables=variables,
+                newdata=newdata,
+                comparison=comparison,
+                vcov=vcov,
+                conf_level=conf_level,
+                by=by,
+                wts=wts,
+                hypothesis=hypothesis,
+                equivalence=equivalence,
+                transform=transform,
+                eps=eps,
+            )
         else:
-            dt = comparisons(model,
-                    variables=variables,
-                    comparison=comparison,
-                    vcov=vcov,
-                    conf_level=conf_level,
-                    by=by,
-                    wts=wts,
-                    hypothesis=hypothesis,
-                    equivalence=equivalence,
-                    transform=transform,
-                    eps=eps)
+            dt = comparisons(
+                model,
+                variables=variables,
+                comparison=comparison,
+                vcov=vcov,
+                conf_level=conf_level,
+                by=by,
+                wts=wts,
+                hypothesis=hypothesis,
+                equivalence=equivalence,
+                transform=transform,
+                eps=eps,
+            )
 
         var_list = [by] if isinstance(by, str) else by
 
@@ -119,18 +123,20 @@ def plot_comparisons(
             var_list = condition
         elif isinstance(condition, dict):
             var_list = list(condition.keys())
-        dt = comparisons(model,
-                variables=variables,
-                newdata=dt_condition,
-                comparison=comparison,
-                vcov=vcov,
-                conf_level=conf_level,
-                by=var_list,
-                wts=wts,
-                hypothesis=hypothesis,
-                equivalence=equivalence,
-                transform=transform,
-                eps=eps)
+        dt = comparisons(
+            model,
+            variables=variables,
+            newdata=dt_condition,
+            comparison=comparison,
+            vcov=vcov,
+            conf_level=conf_level,
+            by=var_list,
+            wts=wts,
+            hypothesis=hypothesis,
+            equivalence=equivalence,
+            transform=transform,
+            eps=eps,
+        )
 
     dt = dt.drop_nulls(var_list[0])
     dt = dt.sort(var_list[0])

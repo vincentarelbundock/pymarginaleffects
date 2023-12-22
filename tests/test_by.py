@@ -1,7 +1,5 @@
 import polars as pl
-import pytest
 import statsmodels.formula.api as smf
-from pytest import approx
 
 from marginaleffects import *
 

@@ -1,6 +1,3 @@
-import numpy as np
-import polars as pl
-
 from .getters import find_response
 from .plot_common import dt_on_condition, plot_common
 from .predictions import predictions
@@ -15,7 +12,7 @@ def plot_predictions(
     conf_level=0.95,
     transform=None,
     draw=True,
-    wts=None
+    wts=None,
 ):
     """
     Plot predictions on the y-axis against values of one or more predictors (x-axis, colors, and facets).
@@ -54,7 +51,7 @@ def plot_predictions(
         Names of the categorical predictors to marginalize across.
 
     newdata : dataframe
-        When newdata is NULL, the grid is determined by the condition argument. When newdata is not NULL, the argument behaves in the same way as in the predictions() function. 
+        When newdata is NULL, the grid is determined by the condition argument. When newdata is not NULL, the argument behaves in the same way as in the predictions() function.
 
     wts: Column name of weights to use for marginalization. Must be a column in `newdata`
 
@@ -64,30 +61,39 @@ def plot_predictions(
 
     draw : True returns a matplotlib plot. False returns a dataframe of the underlying data.
     """
-    
-    assert not (not by and newdata is not None), "The `newdata` argument requires a `by` argument."
 
-    assert (condition is None and by) or (condition is not None and not by), "One of the `condition` and `by` arguments must be supplied, but not both."
+    assert not (
+        not by and newdata is not None
+    ), "The `newdata` argument requires a `by` argument."
 
-    assert not (wts is not None and not by), "The `wts` argument requires a `by` argument."
+    assert (condition is None and by) or (
+        condition is not None and not by
+    ), "One of the `condition` and `by` arguments must be supplied, but not both."
+
+    assert not (
+        wts is not None and not by
+    ), "The `wts` argument requires a `by` argument."
 
     if by:
-
         if newdata is not None:
-            dt = predictions(model,
-                    by=by,
-                    newdata=newdata,
-                    conf_level=conf_level,
-                    vcov=vcov,
-                    transform=transform,
-                    wts=wts)
+            dt = predictions(
+                model,
+                by=by,
+                newdata=newdata,
+                conf_level=conf_level,
+                vcov=vcov,
+                transform=transform,
+                wts=wts,
+            )
         else:
-            dt = predictions(model,
-                    by=by,
-                    conf_level=conf_level,
-                    vcov=vcov,
-                    transform=transform,
-                    wts=wts)
+            dt = predictions(
+                model,
+                by=by,
+                conf_level=conf_level,
+                vcov=vcov,
+                transform=transform,
+                wts=wts,
+            )
 
         var_list = [by] if isinstance(by, str) else by
 
@@ -99,16 +105,18 @@ def plot_predictions(
             var_list = condition
         elif isinstance(condition, dict):
             var_list = list(condition.keys())
-        dt = predictions(model,
-                by=var_list,
-                newdata=dt_condition,
-                conf_level=conf_level,
-                vcov=vcov,
-                transform=transform)
+        dt = predictions(
+            model,
+            by=var_list,
+            newdata=dt_condition,
+            conf_level=conf_level,
+            vcov=vcov,
+            transform=transform,
+        )
 
     dt = dt.drop_nulls(var_list[0])
     dt = dt.sort(var_list[0])
-    
+
     if not draw:
         return dt
 
