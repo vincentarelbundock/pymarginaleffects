@@ -2,13 +2,15 @@ import re
 
 import numpy as np
 import polars as pl
+import warnings
+import patsy
 
 
 def get_modeldata(fit):
     df = fit.model.data.frame
     try:
         out = pl.from_pandas(df)
-    except:
+    except ValueError:
         out = df
     return out
 
@@ -61,7 +63,7 @@ def get_variables_names(variables, model, newdata):
     bad = [x for x in variables if x not in newdata.columns]
     if len(bad) > 0:
         bad = ", ".join(bad)
-        warn(f"Variable(s) not in newdata: {bad}")
+        warnings.warn(f"Variable(s) not in newdata: {bad}")
     if len(good) == 0:
         raise ValueError("There is no valid column name in `variables`.")
     return variables

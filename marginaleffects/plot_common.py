@@ -59,7 +59,7 @@ def dt_on_condition(model, condition):
             to_datagrid[key] = modeldata[key].unique().to_list()
             assert (
                 len(to_datagrid[key]) <= 10
-            ), f"Character type variables of more than 10 unique values are not supported. {ele} variable has {len(to_datagrid[ele])} unique values."
+            ), f"Character type variables of more than 10 unique values are not supported. {key} variable has {len(to_datagrid[key])} unique values."
 
     dt_code = "datagrid(newdata=modeldata"
     for key, value in to_datagrid.items():
@@ -70,9 +70,10 @@ def dt_on_condition(model, condition):
             dt_code += str(value)
     dt_code += ")"
 
+    # TODO: this is weird. I'd prefer someting more standard than evaluating text
     exec("global dt; dt = " + dt_code)
 
-    return dt
+    return dt # noqa: F821
 
 
 def plotter(dt, x_name, x_type, fig=None, axe=None, label=None, color=None):

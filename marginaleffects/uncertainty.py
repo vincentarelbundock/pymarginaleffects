@@ -69,6 +69,6 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
             df = df.with_columns(
                 pl.col("p_value").apply(lambda x: -np.log2(x)).alias("s_value")
             )
-        except:
-            pass
+        except Exception as e:
+            print(f"An exception occurred: {e}")
     return df
