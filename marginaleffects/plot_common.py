@@ -73,7 +73,7 @@ def dt_on_condition(model, condition):
     # TODO: this is weird. I'd prefer someting more standard than evaluating text
     exec("global dt; dt = " + dt_code)
 
-    return dt # noqa: F821
+    return dt  # noqa: F821
 
 
 def plotter(dt, x_name, x_type, fig=None, axe=None, label=None, color=None):
