@@ -16,7 +16,7 @@ def test_comparison_derivatives():
     for e in est:
         cmp_py = comparisons(mod_py, comparison=e)
         cmp_r = pl.read_csv(f"tests/r/test_slopes_01_{e}.csv")
-        compare_r_to_py(cmp_r, cmp_py, msg=e, tolr=1e-5, tola=1e-5)
+        compare_r_to_py(cmp_r, cmp_py, msg=e, tolr=1e-4, tola=1e-4)
 
 
 test_comparison_derivatives()

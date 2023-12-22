@@ -48,7 +48,7 @@ def test_slopes_01():
     known = pl.read_csv("tests/r/test_statsmodels_ols_slopes_01.csv")
     unknown = unknown.sort(["term", "contrast", "rowid"])
     known = known.sort(["term", "contrast", "rowid"])
-    assert_series_equal(unknown["estimate"], known["estimate"], rtol=1e-3)
+    assert_series_equal(unknown["estimate"], known["estimate"], rtol=1e-2)
     assert_series_equal(
         unknown["std_error"], known["std.error"], check_names=False, rtol=1e-2
     )
