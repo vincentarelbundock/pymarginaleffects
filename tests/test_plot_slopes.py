@@ -10,7 +10,7 @@ from .utilities import *
 
 df = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv", null_values = "NA") \
     .drop_nulls()
-mod = smf.ols("body_mass_g ~ flipper_length_mm * species * bill_length_mm + island", df).fit()
+mod = smf.ols("body_mass_g ~ flipper_length_mm * species * bill_length_mm + island", df.to_pandas()).fit()
 
 @pytest.mark.skip(reason="statsmodels vcov is weird")
 def test_plot_slopes():

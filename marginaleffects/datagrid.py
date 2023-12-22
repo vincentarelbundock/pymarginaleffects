@@ -81,7 +81,7 @@ def datagrid(
         # not specified manually
         if col not in out.keys():
             # numeric
-            if newdata[col].dtype() in numtypes:
+            if newdata[col].dtype in numtypes:
                 out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
             # other
             else:

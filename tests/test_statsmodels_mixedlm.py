@@ -7,7 +7,7 @@ from polars.testing import assert_series_equal
 
 
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/geepack/dietox.csv")
-mod = smf.mixedlm(formula = "Weight ~ Time * Litter", data = dat, groups=dat["Pig"]).fit()
+mod = smf.mixedlm(formula = "Weight ~ Time * Litter", data = dat.to_pandas(), groups=dat["Pig"]).fit()
 
 
 def test_predictions_01():

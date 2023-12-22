@@ -4,7 +4,7 @@ from marginaleffects import *
 import statsmodels.formula.api as smf
 
 Guerry = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv", null_values = "NA").drop_nulls()
-mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", Guerry).fit()
+mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", Guerry.to_pandas()).fit()
 
 def test_simple_equivalence():
     cmp_py = comparisons(mod_py, comparison = "differenceavg", equivalence = [-.1, .1]).sort("term")

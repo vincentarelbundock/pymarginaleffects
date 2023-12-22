@@ -6,7 +6,7 @@ from marginaleffects import *
 
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
 dat = dat.with_columns(pl.col("cyl").cast(pl.Utf8))
-mod = smf.ols("mpg ~ qsec * wt + cyl", data = dat).fit()
+mod = smf.ols("mpg ~ qsec * wt + cyl", data = dat.to_pandas()).fit()
 
 
 def test_predictions_01():

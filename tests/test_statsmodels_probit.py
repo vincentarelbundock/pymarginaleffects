@@ -6,7 +6,7 @@ from polars.testing import assert_series_equal
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/iris.csv")
 dat = dat.rename({"Sepal.Length": "Sepal_Length", "Sepal.Width": "Sepal_Width", "Petal.Length": "Petal_Length", "Petal.Width": "Petal_Width"})
 dat = dat.with_columns((pl.col("Sepal_Width") < pl.col("Sepal_Width").median()).cast(pl.Int16).alias("bin"))
-mod = smf.probit("bin ~ Petal_Length * Petal_Width", data = dat).fit()
+mod = smf.probit("bin ~ Petal_Length * Petal_Width", data = dat.to_pandas()).fit()
 
 
 def test_predictions_01():

@@ -7,7 +7,7 @@ from polars.testing import assert_series_equal
 dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/iris.csv")
 dat = dat.rename({"Sepal.Length": "Sepal_Length", "Sepal.Width": "Sepal_Width", "Petal.Length": "Petal_Length", "Petal.Width": "Petal_Width"})
 dat = dat.drop_nulls("Species")
-mod = smf.quantreg("Sepal_Length ~ Sepal_Width * Petal_Length + Species", data = dat).fit(.25)
+mod = smf.quantreg("Sepal_Length ~ Sepal_Width * Petal_Length + Species", data = dat.to_pandas()).fit(.25)
 
 
 def test_predictions_01():

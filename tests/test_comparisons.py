@@ -70,7 +70,7 @@ def test_difference_wts():
 
 
 def test_bare_minimum():
-    fit = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", dat).fit()
+    fit = smf.ols("Literacy ~ Pop1831 * Desertion + Bool + Bin + Char", data = dat.to_pandas).fit()
     assert type(comparisons(fit)) == marginaleffects.classes.MarginaleffectsDataFrame
     assert type(comparisons(fit, variables = "Pop1831", comparison = "differenceavg")) == marginaleffects.classes.MarginaleffectsDataFrame
     assert type(comparisons(fit, variables = "Pop1831", comparison = "difference").head()) == marginaleffects.classes.MarginaleffectsDataFrame
