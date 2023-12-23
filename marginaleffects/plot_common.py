@@ -3,11 +3,15 @@ import numpy as np
 import polars as pl
 from matplotlib.lines import Line2D
 from .datagrid import datagrid  # noqa
+from .sanitize_model import sanitize_model
 
 from .utils import get_variable_type
 
 
 def dt_on_condition(model, condition):
+
+    model = sanitize_model(model)
+
     modeldata = model.modeldata
 
     if isinstance(condition, str):
