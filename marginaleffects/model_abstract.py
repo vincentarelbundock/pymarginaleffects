@@ -44,9 +44,9 @@ class ModelAbstract(ABC):
 
     def get_vcov(self, vcov=True):
         vcov = self.get_vcov_raw(vcov)
-        if not isinstance(vcov, np.ndarray):
+        if not isinstance(vcov, np.ndarray) and vcov is not None:
             raise ValueError("vcov must be a numpy array")
-        if vcov.shape != (len(self.coef), len(self.coef)):
+        if vcov is not None and vcov.shape != (len(self.coef), len(self.coef)):
             raise ValueError(
                 "vcov must be a square numpy array with dimensions equal to the length of self.coef"
             )
@@ -102,7 +102,8 @@ class ModelStatsmodels(ModelAbstract):
             raise ValueError(
                 '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".'
             )
-        V = np.array(V)
+        if V is not None:
+            V = np.array(V)
         return V
 
     def get_variables_names(self, variables, newdata):
