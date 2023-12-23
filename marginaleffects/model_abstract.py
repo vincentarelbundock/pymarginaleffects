@@ -39,18 +39,8 @@ class ModelAbstract(ABC):
         self.formula = formula
 
     @abstractmethod
-    def get_vcov_raw(self):
+    def get_vcov(self):
         pass
-
-    def get_vcov(self, vcov=True):
-        vcov = self.get_vcov_raw(vcov)
-        if not isinstance(vcov, np.ndarray) and vcov is not None:
-            raise ValueError("vcov must be a numpy array")
-        if vcov is not None and vcov.shape != (len(self.coef), len(self.coef)):
-            raise ValueError(
-                "vcov must be a square numpy array with dimensions equal to the length of self.coef"
-            )
-        return vcov
 
     @abstractmethod
     def get_modeldata(self):
@@ -86,7 +76,7 @@ class ModelStatsmodels(ModelAbstract):
     def get_response_name(self):
         return self.model.model.endog_names
 
-    def get_vcov_raw(self, vcov=True):
+    def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
             if vcov is True:
                 V = self.model.cov_params()
@@ -102,8 +92,14 @@ class ModelStatsmodels(ModelAbstract):
             raise ValueError(
                 '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".'
             )
+
         if V is not None:
             V = np.array(V)
+            if V.shape != (len(self.coef), len(self.coef)):
+                raise ValueError(
+                    "vcov must be a square numpy array with dimensions equal to the length of self.coef"
+                )
+
         return V
 
     def get_variables_names(self, variables, newdata):
