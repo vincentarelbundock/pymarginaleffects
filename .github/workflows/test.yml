@@ -24,16 +24,13 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 1.5.1
-          virtualenvs-create: false
+      - name: Install the latest version of rye
+        uses: eifinger/setup-rye@v1
 
       - name: Install dependencies
         run: |
-          poetry install --with=dev
+          rye sync
 
       - name: Run pytest
         run: |
-          pytest
+          rye run pytest
