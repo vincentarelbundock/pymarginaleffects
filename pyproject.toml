@@ -30,7 +30,6 @@ dev-dependencies = [
     "pytest>=7.4.3",
     "pytest-xdist>=3.5.0",
     "ruff>=0.1.9",
-    "statsmodels>=0.14.1",
 ]
 
 [tool.hatch.metadata]
@@ -38,3 +37,9 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pymarginaleffects"]
+
+[tool.ruff]
+ignore-init-module-imports = true
+
+[tool.ruff.extend-per-file-ignores]
+"__init__.py" = ["F401"]
