@@ -138,7 +138,7 @@ def predictions(
         pad = pl.DataFrame()
 
     # predictors
-    y, exog = patsy.dmatrices(model.model.formula, newdata.to_pandas())
+    y, exog = patsy.dmatrices(model.formula, newdata.to_pandas())
 
     # estimands
     def inner(x):

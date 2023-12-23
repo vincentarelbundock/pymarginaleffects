@@ -13,6 +13,7 @@ class ModelAbstract(ABC):
         self.validate_coef()
         self.validate_modeldata()
         self.validate_response_name()
+        self.validate_formula()
 
     def validate_coef(self):
         coef = self.get_coef()
@@ -32,12 +33,18 @@ class ModelAbstract(ABC):
             raise ValueError("response_name must be a string")
         self.response_name = response_name
 
+    def validate_formula(self):
+        formula = self.get_formula()
+        if not isinstance(formula, str):
+            raise ValueError("formula must be a string")
+        self.formula = formula
+
     @abstractmethod
     def get_vcov_raw(self):
         pass
 
-    def get_vcov(self):
-        vcov = self.get_vcov_raw()
+    def get_vcov(self, vcov=True):
+        vcov = self.get_vcov_raw(vcov)
         if not isinstance(vcov, np.ndarray):
             raise ValueError("vcov must be a numpy array")
         if vcov.shape != (len(self.coef), len(self.coef)):
@@ -58,6 +65,10 @@ class ModelAbstract(ABC):
 
     @abstractmethod
     def get_predict(self):
+        pass
+
+    @abstractmethod
+    def get_formula(self):
         pass
 
 class ModelStatsmodels(ModelAbstract):
@@ -135,3 +146,6 @@ class ModelStatsmodels(ModelAbstract):
             )
         p = p.with_columns(pl.col("rowid").cast(pl.Int32))
         return p
+
+    def get_formula(self):
+        return self.model.model.formula

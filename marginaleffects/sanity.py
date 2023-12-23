@@ -12,7 +12,7 @@ from .utils import get_variable_type
 
 
 def sanitize_vcov(vcov, model):
-    V = get_vcov(model, vcov)
+    V = model.get_vcov(vcov)
     if V is not None:
         assert isinstance(
             V, np.ndarray
@@ -37,7 +37,7 @@ def sanitize_by(by):
 
 
 def sanitize_newdata(model, newdata, wts, by=[]):
-    modeldata = get_modeldata(model)
+    modeldata = model.modeldata
 
     if newdata is None:
         out = modeldata
@@ -69,8 +69,8 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         if (isinstance(wts, str) is False) or (wts not in out.columns):
             raise ValueError(f"`newdata` does not have a column named '{wts}'.")
 
-    xnames = get_variables_names(variables=None, model=model, newdata=out)
-    ynames = model.model.data.ynames
+    xnames = model.get_variables_names(variables=None, newdata=out)
+    ynames = model.response_name
     if isinstance(ynames, str):
         ynames = [ynames]
     cols = [x for x in xnames + ynames if x in out.columns]
