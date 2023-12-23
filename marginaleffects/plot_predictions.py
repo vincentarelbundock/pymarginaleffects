@@ -1,6 +1,7 @@
 from .getters import find_response
 from .plot_common import dt_on_condition, plot_common
 from .predictions import predictions
+from .sanity import sanitize_model
 
 
 def plot_predictions(
@@ -62,6 +63,8 @@ def plot_predictions(
     draw : True returns a matplotlib plot. False returns a dataframe of the underlying data.
     """
 
+    model = sanitize_model(model)
+
     assert not (
         not by and newdata is not None
     ), "The `newdata` argument requires a `by` argument."
@@ -120,4 +123,4 @@ def plot_predictions(
     if not draw:
         return dt
 
-    return plot_common(dt, find_response(model), var_list)
+    return plot_common(dt, model.response_name, var_list)

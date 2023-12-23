@@ -1,5 +1,6 @@
 from .plot_common import dt_on_condition, plot_common
 from .slopes import slopes
+from .sanity import sanitize_model
 
 
 def plot_slopes(
@@ -61,6 +62,8 @@ def plot_slopes(
 
     draw : True returns a matplotlib plot. False returns a dataframe of the underlying data.
     """
+
+    model = sanitize_model(model)
 
     assert not (
         not by and newdata is not None

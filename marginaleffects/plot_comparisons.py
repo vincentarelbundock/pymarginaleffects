@@ -1,5 +1,6 @@
 from .comparisons import comparisons
 from .plot_common import dt_on_condition, plot_common
+from .sanity import sanitize_model
 
 
 def plot_comparisons(
@@ -69,6 +70,8 @@ def plot_comparisons(
 
     draw : True returns a matplotlib plot. False returns a dataframe of the underlying data.
     """
+
+    model = sanitize_model(model)
 
     assert not (
         not by and newdata is not None
