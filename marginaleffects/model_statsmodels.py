@@ -74,7 +74,7 @@ class ModelStatsmodels(ModelAbstract):
         if isinstance(newdata, np.ndarray):
             exog = newdata
         else:
-            y, exog = patsy.dmatrices(self.model.model.formula, newdata.to_pandas())
+            y, exog = patsy.dmatrices(self.formula, newdata.to_pandas())
         p = self.model.model.predict(params, exog)
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})

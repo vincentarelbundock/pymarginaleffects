@@ -16,6 +16,8 @@ from .sanity import (
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
+from .model_pyfixest import ModelPyfixest
+from .model_statsmodels import ModelStatsmodels
 
 
 def predictions(
@@ -135,7 +137,13 @@ def predictions(
         pad = pl.DataFrame()
 
     # predictors
-    y, exog = patsy.dmatrices(model.formula, newdata.to_pandas())
+    # we want this to be a model matrix to avoid converting data frames to
+    # matrices many times, which would be computationally wasteful. But in the
+    # case of PyFixest, the predict method only accepts a data frame.
+    if isinstance(model, ModelPyfixest):
+        exog = newdata.to_pandas()
+    else:
+        y, exog = patsy.dmatrices(model.formula, newdata.to_pandas())
 
     # estimands
     def inner(x):
