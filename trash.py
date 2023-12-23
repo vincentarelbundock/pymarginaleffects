@@ -12,7 +12,11 @@ m = smf.logit(
   data = dat.to_pandas()
 ).fit()
 
-from marginaleffects.model_abstract import *
+# from marginaleffects.model_abstract import *
+
+from marginaleffects import *
 k = ModelStatsmodels(m)
+
+predictions(m)
 
 k.modeldata

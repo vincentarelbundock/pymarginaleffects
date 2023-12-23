@@ -5,8 +5,8 @@ import polars as pl
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
-from .getters import get_coef, get_modeldata, get_predict, get_variables_names
 from .hypothesis import get_hypothesis
+from .model_abstract import ModelAbstract, ModelStatsmodels
 from .sanity import (
     sanitize_by,
     sanitize_hypothesis_null,
@@ -72,13 +72,17 @@ def predictions(
         - conf_high: upper bound of the confidence interval (or equal-tailed interval for Bayesian models)
     """
 
+    # TODO: other than statsmodels
+    if not isinstance(model, ModelAbstract):
+        model = ModelStatsmodels(model)
+
     # sanity checks
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
-    modeldata = get_modeldata(model)
+    modeldata = model.get_modeldata()
 
     if variables:
         if not isinstance(variables, dict):
@@ -120,7 +124,7 @@ def predictions(
 
     # pad
     pad = []
-    vs = get_variables_names(variables=None, model=model, newdata=modeldata)
+    vs = model.get_variables_names(variables=None, newdata=modeldata)
     for v in vs:
         if not newdata[v].is_numeric():
             uniqs = modeldata[v].unique()
@@ -138,7 +142,7 @@ def predictions(
 
     # estimands
     def inner(x):
-        out = get_predict(model, np.array(x), exog)
+        out = model.get_predict(np.array(x), exog)
 
         if out.shape[0] == newdata.shape[0]:
             cols = [x for x in newdata.columns if x not in out.columns]
@@ -158,10 +162,10 @@ def predictions(
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
 
-    out = inner(get_coef(model))
+    out = inner(model.get_coef())
 
     if vcov is not None:
-        J = get_jacobian(inner, get_coef(model))
+        J = get_jacobian(inner, model.get_coef())
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(
