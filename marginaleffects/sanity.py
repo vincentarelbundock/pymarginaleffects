@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
-from .model_abstract import ModelAbstract, ModelStatsmodels
 from .datagrid import datagrid
 from .estimands import estimands
 from .utils import get_variable_type

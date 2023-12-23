@@ -9,7 +9,6 @@ from .utils import get_variable_type
 
 
 def dt_on_condition(model, condition):
-
     model = sanitize_model(model)
 
     modeldata = model.modeldata
