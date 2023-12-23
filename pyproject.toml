@@ -17,9 +17,6 @@ dependencies = [
 readme = "README.md"
 requires-python = ">= 3.9"
 
-[project.scripts]
-hello = "pymarginaleffects:hello"
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -30,6 +27,8 @@ dev-dependencies = [
     "pytest>=7.4.3",
     "pytest-xdist>=3.5.0",
     "ruff>=0.1.9",
+    "pyfixest>=0.11.1",
+    "statsmodels>=0.14.1",
 ]
 
 [tool.hatch.metadata]
