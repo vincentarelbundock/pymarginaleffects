@@ -9,10 +9,10 @@ from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .estimands import estimands
 from .hypothesis import get_hypothesis
+from .sanitize_model import sanitize_model
 from .sanity import (
     sanitize_by,
     sanitize_hypothesis_null,
-    sanitize_model,
     sanitize_newdata,
     sanitize_variables,
     sanitize_vcov,

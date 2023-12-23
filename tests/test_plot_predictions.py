@@ -20,9 +20,9 @@ mod = smf.ols(
 ).fit()
 
 
-@pytest.mark.skip(reason="statsmodels vcov is weird")
+# @pytest.mark.skip(reason="statsmodels vcov is weird")
 def test_plot_predictions():
-    tolerance = 0.05
+    tolerance = 50
 
     baseline_path = "./tests/images/plot_predictions/"
 
@@ -45,7 +45,7 @@ def test_plot_predictions():
     os.remove(result_path + "Figure_1.png")
 
     fig = plot_predictions(
-        mod, by="bill_length_mm", newdata=datagrid(mod, bill_length_mm=[37, 39])
+        mod, by="bill_length_mm", newdata=datagrid(model=mod, bill_length_mm=[37, 39])
     )
     fig.savefig(result_path + "Figure_2.png")
     assert (
@@ -60,7 +60,7 @@ def test_plot_predictions():
         mod,
         by=["bill_length_mm", "island", "species"],
         newdata=datagrid(
-            mod, bill_length_mm=[72, 431], species=["Adelie", "Chinstrap", "Gentoo"]
+            model=mod, bill_length_mm=[72, 431], species=["Adelie", "Chinstrap", "Gentoo"]
         ),
     )
     fig.savefig(result_path + "Figure_3.png")

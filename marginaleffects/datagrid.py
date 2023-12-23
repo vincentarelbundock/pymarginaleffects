@@ -2,7 +2,7 @@ from functools import reduce
 
 import polars as pl
 
-from .getters import get_modeldata
+from .sanitize_model import sanitize_model
 
 
 def datagrid(
@@ -57,9 +57,11 @@ def datagrid(
 
     if model is None and newdata is None:
         raise ValueError("One of model or newdata must be specified")
+    else:
+        model = sanitize_model(model)
 
     if newdata is None:
-        newdata = get_modeldata(model)
+        newdata = model.modeldata
 
     out = {}
     for key, value in kwargs.items():
@@ -117,8 +119,10 @@ def datagridcf(model=None, newdata=None, **kwargs):
     if model is None and newdata is None:
         raise ValueError("One of model or newdata must be specified")
 
+    model = sanitize_model(model)
+
     if newdata is None:
-        newdata = get_modeldata(model)
+        newdata = model.modeldata
 
     if "rowid" not in newdata.columns:
         newdata = newdata.with_columns(

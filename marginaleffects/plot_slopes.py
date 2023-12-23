@@ -1,6 +1,6 @@
 from .plot_common import dt_on_condition, plot_common
 from .slopes import slopes
-from .sanity import sanitize_model
+from .sanitize_model import sanitize_model
 
 
 def plot_slopes(

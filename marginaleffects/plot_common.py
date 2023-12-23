@@ -4,12 +4,11 @@ import polars as pl
 from matplotlib.lines import Line2D
 from .datagrid import datagrid  # noqa
 
-from .getters import get_modeldata
 from .utils import get_variable_type
 
 
 def dt_on_condition(model, condition):
-    modeldata = get_modeldata(model)
+    modeldata = model.modeldata
 
     if isinstance(condition, str):
         condition = [condition]

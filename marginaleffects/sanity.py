@@ -11,13 +11,6 @@ from .estimands import estimands
 from .utils import get_variable_type
 
 
-def sanitize_model(model):
-    # TODO: other than statsmodels
-    if not isinstance(model, ModelAbstract):
-        model = ModelStatsmodels(model)
-    return model
-
-
 def sanitize_vcov(vcov, model):
     V = model.get_vcov(vcov)
     if V is not None:

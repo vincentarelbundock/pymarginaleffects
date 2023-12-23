@@ -6,12 +6,12 @@ from .by import get_by
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
+from .sanitize_model import sanitize_model
 from .sanity import (
     sanitize_by,
     sanitize_hypothesis_null,
     sanitize_newdata,
     sanitize_vcov,
-    sanitize_model,
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci

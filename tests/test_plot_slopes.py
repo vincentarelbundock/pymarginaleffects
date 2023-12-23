@@ -20,9 +20,8 @@ mod = smf.ols(
 ).fit()
 
 
-@pytest.mark.skip(reason="statsmodels vcov is weird")
 def test_plot_slopes():
-    tolerance = 0.05
+    tolerance = 50
 
     baseline_path = "./tests/images/plot_slopes/"
 

@@ -1,7 +1,6 @@
-from .getters import find_response
 from .plot_common import dt_on_condition, plot_common
 from .predictions import predictions
-from .sanity import sanitize_model
+from .sanitize_model import sanitize_model
 
 
 def plot_predictions(

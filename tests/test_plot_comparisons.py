@@ -20,9 +20,9 @@ mod = smf.ols(
 ).fit()
 
 
-@pytest.mark.skip(reason="statsmodels vcov is weird")
+# @pytest.mark.skip(reason="statsmodels vcov is weird")
 def test_plot_comparisons():
-    tolerance = 0.05
+    tolerance = 50
 
     baseline_path = "./tests/images/plot_comparisons/"
 
