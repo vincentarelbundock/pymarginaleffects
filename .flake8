@@ -1,4 +1,0 @@
-[flake8]
-ignore = E501, E722, W503, E203
-exclude = ".git, __pycache__, .github"
-per-file-ignores = __init__.py:F401, sanity.py:W605
