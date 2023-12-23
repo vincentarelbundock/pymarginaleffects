@@ -5,9 +5,9 @@ import warnings
 from .model_abstract import ModelAbstract
 
 
-class ModelStatsmodels(ModelAbstract):
+class ModelPyfixest(ModelAbstract):
     def get_coef(self):
-        return np.array(self.model.params)
+        return np.array(self.model._beta_hat)
 
     def get_modeldata(self):
         df = self.model._data
@@ -17,7 +17,6 @@ class ModelStatsmodels(ModelAbstract):
 
     def get_response_name(self):
         return self.model._fml.split("~")[0]  # the response variable
-        return self.model.model.endog_names
 
     def get_vcov(self, vcov=True):
         V = None
@@ -27,11 +26,11 @@ class ModelStatsmodels(ModelAbstract):
         return V
 
     def get_formula(self):
-        return self.model.model.formula
+        return self.model._fml
 
     def get_variables_names(self, variables, newdata):
         if variables is None:
-            variables = self.model.model.exog_names
+            variables = self.model._coefnames 
             variables = [re.sub("\[.*\]", "", x) for x in variables]
             variables = [x for x in variables if x in newdata.columns]
             variables = pl.Series(variables).unique().to_list()
@@ -55,9 +54,20 @@ class ModelStatsmodels(ModelAbstract):
         return variables
 
     def get_predict(self, params, newdata: pl.DataFrame):
-        p = self.model.predict(
+        # override the coefficients inside the model object to make different
+        # predictions
+        m = self.model
+        m._beta_hat = params
+
+        # pyfixest does not support polars
+        try:
+            newdata = newdata.to_pandas()
+        except: #  noqa
+            pass
+
+        p = m.predict(
             newdata=newdata
-        )  # prediction with newdata, works with and without fixed effects
+        )
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
         elif p.ndim == 2:

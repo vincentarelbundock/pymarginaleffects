@@ -1,5 +1,5 @@
-from .model_abstract import ModelAbstract, ModelStatsmodels
-
+from .model_abstract import ModelAbstract
+from .model_pyfixest import ModelPyfixest
 
 def sanitize_model(model):
     if model is None:
@@ -13,6 +13,12 @@ def sanitize_model(model):
 
         if isinstance(model, smw.ResultsWrapper):
             return ModelStatsmodels(model)
+    except ImportError:
+        pass
+
+    try:
+        import pyfixest
+        return ModelPyfixest(model)
     except ImportError:
         pass
 

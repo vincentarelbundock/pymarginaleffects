@@ -29,6 +29,7 @@ dev-dependencies = [
     "ruff>=0.1.9",
     "pyfixest>=0.11.1",
     "statsmodels>=0.14.1",
+    "ipykernel>=6.27.1",
 ]
 
 [tool.hatch.metadata]
