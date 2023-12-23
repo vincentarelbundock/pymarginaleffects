@@ -201,13 +201,12 @@ def comparisons(
 
         # estimates
         tmp = [
-            model.get_predict(params=coefs, newdata=nd_X)
-            .rename({"estimate": "predicted"}),
-
+            model.get_predict(params=coefs, newdata=nd_X).rename(
+                {"estimate": "predicted"}
+            ),
             model.get_predict(params=coefs, newdata=lo_X)
             .rename({"estimate": "predicted_lo"})
             .select("predicted_lo"),
-
             model.get_predict(params=coefs, newdata=hi_X)
             .rename({"estimate": "predicted_hi"})
             .select("predicted_hi"),

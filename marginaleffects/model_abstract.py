@@ -1,11 +1,11 @@
 import polars as pl
-import statsmodels.formula.api as smf
 import re
 import numpy as np
 import polars as pl
 import warnings
 import patsy
 from abc import ABC, abstractmethod
+
 
 class ModelAbstract(ABC):
     def __init__(self, model):
@@ -48,9 +48,11 @@ class ModelAbstract(ABC):
         if not isinstance(vcov, np.ndarray):
             raise ValueError("vcov must be a numpy array")
         if vcov.shape != (len(self.coef), len(self.coef)):
-            raise ValueError("vcov must be a square numpy array with dimensions equal to the length of self.coef")
+            raise ValueError(
+                "vcov must be a square numpy array with dimensions equal to the length of self.coef"
+            )
         return vcov
-    
+
     @abstractmethod
     def get_modeldata(self):
         pass
@@ -70,6 +72,7 @@ class ModelAbstract(ABC):
     @abstractmethod
     def get_formula(self):
         pass
+
 
 class ModelStatsmodels(ModelAbstract):
     def get_coef(self):
@@ -111,10 +114,14 @@ class ModelStatsmodels(ModelAbstract):
             variables = pl.Series(variables).unique().to_list()
         if isinstance(variables, (str, dict)):
             variables = [variables] if isinstance(variables, str) else variables
-        elif isinstance(variables, list) and all(isinstance(var, str) for var in variables):
+        elif isinstance(variables, list) and all(
+            isinstance(var, str) for var in variables
+        ):
             pass
         else:
-            raise ValueError("`variables` must be None, a dict, string, or list of strings")
+            raise ValueError(
+                "`variables` must be None, a dict, string, or list of strings"
+            )
         good = [x for x in variables if x in newdata.columns]
         bad = [x for x in variables if x not in newdata.columns]
         if len(bad) > 0:
@@ -137,7 +144,9 @@ class ModelStatsmodels(ModelAbstract):
             p = (
                 pl.DataFrame(p)
                 .rename(colnames)
-                .with_columns(pl.Series(range(p.shape[0]), dtype=pl.Int32).alias("rowid"))
+                .with_columns(
+                    pl.Series(range(p.shape[0]), dtype=pl.Int32).alias("rowid")
+                )
                 .melt(id_vars="rowid", variable_name="group", value_name="estimate")
             )
         else:

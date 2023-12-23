@@ -7,7 +7,6 @@ import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
-from .getters import get_modeldata, get_variables_names, get_vcov
 from .utils import get_variable_type
 
 
