@@ -1,4 +1,3 @@
-import polars as pl
 import re
 import numpy as np
 import polars as pl

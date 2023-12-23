@@ -6,7 +6,6 @@ from .by import get_by
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
-from .model_abstract import ModelAbstract, ModelStatsmodels
 from .sanity import (
     sanitize_by,
     sanitize_hypothesis_null,

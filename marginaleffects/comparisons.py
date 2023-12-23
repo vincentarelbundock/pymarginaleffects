@@ -7,7 +7,6 @@ import polars as pl
 
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
-from .model_abstract import ModelAbstract, ModelStatsmodels
 from .estimands import estimands
 from .hypothesis import get_hypothesis
 from .sanity import (
@@ -104,7 +103,6 @@ def comparisons(
 
     The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
     """
-
 
     model = sanitize_model(model)
     by = sanitize_by(by)
