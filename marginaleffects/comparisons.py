@@ -13,6 +13,7 @@ from .hypothesis import get_hypothesis
 from .sanity import (
     sanitize_by,
     sanitize_hypothesis_null,
+    sanitize_model,
     sanitize_newdata,
     sanitize_variables,
     sanitize_vcov,
@@ -104,10 +105,8 @@ def comparisons(
     The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
     """
 
-    # TODO: other than statsmodels
-    if not isinstance(model, ModelAbstract):
-        model = ModelStatsmodels(model)
 
+    model = sanitize_model(model)
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)

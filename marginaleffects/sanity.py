@@ -5,9 +5,17 @@ import numpy as np
 import pandas as pd
 import polars as pl
 
+from .model_abstract import ModelAbstract, ModelStatsmodels
 from .datagrid import datagrid
 from .estimands import estimands
 from .utils import get_variable_type
+
+
+def sanitize_model(model):
+    # TODO: other than statsmodels
+    if not isinstance(model, ModelAbstract):
+        model = ModelStatsmodels(model)
+    return model
 
 
 def sanitize_vcov(vcov, model):
@@ -15,7 +23,7 @@ def sanitize_vcov(vcov, model):
     if V is not None:
         assert isinstance(
             V, np.ndarray
-        ), "get_vcov(model) must return None or a NumPy array"
+        ), "vcov must be True or a square NumPy array"
     return V
 
 

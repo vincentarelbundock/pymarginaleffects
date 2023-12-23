@@ -12,6 +12,7 @@ from .sanity import (
     sanitize_hypothesis_null,
     sanitize_newdata,
     sanitize_vcov,
+    sanitize_model,
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
@@ -72,11 +73,8 @@ def predictions(
         - conf_high: upper bound of the confidence interval (or equal-tailed interval for Bayesian models)
     """
 
-    # TODO: other than statsmodels
-    if not isinstance(model, ModelAbstract):
-        model = ModelStatsmodels(model)
-
     # sanity checks
+    model = sanitize_model(model)
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
