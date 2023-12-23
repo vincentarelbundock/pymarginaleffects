@@ -1,5 +1,7 @@
 from .model_abstract import ModelAbstract
 from .model_pyfixest import ModelPyfixest
+from .model_statsmodels import ModelStatsmodels
+
 
 def sanitize_model(model):
     if model is None:
@@ -17,7 +19,8 @@ def sanitize_model(model):
         pass
 
     try:
-        import pyfixest
+        import pyfixest  #  noqa
+
         return ModelPyfixest(model)
     except ImportError:
         pass

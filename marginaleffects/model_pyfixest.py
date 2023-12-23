@@ -30,7 +30,7 @@ class ModelPyfixest(ModelAbstract):
 
     def get_variables_names(self, variables, newdata):
         if variables is None:
-            variables = self.model._coefnames 
+            variables = self.model._coefnames
             variables = [re.sub("\[.*\]", "", x) for x in variables]
             variables = [x for x in variables if x in newdata.columns]
             variables = pl.Series(variables).unique().to_list()
@@ -62,12 +62,10 @@ class ModelPyfixest(ModelAbstract):
         # pyfixest does not support polars
         try:
             newdata = newdata.to_pandas()
-        except: #  noqa
+        except:  #  noqa
             pass
 
-        p = m.predict(
-            newdata=newdata
-        )
+        p = m.predict(newdata=newdata)
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
         elif p.ndim == 2:
