@@ -384,10 +384,10 @@ def get_categorical_combinations(
 def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None):
     out = []
 
-    modeldata = get_modeldata(model)
+    modeldata = model.modeldata
 
     if variables is None:
-        vlist = get_variables_names(variables, model, newdata)
+        vlist = model.get_variables_names(variables, newdata)
         vlist.sort()
         for v in vlist:
             out.append(

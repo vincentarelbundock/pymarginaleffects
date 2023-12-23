@@ -7,8 +7,8 @@ import polars as pl
 
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
+from .model_abstract import ModelAbstract, ModelStatsmodels
 from .estimands import estimands
-from .getters import get_coef, get_modeldata, get_predict
 from .hypothesis import get_hypothesis
 from .sanity import (
     sanitize_by,
@@ -103,10 +103,15 @@ def comparisons(
 
     The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
     """
+
+    # TODO: other than statsmodels
+    if not isinstance(model, ModelAbstract):
+        model = ModelStatsmodels(model)
+
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)
-    modeldata = get_modeldata(model)
+    modeldata = model.modeldata
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     # after sanitize_newdata()
@@ -151,7 +156,8 @@ def comparisons(
         )
 
     # we must pad with *all* variables in the model, not just the ones in the `variables` argument
-    vars = [re.sub("\[.*", "", x) for x in model.model.exog_names]
+    vars = model.get_variables_names(variables=None, newdata=modeldata)
+    vars = [re.sub("\[.*", "", x) for x in vars]
     vars = list(set(vars))
     for v in vars:
         if v in modeldata.columns:
@@ -176,9 +182,9 @@ def comparisons(
         lo = pl.concat(upcast([pad, lo]), how="diagonal")
 
     # model matrices
-    y, hi_X = patsy.dmatrices(model.model.formula, hi.to_pandas())
-    y, lo_X = patsy.dmatrices(model.model.formula, lo.to_pandas())
-    y, nd_X = patsy.dmatrices(model.model.formula, nd.to_pandas())
+    y, hi_X = patsy.dmatrices(model.formula, hi.to_pandas())
+    y, lo_X = patsy.dmatrices(model.formula, lo.to_pandas())
+    y, nd_X = patsy.dmatrices(model.formula, nd.to_pandas())
 
     # unpad
     if pad.shape[0] > 0:
@@ -195,11 +201,14 @@ def comparisons(
 
         # estimates
         tmp = [
-            get_predict(model, get_coef(model), nd_X).rename({"estimate": "predicted"}),
-            get_predict(model, coefs, lo_X)
+            model.get_predict(params=coefs, newdata=nd_X)
+            .rename({"estimate": "predicted"}),
+
+            model.get_predict(params=coefs, newdata=lo_X)
             .rename({"estimate": "predicted_lo"})
             .select("predicted_lo"),
-            get_predict(model, coefs, hi_X)
+
+            model.get_predict(params=coefs, newdata=hi_X)
             .rename({"estimate": "predicted_hi"})
             .select("predicted_hi"),
         ]
@@ -267,10 +276,10 @@ def comparisons(
     def outer(x):
         return inner(x, by=by, hypothesis=hypothesis, wts=wts, nd=nd)
 
-    out = outer(get_coef(model))
+    out = outer(model.coef)
 
     if vcov is not None and vcov is not False:
-        J = get_jacobian(func=outer, coefs=get_coef(model))
+        J = get_jacobian(func=outer, coefs=model.coef)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(
