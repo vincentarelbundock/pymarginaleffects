@@ -6,9 +6,36 @@ authors = ["Vincent Arel-Bundock <vincent.arel-bundock@umontreal.ca>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.9"
+pandas = "^2.0.2"
+numpy = "^1.25.0"
+patsy = ">0.5.0"
+polars = ">0.18.3"
+pyarrow = "^14.0.1"
+scipy = "^1.10.0"
+matplotlib = "^3.7.2"
+pyfixest = ">= 0.11.1"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+jupyter = "^1.0.0"
+matplotlib = "^3.7.1"
+typing-extensions = "^4.7.0"
+pytest-xdist = "^3.3.1"
+ruff = ">0.0.283"
+statsmodels = ">0.14.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.ruff]
+ignore-init-module-imports = true
+
+[tool.ruff.extend-per-file-ignores]
+"__init__.py" = ["F401"]

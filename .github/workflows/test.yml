@@ -24,13 +24,13 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install the latest version of rye
-        uses: eifinger/setup-rye@v1
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
 
       - name: Install dependencies
         run: |
-          rye sync
+          poetry install
 
       - name: Run pytest
         run: |
-          rye run pytest
+          poetry run pytest
