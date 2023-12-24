@@ -1,46 +1,14 @@
-[project]
+[tool.poetry]
 name = "marginaleffects"
 version = "0.0.7"
-description = "Compute and plot predictions, slopes, marginal means, and comparisons (contrasts, risk ratios, odds, etc.) for many classes of statistical models in Python. Conduct linear and non-linear hypothesis tests, or equivalence tests. Calculate uncertainty estimates using the delta method."
-authors = [
-    { name = "Vincent Arel-Bundock", email = "vincent.arel-bundock@umontreal.ca" }
-]
-dependencies = [
-    "pandas>=2.0.3",
-    "numpy>=1.24.4",
-    "patsy>=0.5.4",
-    "polars>=0.20.2",
-    "pyarrow>=14.0.2",
-    "scipy>=1.10.1",
-    "matplotlib>=3.7.4",
-]
+description = ""
+authors = ["Vincent Arel-Bundock <vincent.arel-bundock@umontreal.ca>"]
 readme = "README.md"
-requires-python = ">= 3.9"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.rye]
-managed = true
-dev-dependencies = [
-    "pytest>=7.4.3",
-    "pytest-xdist>=3.5.0",
-    "ruff>=0.1.9",
-    "pyfixest>=0.11.1",
-    "statsmodels>=0.14.1",
-    "ipykernel>=6.27.1",
-    "jupyter>=1.0.0",
-]
-
-[tool.hatch.metadata]
-allow-direct-references = true
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/pymarginaleffects"]
-
-[tool.ruff]
-ignore-init-module-imports = true
-
-[tool.ruff.extend-per-file-ignores]
-"__init__.py" = ["F401"]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
