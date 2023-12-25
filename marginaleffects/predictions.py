@@ -161,7 +161,7 @@ def predictions(
 
     out = inner(model.get_coef())
 
-    if vcov is not None:
+    if V is not None:
         J = get_jacobian(inner, model.get_coef())
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))

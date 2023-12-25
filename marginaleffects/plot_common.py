@@ -58,7 +58,7 @@ def dt_on_condition(model, condition):
                     modeldata[key], [0, 25, 50, 75, 100], method="midpoint"
                 ).tolist()
 
-        elif variable_type == "boolean" or variable_type == "character":
+        elif variable_type in ["boolean", "character", "binary"]:
             to_datagrid[key] = modeldata[key].unique().to_list()
             assert (
                 len(to_datagrid[key]) <= 10
@@ -99,7 +99,7 @@ def plotter(dt, x_name, x_type, fig=None, axe=None, label=None, color=None):
             plot_obj.fill_between(x, y_low, y_high, color=color, alpha=0.2)
             plot_obj.plot(x, y, color=color, label=label)
 
-    elif x_type == "character" or x_type == "boolean":
+    elif x_type in ["character", "binary", "boolean"]:
         y_low = np.absolute(y - y_low)
         y_high = np.absolute(y_high - y)
         if color is None:
