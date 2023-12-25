@@ -10,6 +10,28 @@ from marginaleffects.plot_comparisons import *
 
 from .utilities import *
 
+
+def assert_image(fig, label, file, tolerance=5):
+    known_path = f"./tests/images/{file}/"
+    unknown_path = f"./tests/images/.tmp_{file}/"
+    if os.path.isdir(unknown_path):
+        for root, dirs, files in os.walk(unknown_path):
+            for fname in files:
+                os.remove(os.path.join(root, fname))
+        os.rmdir(unknown_path)
+    os.mkdir(unknown_path)
+    unknown = f"{unknown_path}{label}.png"
+    known = f"{known_path}{label}.png"
+    if not os.path.exists(known):
+        fig.savefig(known)
+        raise FileExistsError(f"File {known} does not exist. Creating it now.")
+    fig.savefig(unknown)
+    out = compare_images(known, unknown, tol=tolerance)
+    compare_images(known, unknown, tol=tolerance)
+    os.remove(unknown)
+    return out
+
+
 df = pl.read_csv(
     "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
     null_values="NA",
@@ -20,89 +42,29 @@ mod = smf.ols(
 ).fit()
 
 
-# @pytest.mark.skip(reason="statsmodels vcov is weird")
 def test_plot_comparisons():
-    tolerance = 50
-
-    baseline_path = "./tests/images/plot_comparisons/"
-
-    result_path = "./tests/images/.tmp_plot_comparisons/"
-    if os.path.isdir(result_path):
-        for root, dirs, files in os.walk(result_path):
-            for fname in files:
-                os.remove(os.path.join(root, fname))
-        os.rmdir(result_path)
-    os.mkdir(result_path)
-
     fig = plot_comparisons(mod, variables="species", by="island")
-    fig.savefig(result_path + "Figure_1.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_1.png", result_path + "Figure_1.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_1.png")
+    assert assert_image(fig, "Figure_1", "plot_comparisons") is None
 
     fig = plot_comparisons(
         mod,
         variables="bill_length_mm",
-        newdata=datagrid(mod, bill_length_mm=[37, 39]),
         by="island",
     )
-    fig.savefig(result_path + "Figure_2.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_2.png", result_path + "Figure_2.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_2.png")
+    assert assert_image(fig, "Figure_2", "plot_comparisons") is None
 
     fig = plot_comparisons(
         mod, variables="bill_length_mm", condition=["flipper_length_mm", "species"]
     )
-    fig.savefig(result_path + "Figure_3.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_3.png", result_path + "Figure_3.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_3.png")
+    assert assert_image(fig, "Figure_3", "plot_comparisons") is None
 
     fig = plot_comparisons(mod, variables="species", condition="bill_length_mm")
-    fig.savefig(result_path + "Figure_4.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_4.png", result_path + "Figure_4.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_4.png")
+    assert assert_image(fig, "Figure_4", "plot_comparisons") is None
 
-    fig = plot_comparisons(mod, variables="island", condition="bill_length_mm")
-    fig.savefig(result_path + "Figure_5.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_5.png", result_path + "Figure_5.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_5.png")
+    fig = plot_comparisons(mod, variables="bill_length_mm", condition="species")
+    assert assert_image(fig, "Figure_5", "plot_comparisons") is None
 
     fig = plot_comparisons(
         mod, variables="species", condition=["bill_length_mm", "species", "island"]
     )
-    fig.savefig(result_path + "Figure_6.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_6.png", result_path + "Figure_6.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_6.png")
-
-    os.rmdir(result_path)
-
-    return
+    assert assert_image(fig, "Figure_6", "plot_comparisons") is None
