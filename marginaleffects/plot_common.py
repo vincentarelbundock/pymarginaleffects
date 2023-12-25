@@ -64,18 +64,8 @@ def dt_on_condition(model, condition):
                 len(to_datagrid[key]) <= 10
             ), f"Character type variables of more than 10 unique values are not supported. {key} variable has {len(to_datagrid[key])} unique values."
 
-    dt_code = "datagrid(newdata=modeldata"
-    for key, value in to_datagrid.items():
-        dt_code += ", " + key + "="
-        if isinstance(value, str):
-            dt_code += "'" + value + "'"
-        else:
-            dt_code += str(value)
-    dt_code += ")"
-
-    # TODO: this is weird. I'd prefer someting more standard than evaluating text
-    exec("global dt; dt = " + dt_code)
-
+    to_datagrid["newdata"] = modeldata
+    dt = datagrid(**to_datagrid)
     return dt  # noqa: F821
 
 

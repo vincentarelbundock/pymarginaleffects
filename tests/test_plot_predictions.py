@@ -5,7 +5,7 @@ import statsmodels.formula.api as smf
 from matplotlib.testing.compare import compare_images
 from marginaleffects import *
 from marginaleffects.plot_predictions import *
-from .utilities import *
+# from .utilities import *
 
 penguins = pl.read_csv(
     "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
