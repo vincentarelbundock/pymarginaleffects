@@ -59,7 +59,7 @@ def dt_on_condition(model, condition):
                 ).tolist()
 
         elif variable_type in ["boolean", "character", "binary"]:
-            to_datagrid[key] = modeldata[key].unique().to_list()
+            to_datagrid[key] = modeldata[key].unique().sort().to_list()
             assert (
                 len(to_datagrid[key]) <= 10
             ), f"Character type variables of more than 10 unique values are not supported. {key} variable has {len(to_datagrid[key])} unique values."

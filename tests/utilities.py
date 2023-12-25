@@ -1,4 +1,6 @@
+import os
 import re
+from matplotlib.testing.compare import compare_images
 
 
 from marginaleffects import *
@@ -20,3 +22,24 @@ def compare_r_to_py(r_obj, py_obj, tolr=1e-3, tola=1e-3, msg=""):
             gap_abs = (a - b).abs().max()
             flag = gap_rel <= tolr or gap_abs <= tola
             assert flag, f"{msg} trel: {gap_rel}. tabs: {gap_abs}"
+
+
+def assert_image(fig, label, file, tolerance=5):
+    known_path = f"./tests/images/{file}/"
+    unknown_path = f"./tests/images/.tmp_{file}/"
+    if os.path.isdir(unknown_path):
+        for root, dirs, files in os.walk(unknown_path):
+            for fname in files:
+                os.remove(os.path.join(root, fname))
+        os.rmdir(unknown_path)
+    os.mkdir(unknown_path)
+    unknown = f"{unknown_path}{label}.png"
+    known = f"{known_path}{label}.png"
+    if not os.path.exists(known):
+        fig.savefig(known)
+        raise FileExistsError(f"File {known} does not exist. Creating it now.")
+    fig.savefig(unknown)
+    out = compare_images(known, unknown, tol=tolerance)
+    # os.remove(unknown)
+    return out
+

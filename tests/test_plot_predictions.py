@@ -5,34 +5,12 @@ import statsmodels.formula.api as smf
 from matplotlib.testing.compare import compare_images
 from marginaleffects import *
 from marginaleffects.plot_predictions import *
-# from .utilities import *
+from .utilities import *
 
 penguins = pl.read_csv(
     "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
     null_values="NA",
 ).drop_nulls()
-
-
-def assert_image(fig, label, file, tolerance=5):
-    known_path = f"./tests/images/{file}/"
-    unknown_path = f"./tests/images/.tmp_{file}/"
-    if os.path.isdir(unknown_path):
-        for root, dirs, files in os.walk(unknown_path):
-            for fname in files:
-                os.remove(os.path.join(root, fname))
-        os.rmdir(unknown_path)
-    os.mkdir(unknown_path)
-    unknown = f"{unknown_path}{label}.png"
-    known = f"{known_path}{label}.png"
-    if not os.path.exists(known):
-        fig.savefig(known)
-        raise FileExistsError(f"File {known} does not exist. Creating it now.")
-    fig.savefig(unknown)
-    out = compare_images(known, unknown, tol=tolerance)
-    compare_images(known, unknown, tol=tolerance)
-    os.remove(unknown)
-    return out
-
 
 
 def test_by():
