@@ -217,6 +217,7 @@ def get_one_variable_hi_lo(
                 variable=variable,
                 uniqs=modeldata[variable].unique().sort(),
                 newdata=newdata,
+                lab=lab,
                 combo=value,
                 comparison=comparison,
             )
@@ -225,68 +226,55 @@ def get_one_variable_hi_lo(
         else:
             raise ValueError(msg)
 
-    if vartype == "numeric" and isinstance(value, str):
-        if value == "sd":
-            value = modeldata[variable].std()
+    if vartype == "numeric":
+        if isinstance(value, str):
+            if value == "sd":
+                value = modeldata[variable].std()
+                hi = newdata[variable] + value / 2
+                lo = newdata[variable] - value / 2
+                lab = lab.format(hi="(x+sd/2)", lo="(x-sd/2)")
+            elif value == "2sd":
+                value = modeldata[variable].std()
+                hi = newdata[variable] + value
+                lo = newdata[variable] - value
+                lab = lab.format(hi="(x+sd)", lo="(x-sd)")
+            elif value == "iqr":
+                hi = np.percentile(newdata[variable], 75)
+                lo = np.percentile(newdata[variable], 25)
+                lab = lab.format(hi="Q3", lo="Q1")
+            elif value == "minmax":
+                hi = np.max(newdata[variable])
+                lo = np.min(newdata[variable])
+                lab = lab.format(hi="Max", lo="Min")
+            else:
+                raise ValueError(msg)
+
+        elif isinstance(value, list):
+            if len(value) != 2:
+                raise ValueError(msg)
+            hi = clean([value[1]])
+            lo = clean([value[0]])
+            lab = lab.format(hi=value[1], lo=value[0])
+
+        elif isinstance(value, (int, float)):
+            if comparison not in elasticities:
+                lab = f"+{value}"
             hi = newdata[variable] + value / 2
             lo = newdata[variable] - value / 2
-            lab = lab.format(hi="(x+sd/2)", lo="(x-sd/2)")
-        elif value == "2sd":
-            value = modeldata[variable].std()
-            hi = newdata[variable] + value
-            lo = newdata[variable] - value
-            lab = lab.format(hi="(x+sd)", lo="(x-sd)")
-        elif value == "iqr":
-            hi = np.percentile(newdata[variable], 75)
-            lo = np.percentile(newdata[variable], 25)
-            lab = lab.format(hi="Q3", lo="Q1")
-        elif value == "minmax":
-            hi = np.max(newdata[variable])
-            lo = np.min(newdata[variable])
-            lab = lab.format(hi="Max", lo="Min")
+
         else:
             raise ValueError(msg)
 
-    elif isinstance(value, list):
-        if len(value) != 2:
-            raise ValueError(msg)
-        hi = clean([value[1]])
-        lo = clean([value[0]])
-        lab = lab.format(hi=value[1], lo=value[0])
-
-    elif isinstance(value, (int, float)):
-        if comparison not in elasticities:
-            lab = f"+{value}"
-        hi = newdata[variable] + value / 2
-        lo = newdata[variable] - value / 2
-
-    else:
-        raise ValueError(msg)
-
-    if isinstance(value, list):
-        lo = clean([value[0]])
-        hi = clean([value[1]])
-        lab = lab.format(value[1], value[0])
-    else:
-        lo = newdata[variable] - value / 2
-        hi = newdata[variable] + value / 2
-        if comparison not in elasticities:
-            lab = f"+{value}"
-
-    if len(lo) == 1:
-        if comparison not in elasticities:
-            lab = lab.format(hi=hi[0], lo=lo[0])
-        lo = clean(np.repeat(lo, newdata.shape[0]))
-        hi = clean(np.repeat(hi, newdata.shape[0]))
-
-    out = [
-        HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad=None, comparison=comparison)
-    ]
-    return out
+        out = [
+            HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad=None, comparison=comparison)
+        ]
+        return out
+    
+    raise ValueError(msg)
 
 
 def get_categorical_combinations(
-    variable, uniqs, newdata, comparison, combo="reference"
+    variable, uniqs, newdata, comparison, lab, combo="reference"
 ):
     def clean(k):
         return clean_global(k, newdata.shape[0])
@@ -306,7 +294,7 @@ def get_categorical_combinations(
                     variable=variable,
                     hi=clean([u]),
                     lo=clean([uniqs[0]]),
-                    lab=f"{u} - {uniqs[0]}",
+                    lab=lab.format(hi = u, lo = uniqs[0]),
                     pad=uniqs,
                     comparison=comparison,
                 )
@@ -319,7 +307,7 @@ def get_categorical_combinations(
                     variable=variable,
                     hi=clean([u]),
                     lo=clean([last_element]),
-                    lab=f"{u} - {last_element}",
+                    lab=lab.format(hi = u, lo = last_element),
                     comparison=comparison,
                     pad=uniqs,
                 )
@@ -330,7 +318,7 @@ def get_categorical_combinations(
                 variable=variable,
                 hi=clean([uniqs[i + 1]]),
                 lo=clean([uniqs[i]]),
-                lab=f"{uniqs[i + 1]} - {uniqs[i]}",
+                lab=lab.format(hi = uniqs[i + 1], lo = uniqs[i]),
                 comparison=comparison,
                 pad=uniqs,
             )
@@ -341,7 +329,7 @@ def get_categorical_combinations(
                 variable=variable,
                 hi=clean([uniqs[i - 1]]),
                 lo=clean([uniqs[i]]),
-                lab=f"{uniqs[i - 1]} - {uniqs[i]}",
+                lab=lab.format(hi = uniqs[i - 1], lo = uniqs[i]),
                 comparison=comparison,
                 pad=uniqs,
             )
@@ -353,7 +341,7 @@ def get_categorical_combinations(
                     variable=variable,
                     hi=clean([uniqs[j]]),
                     lo=clean([uniqs[i]]),
-                    lab=f"{uniqs[j]} - {uniqs[i]}",
+                    lab=lab.format(hi = uniqs[j], lo = uniqs[i]),
                     comparison=comparison,
                     pad=uniqs,
                 )
@@ -365,7 +353,7 @@ def get_categorical_combinations(
                     variable=variable,
                     hi=clean([uniqs[i]]),
                     lo=clean([uniqs[j]]),
-                    lab=f"{uniqs[i]} - {uniqs[j]}",
+                    lab=lab.format(hi = uniqs[i], lo = uniqs[j]),
                     comparison=comparison,
                     pad=uniqs,
                 )

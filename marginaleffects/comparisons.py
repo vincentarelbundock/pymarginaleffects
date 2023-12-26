@@ -138,7 +138,7 @@ def comparisons(
         )
         hi.append(
             newdata.with_columns(
-                v.hi.alias(v.variable),
+                pl.lit(v.hi).alias(v.variable),
                 pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias("contrast"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
@@ -146,7 +146,7 @@ def comparisons(
         )
         lo.append(
             newdata.with_columns(
-                v.lo.alias(v.variable),
+                pl.lit(v.lo).alias(v.variable),
                 pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias("contrast"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
