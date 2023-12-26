@@ -1,9 +1,10 @@
 import numpy as np
 import polars as pl
 import statsmodels.formula.api as smf
+import patsy
 from marginaleffects import *
 from marginaleffects.classes import MarginaleffectsDataFrame
-from .utilities import *
+from tests.utilities import *
 
 dat = pl.read_csv("tests/data/impartiality.csv") \
   .with_columns(pl.col("impartial").cast(pl.Int8))
@@ -45,163 +46,133 @@ def test_predictions():
   assert assert_image(p, label = "jss_01", file = "jss") is None
 
 
+def test_hypotheses():
+  # hypotheses(m, hypothesis = "continentAsia = continentAmericas")
+  h = hypotheses(m, hypothesis = "b4 = b3")
+  assert isinstance(h, pl.DataFrame)
+  assert h.shape[0] == 1
 
-# ## -----------------------------------------------------------------------------
-# coef(m)[c("continentAsia", "continentAmericas")]
+  # avg_predictions(m,
+  #   by = "democracy",
+  #   hypothesis = "revpairwise")
 
-# hypotheses(m, hypothesis = "continentAsia = continentAmericas")
+  p = predictions(m,
+    by = "democracy",
+    hypothesis = "b2 = b1 * 2")
+  assert isinstance(p, pl.DataFrame)
+  assert p.shape[0] == 1
 
+  p = predictions(m,
+    by = "democracy",
+    hypothesis = "b2 = b1 * 2",
+    equivalence = [-.2, .2])
+  assert isinstance(p, pl.DataFrame)
+  assert p.shape[0] == 1
 
-# ## -----------------------------------------------------------------------------
-# avg_predictions(m,
-#   by = "democracy",
-#   type = "response")
+  c = comparisons(m, variables = "democracy")
+  assert isinstance(c, pl.DataFrame)
+  assert c.shape[0] == 166
 
+  c = avg_comparisons(m)
+  assert isinstance(c, pl.DataFrame)
+  assert c.shape[0] == 5
 
-# ## -----------------------------------------------------------------------------
-# avg_predictions(m,
-#   by = "democracy",
-#   type = "response",
-#   hypothesis = "revpairwise")
+  c = avg_comparisons(m, variables = {"equal": 4})
+  assert isinstance(c, pl.DataFrame)
+  assert c.shape[0] == 1
+  c = avg_comparisons(m, variables = {"equal": "sd"})
+  assert isinstance(c, pl.DataFrame)
+  assert c.shape[0] == 1
+  c = avg_comparisons(m, variables = {"equal": [30, 90]})
+  assert isinstance(c, pl.DataFrame)
+  assert c.shape[0] == 1
+  c = avg_comparisons(m, variables = {"equal": "iqr"})
+  assert isinstance(c, pl.DataFrame)
+  assert c.shape[0] == 1
 
-
-# ## -----------------------------------------------------------------------------
-# predictions(m,
-#   by = "democracy",
-#   type = "response",
-#   hypothesis = "b2 = b1 * 2")
-
-
-# ## ----include=FALSE------------------------------------------------------------
-# tmp = avg_predictions(m, by = "democracy", type = "response") 
-# res = sprintf("%.4f", tmp$estimate[2] - 2 * tmp$estimate[1])
-# tmp = transform(tmp, estimate = sprintf("%.4f", estimate))
-
-
-# ## -----------------------------------------------------------------------------
-# predictions(m,
-#   by = "democracy",
-#   type = "response",
-#   hypothesis = "b2 = b1 * 2",
-#   equivalence = c(-.2, .2))
-
-
-# ## ----comparisons-regime-original-data-----------------------------------------
-# comparisons(m, variables = "democracy")
-
-
-# ## ----comparisons-regime-avg---------------------------------------------------
-# avg_comparisons(m)
-
-
-# ## -----------------------------------------------------------------------------
-# dat_lo = transform(dat, democracy = "Autocracy")
-# dat_hi = transform(dat, democracy = "Democracy")
-# pred_lo = predict(m, newdata = dat_lo, type = "response")
-# pred_hi = predict(m, newdata = dat_hi, type = "response")
-# mean(pred_hi - pred_lo)
+  c = avg_comparisons(m, variables = "democracy", comparison = "ratio")
+  assert c["contrast"][0] == 'mean(Democracy) / mean(Autocracy)'
 
 
-# ## ----eval = FALSE-------------------------------------------------------------
-# ## avg_comparisons(m, variables = list("equal" = 4))
-# ## avg_comparisons(m, variables = list("equal" = "sd"))
-# ## avg_comparisons(m, variables = list("equal" = "iqr"))
-# ## avg_comparisons(m, variables = list("equal" = c(30, 90)))
+
+def test_transform():
+  c1 = avg_comparisons(m, comparison = "lnor")
+  c2 = avg_comparisons(m, comparison = "lnor", transform = np.exp)
+  all(np.exp(c1["estimate"]) == c2["estimate"])
 
 
-# ## -----------------------------------------------------------------------------
-# avg_comparisons(m, variables = "democracy", comparison = "ratio")
-
-
-# ## -----------------------------------------------------------------------------
-# avg_comparisons(m,
-#   comparison = "lnor",
-#   transform = exp)
-
-
-# ## -----------------------------------------------------------------------------
 # avg_comparisons(m,
 #   variables = "equal",
-#   comparison = \(hi, lo) mean(hi) / mean(lo))
+#   comparison = lambda hi, lo: np.mean(hi) / np.ean(lo))
 
 
-# ## ----include=FALSE------------------------------------------------------------
-# cmp = comparisons(m,
-#   by = "democracy",
-#   variables = list(equal = c(30, 90)))
+
+def test_misc():
+  cmp = comparisons(m, by = "democracy", variables = {"equal": [30, 90]})
+  assert isinstance(cmp, pl.DataFrame)
+  assert cmp.shape[0] == 2
+
+  # plot_comparisons(m,
+  #   by = "democracy",
+  #   variables = {"equal": [30, 90]}
+  # ).show()
+
+  # TODO: broken
+  cmp = comparisons(m,
+    by = "democracy",
+    variables = list(equal = c(30, 90)),
+    hypothesis = "pairwise")
+  cmp
+
+  s = slopes(m, variables = "equal", newdata = datagrid(equal=[25, 50], model=m))
+  assert isinstance(s, pl.DataFrame)
+  assert s.shape[0] == 2
 
 
-# ## -----------------------------------------------------------------------------
-# cmp = comparisons(m,
-#   by = "democracy",
-#   variables = list(equal = c(30, 90)))
-# cmp
+  s = avg_slopes(m, variables = "equal")
+  assert isinstance(s, pl.DataFrame)
+  assert s.shape[0] == 1
+
+  s = slopes(m, variables = "equal", newdata = "mean")
+  assert isinstance(s, pl.DataFrame)
+  assert s.shape[0] == 1
+
+  # TODO: broken. Should have more levels, no? Or maybe that's OK since the grid
+  # is clearly specified
+  # s = slopes(m, variables = "equal", newdata = "median", by = "democracy")
+
+  s = avg_slopes(m, variables = "equal", slope = "eyex")
+  assert isinstance(s, pl.DataFrame)
+  assert s.shape[0] == 1
 
 
-# ## ----fig.cap = "Effect of a change from 30 to 90 in resource equality on the predicted probability of having impartial public institutions.\\label{fig:comparisons-democracy}"----
-# plot_comparisons(m,
-#   by = "democracy",
-#   variables = list(equal = c(30, 90))) +
-#   labs(x = NULL, y = "Risk Difference (Impartiality)")
+
+def test_titanic():
+
+  tit = pl.read_csv("tests/data/titanic.csv")
+  mod_tit = smf.ols("Survived ~ Woman * Passenger_Class", data = tit.to_pandas()).fit()
+
+  p = avg_predictions(mod_tit,
+      newdata = datagrid(
+        Passenger_Class = tit["Passenger_Class"].unique(),
+        Woman = tit["Woman"].unique(),
+        model = mod_tit),
+      by = "Woman")
+  # TODO: this cannot be printed because duplicate Woman column
+  assert False
+  assert isinstance(p, pl.DataFrame)
 
 
-# ## -----------------------------------------------------------------------------
-# cmp = comparisons(m,
-#   by = "democracy",
-#   variables = list(equal = c(30, 90)),
-#   hypothesis = "pairwise")
-# cmp
-
-
-# ## ----tangents, echo=FALSE, fig.cap = "Tangents to the prediction function at 25 and 50.", fig.pos="h"----
-# p = predictions(m, datagrid(equal = c(25, 50)))
-# s = slopes(m, datagrid(equal = c(25, 50)), variables = "equal")
-# tan1 = data.frame(x = c(25, 50), y = c(0.726, 0.726 + 0.01667 * (50 - 25)))
-# tan2 = data.frame(x = c(25, 75), y = c(0.956, 0.956 + 0.00355 * (75 - 50)))
-# plot_predictions(m, condition = "equal", vcov = FALSE) +
-#   geom_abline(slope = s$estimate[1], intercept = p$estimate[1] - 25 * s$estimate[1], color = "red", linetype = 2) +
-#   geom_abline(slope = s$estimate[2], intercept = p$estimate[2] - 50 * s$estimate[2], color = "red", linetype = 2) +
-#   theme_bw()
-
-
-# ## -----------------------------------------------------------------------------
-# slopes(m, newdata = datagrid(equal = c(25, 50)), variables = "equal")
-
-
-# ## -----------------------------------------------------------------------------
-# avg_slopes(m, variables = "equal")
-
-
-# ## -----------------------------------------------------------------------------
-# slopes(m, variables = "equal", newdata = "mean")
-
-
-# ## -----------------------------------------------------------------------------
-# slopes(m, variables = "equal", newdata = "median", by = "democracy")
-
-
-# ## -----------------------------------------------------------------------------
-# avg_slopes(m, variables = "equal", slope = "eyex")
-
-
-tit = pl.read_csv("tests/data/titanic.csv")
-mod_tit = smf.ols("Survived ~ Woman * Passenger_Class", data = tit.to_pandas()).fit()
-
-avg_predictions(mod_tit,
-    newdata = datagrid(
-      Passenger_Class = tit["Passenger_Class"].unique(),
-      Woman = tit["Woman"].unique(),
-      model = mod_tit),
-    by = "Woman")
-
-
-avg_predictions(mod_tit,
-    newdata = datagrid(
-      Passenger_Class = tit["Passenger_Class"].unique(),
-      Woman = tit["Woman"].unique(),
-      model = mod_tit),
-    by = "Woman",
-    hypothesis = "revpairwise")
+  p = avg_predictions(mod_tit,
+      newdata = datagrid(
+        Passenger_Class = tit["Passenger_Class"].unique(),
+        Woman = tit["Woman"].unique(),
+        model = mod_tit),
+      by = "Woman",
+      hypothesis = "revpairwise")
+  # TODO: broken
+  assert False
+  assert isinstance(p, pl.DataFrame)
 
 
 avg_comparisons(mod_tit,
@@ -212,22 +183,22 @@ avg_comparisons(mod_tit,
       model = mod_tit))
 
 
-tit.group_by("Passenger_Class").count()
+# tit.group_by("Passenger_Class").count()
 
 
-avg_comparisons(mod_tit, variables = "Woman")
+# avg_comparisons(mod_tit, variables = "Woman")
 
 
-# Risk difference by passenger class
-avg_comparisons(mod_tit,
-    variables = "Woman",
-    by = "Passenger_Class")
+# # Risk difference by passenger class
+# avg_comparisons(mod_tit,
+#     variables = "Woman",
+#     by = "Passenger_Class")
 
 
-avg_comparisons(mod_tit,
-    variables = "Woman",
-    by = "Passenger_Class",
-    hypothesis = "b1 - b3 = 0")
+# avg_comparisons(mod_tit,
+#     variables = "Woman",
+#     by = "Passenger_Class",
+#     hypothesis = "b1 - b3 = 0")
 
 
 
