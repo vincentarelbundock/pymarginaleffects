@@ -11,14 +11,11 @@ from .utils import get_variable_type
 def dt_on_condition(model, condition):
     model = sanitize_model(model)
 
+    # not sure why newdata gets added
     modeldata = model.modeldata
 
     if isinstance(condition, str):
         condition = [condition]
-
-    assert (
-        1 <= len(condition) <= 3
-    ), f"Lenght of condition must be inclusively between 1 and 3. Got : {len(condition)}."
 
     to_datagrid = {}
     first_key = ""  # special case when the first element is numeric
@@ -36,6 +33,12 @@ def dt_on_condition(model, condition):
         ), "All keys of condition must be columns of the model."
         first_key = next(iter(condition))
         to_datagrid = condition
+
+    # not sure why `newdata` sometimes gets added
+    condition.pop("newdata", None)
+    assert (
+        1 <= len(condition) <= 3
+    ), f"Lenght of condition must be inclusively between 1 and 3. Got : {len(condition)}."
 
     for key, value in to_datagrid.items():
         variable_type = get_variable_type(key, modeldata)
@@ -209,14 +212,13 @@ def plot_common(dt, y_label, var_list):
                     )
                 else:
                     title = dim_max_j
-                    title += (
-                        "\n"
-                        + subplot_dt.select(pl.first("term")).item()
-                        + ", "
-                        + dim_min_i
-                        if dim_min_i is not None
-                        else ""
-                    )
+                    if dim_min_i is not None:
+                        title += (
+                            "\n"
+                            + subplot_dt.select(pl.first("term")).item()
+                            + ", "
+                            + dim_min_i
+                        )
 
                 fig.axes[axe].set_title(title, fontsize=titles_fontsize)
 
