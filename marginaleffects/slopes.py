@@ -13,6 +13,7 @@ def slopes(
     equivalence=None,
     wts=None,
     eps=1e-4,
+    eps_vcov=None,
 ):
     assert isinstance(eps, float)
 
@@ -31,6 +32,7 @@ def slopes(
         equivalence=equivalence,
         wts=wts,
         eps=eps,
+        eps_vcov=eps_vcov,
     )
     return out
 
@@ -47,6 +49,7 @@ def avg_slopes(
     hypothesis=None,
     equivalence=None,
     eps=1e-4,
+    eps_vcov=None,
 ):
     if slope not in ["dydx", "eyex", "eydx", "dyex"]:
         raise ValueError("slope must be one of 'dydx', 'eyex', 'eydx', 'dyex'")
@@ -62,6 +65,7 @@ def avg_slopes(
         hypothesis=hypothesis,
         equivalence=equivalence,
         eps=eps,
+        eps_vcov=eps_vcov,
     )
 
     return out

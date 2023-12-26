@@ -35,6 +35,7 @@ def comparisons(
     equivalence=None,
     transform=None,
     eps=1e-4,
+    eps_vcov=None,
 ):
     """
     `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
@@ -275,7 +276,7 @@ def comparisons(
     out = outer(model.coef)
 
     if vcov is not None and vcov is not False:
-        J = get_jacobian(func=outer, coefs=model.coef)
+        J = get_jacobian(func=outer, coefs=model.coef, eps_vcov=eps_vcov)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(

@@ -29,6 +29,7 @@ def predictions(
     equivalence=None,
     transform=None,
     wts=None,
+    eps_vcov=None,
 ):
     """
     Predict outcomes using a fitted model on a specified scale for given combinations of values
@@ -162,7 +163,7 @@ def predictions(
     out = inner(model.get_coef())
 
     if V is not None:
-        J = get_jacobian(inner, model.get_coef())
+        J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(

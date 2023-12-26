@@ -1,3 +1,8 @@
+# dev
+
+* New `eps_vcov` argument to control the step size in the computation of the Jacobian used for standard errors.
+* Refactor and several bug fixes in the `plot_*()` functions.
+
 # 0.0.6
 
 * `hypothesis` accepts a float or integer to specify a different null hypothesis.
