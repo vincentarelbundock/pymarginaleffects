@@ -1,4 +1,5 @@
 import polars as pl
+import numpy as np
 
 
 class MarginaleffectsDataFrame(pl.DataFrame):
@@ -49,8 +50,12 @@ class MarginaleffectsDataFrame(pl.DataFrame):
             valid = list(mapping.keys())
 
         valid = self.datagrid_explicit + valid
-
         valid = [x for x in valid if x in self.columns]
+
+        # sometimes we get duplicates when there is `by` and `datagrid()`
+        valid = dict.fromkeys(valid)
+        valid = list(valid.keys())
+
         mapping = {key: mapping[key] for key in mapping if key in valid}
         tmp = self.select(valid).rename(mapping)
         for col in tmp.columns:

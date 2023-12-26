@@ -52,9 +52,9 @@ def test_hypotheses():
   assert isinstance(h, pl.DataFrame)
   assert h.shape[0] == 1
 
-  # avg_predictions(m,
-  #   by = "democracy",
-  #   hypothesis = "revpairwise")
+  avg_predictions(m,
+    by = "democracy",
+    hypothesis = "revpairwise")
 
   p = predictions(m,
     by = "democracy",
@@ -131,18 +131,13 @@ def test_misc():
   assert isinstance(cmp, pl.DataFrame)
   assert cmp.shape[0] == 2
 
-  # plot_comparisons(m,
-  #   by = "democracy",
-  #   variables = {"equal": [30, 90]}
-  # ).show()
-
-  # TODO: broken
   cmp = comparisons(m,
     by = "democracy",
     variables = {"equal": [30, 90]},
-    hypothesis = "pairwise",
-  )
-  cmp
+    hypothesis = "pairwise",)
+  assert isinstance(cmp, pl.DataFrame)
+  assert cmp.shape[0] == 1
+
 
   s = slopes(m, variables = "equal", newdata = datagrid(equal=[25, 50], model=m))
   assert isinstance(s, pl.DataFrame)
@@ -168,7 +163,6 @@ def test_misc():
 
 
 def test_titanic():
-
   tit = pl.read_csv("tests/data/titanic.csv")
   mod_tit = smf.ols("Survived ~ Woman * Passenger_Class", data = tit.to_pandas()).fit()
 
@@ -178,10 +172,8 @@ def test_titanic():
         Woman = tit["Woman"].unique(),
         model = mod_tit),
       by = "Woman")
-  # TODO: this cannot be printed because duplicate Woman column
-  assert False
   assert isinstance(p, pl.DataFrame)
-
+  assert p.shape[0] == 2
 
   p = avg_predictions(mod_tit,
       newdata = datagrid(
@@ -190,17 +182,17 @@ def test_titanic():
         model = mod_tit),
       by = "Woman",
       hypothesis = "revpairwise")
-  # TODO: broken
-  assert False
   assert isinstance(p, pl.DataFrame)
+  assert p.shape[0] == 1
 
-
-avg_comparisons(mod_tit,
-    variables = "Woman",
-    newdata = datagrid(
-      Passenger_Class = tit["Passenger_Class"].unique(),
-      Woman = tit["Woman"].unique(),
-      model = mod_tit))
+  p = avg_comparisons(mod_tit,
+      variables = "Woman",
+      newdata = datagrid(
+        Passenger_Class = tit["Passenger_Class"].unique(),
+        Woman = tit["Woman"].unique(),
+        model = mod_tit))
+  assert isinstance(p, pl.DataFrame)
+  assert p.shape[0] == 1
 
 
 # tit.group_by("Passenger_Class").count()
