@@ -72,7 +72,8 @@ def plot_predictions(
         wts is not None and not by
     ), "The `wts` argument requires a `by` argument."
 
-    assert not (condition is None and by is None
+    assert not (
+        condition is None and by is None
     ), "One of the `condition` and `by` arguments must be supplied, but not both."
 
     if condition is not None:
@@ -107,4 +108,4 @@ def plot_predictions(
     # not sure why these get appended
     var_list = [x for x in var_list if x not in ["newdata", "model"]]
 
-    return plot_common(dt, model.response_name, var_list = var_list)
+    return plot_common(dt, model.response_name, var_list=var_list)

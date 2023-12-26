@@ -9,7 +9,9 @@ from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
 
 
-def hypotheses(model, hypothesis=None, conf_level=0.95, vcov=True, equivalence=None, eps_vcov=None):
+def hypotheses(
+    model, hypothesis=None, conf_level=0.95, vcov=True, equivalence=None, eps_vcov=None
+):
     """
     (Non-)Linear Tests for Null Hypotheses, Joint Hypotheses, Equivalence, Non Superiority, and Non Inferiority.
 
