@@ -152,10 +152,6 @@ def test_misc():
   assert isinstance(s, pl.DataFrame)
   assert s.shape[0] == 1
 
-  # TODO: broken. Should have more levels, no? Or maybe that's OK since the grid
-  # is clearly specified
-  # s = slopes(m, variables = "equal", newdata = "median", by = "democracy")
-
   s = avg_slopes(m, variables = "equal", slope = "eyex")
   assert isinstance(s, pl.DataFrame)
   assert s.shape[0] == 1
@@ -194,23 +190,20 @@ def test_titanic():
   assert isinstance(p, pl.DataFrame)
   assert p.shape[0] == 1
 
+  # Risk difference by passenger class
+  c = avg_comparisons(mod_tit,
+      variables = "Woman",
+      by = "Passenger_Class",
+      comparison = "difference")
+  assert isinstance(c, pl.DataFrame)
+  assert c.shape[0] == 3
 
-# tit.group_by("Passenger_Class").count()
-
-
-# avg_comparisons(mod_tit, variables = "Woman")
-
-
-# # Risk difference by passenger class
-# avg_comparisons(mod_tit,
-#     variables = "Woman",
-#     by = "Passenger_Class")
-
-
-# avg_comparisons(mod_tit,
-#     variables = "Woman",
-#     by = "Passenger_Class",
-#     hypothesis = "b1 - b3 = 0")
+  c = avg_comparisons(mod_tit,
+      variables = "Woman",
+      by = "Passenger_Class",
+      hypothesis = "b1 - b3 = 0")
+  assert isinstance(c, pl.DataFrame)
+  assert c.shape[0] == 1
 
 
 
