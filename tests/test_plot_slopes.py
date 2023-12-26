@@ -20,72 +20,25 @@ mod = smf.ols(
 ).fit()
 
 
-def test_plot_slopes():
-    tolerance = 50
-
-    baseline_path = "./tests/images/plot_slopes/"
-
-    result_path = "./tests/images/.tmp_plot_slopes/"
-    if os.path.isdir(result_path):
-        for root, dirs, files in os.walk(result_path):
-            for fname in files:
-                os.remove(os.path.join(root, fname))
-        os.rmdir(result_path)
-    os.mkdir(result_path)
-
+def test_by():
     fig = plot_slopes(mod, variables="species", by="island")
-    fig.savefig(result_path + "Figure_1.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_1.png", result_path + "Figure_1.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_1.png")
+    assert assert_image(fig, "by_01", "plot_slopes") is None
 
-    #   Tese two tests are failling
+    fig = plot_slopes(mod, variables='bill_length_mm', by=['species', 'island'])
+    assert assert_image(fig, "by_02", "plot_slopes") is None
 
-    #    fig = plot_slopes(mod, variables='bill_length_mm', newdata=datagrid(mod, bill_length_mm=[37,39]), by='island')
-    #    fig.savefig(result_path + "Figure_2.png")
-    #    assert compare_images(baseline_path + "Figure_2.png", result_path + "Figure_2.png", tolerance) is None
-    #    os.remove(result_path + "Figure_2.png")
 
-    #    fig = plot_slopes(mod, variables='bill_length_mm', condition=['flipper_length_mm', 'species'])
-    #    fig.savefig(result_path + "Figure_3.png")
-    #    assert compare_images(baseline_path + "Figure_3.png", result_path + "Figure_3.png", tolerance) is None
-    #    os.remove(result_path + "Figure_3.png")
+def test_condition():
+    fig = plot_slopes(mod, variables='bill_length_mm', condition=['flipper_length_mm', 'species'], eps_vcov=1e-2)
+    assert assert_image(fig, "condition_01", "plot_slopes") is None
 
     fig = plot_slopes(mod, variables="species", condition="bill_length_mm")
-    fig.savefig(result_path + "Figure_4.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_4.png", result_path + "Figure_4.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_4.png")
+    assert assert_image(fig, "condition_02", "plot_slopes") is None
 
-    fig = plot_slopes(mod, variables="island", condition="bill_length_mm")
-    fig.savefig(result_path + "Figure_5.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_5.png", result_path + "Figure_5.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_5.png")
+    fig = plot_slopes(mod, variables="island", condition="bill_length_mm", eps = 1e-2)
+    assert assert_image(fig, "condition_03", "plot_slopes") is None
 
     fig = plot_slopes(
         mod, variables="species", condition=["bill_length_mm", "species", "island"]
     )
-    fig.savefig(result_path + "Figure_6.png")
-    assert (
-        compare_images(
-            baseline_path + "Figure_6.png", result_path + "Figure_6.png", tolerance
-        )
-        is None
-    )
-    os.remove(result_path + "Figure_6.png")
-
-    os.rmdir(result_path)
-    return
+    assert assert_image(fig, "condition_04", "plot_slopes") is None

@@ -58,24 +58,14 @@ def dt_on_condition(model, condition):
                     modeldata[key], [0, 25, 50, 75, 100], method="midpoint"
                 ).tolist()
 
-        elif variable_type == "boolean" or variable_type == "character":
-            to_datagrid[key] = modeldata[key].unique().to_list()
+        elif variable_type in ["boolean", "character", "binary"]:
+            to_datagrid[key] = modeldata[key].unique().sort().to_list()
             assert (
                 len(to_datagrid[key]) <= 10
             ), f"Character type variables of more than 10 unique values are not supported. {key} variable has {len(to_datagrid[key])} unique values."
 
-    dt_code = "datagrid(newdata=modeldata"
-    for key, value in to_datagrid.items():
-        dt_code += ", " + key + "="
-        if isinstance(value, str):
-            dt_code += "'" + value + "'"
-        else:
-            dt_code += str(value)
-    dt_code += ")"
-
-    # TODO: this is weird. I'd prefer someting more standard than evaluating text
-    exec("global dt; dt = " + dt_code)
-
+    to_datagrid["newdata"] = modeldata
+    dt = datagrid(**to_datagrid)
     return dt  # noqa: F821
 
 
@@ -99,7 +89,7 @@ def plotter(dt, x_name, x_type, fig=None, axe=None, label=None, color=None):
             plot_obj.fill_between(x, y_low, y_high, color=color, alpha=0.2)
             plot_obj.plot(x, y, color=color, label=label)
 
-    elif x_type == "character" or x_type == "boolean":
+    elif x_type in ["character", "binary", "boolean"]:
         y_low = np.absolute(y - y_low)
         y_high = np.absolute(y_high - y)
         if color is None:

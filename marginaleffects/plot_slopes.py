@@ -14,6 +14,8 @@ def plot_slopes(
     by=False,
     wts=None,
     draw=True,
+    eps=1e-4,
+    eps_vcov=None,
 ):
     """
     Plot slopes on the y-axis against values of one or more predictors (x-axis, colors/shapes, and facets).
@@ -77,54 +79,51 @@ def plot_slopes(
         wts is not None and not by
     ), "The `wts` argument requires a `by` argument."
 
-    if by:
-        if newdata is not None:
-            dt = slopes(
-                model,
-                variables=variables,
-                newdata=newdata,
-                slope=slope,
-                vcov=vcov,
-                conf_level=conf_level,
-                by=by,
-                wts=wts,
-            )
-        else:
-            dt = slopes(
-                model,
-                variables=variables,
-                slope=slope,
-                vcov=vcov,
-                conf_level=conf_level,
-                by=by,
-                wts=wts,
-            )
+    assert not (
+        not by and newdata is not None
+    ), "The `newdata` argument requires a `by` argument."
 
-        var_list = [by] if isinstance(by, str) else by
+    assert not (
+        wts is not None and not by
+    ), "The `wts` argument requires a `by` argument."
 
-    elif condition is not None:
-        dt_condition = dt_on_condition(model, condition)
-        if isinstance(condition, str):
-            var_list = [condition]
-        elif isinstance(condition, list):
-            var_list = condition
-        elif isinstance(condition, dict):
-            var_list = list(condition.keys())
-        dt = slopes(
-            model,
-            variables=variables,
-            newdata=dt_condition,
-            slope=slope,
-            vcov=vcov,
-            conf_level=conf_level,
-            by=var_list,
-            wts=wts,
-        )
+    assert not (
+        condition is None and by is None
+    ), "One of the `condition` and `by` arguments must be supplied, but not both."
 
-    dt = dt.drop_nulls(var_list[0])
-    dt = dt.sort(var_list[0])
+    if condition is not None:
+        newdata = dt_on_condition(model, condition)
+
+    dt = slopes(
+        model,
+        variables=variables,
+        newdata=newdata,
+        slope=slope,
+        vcov=vcov,
+        conf_level=conf_level,
+        by=by,
+        wts=wts,
+        eps=eps,
+        eps_vcov=eps_vcov,
+    )
 
     if not draw:
         return dt
+
+    if isinstance(condition, str):
+        var_list = [condition]
+    elif isinstance(condition, list):
+        var_list = condition
+    elif isinstance(condition, dict):
+        var_list = list(condition.keys())
+    elif isinstance(by, str):
+        var_list = [by]
+    elif isinstance(by, list):
+        var_list = by
+    elif isinstance(by, dict):
+        var_list = list(by.keys())
+
+    # not sure why these get appended
+    var_list = [x for x in var_list if x not in ["newdata", "model"]]
 
     return plot_common(dt, "Slope", var_list)

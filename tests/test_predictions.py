@@ -49,3 +49,8 @@ def issue_38():
     assert p.shape[0] == 1
     p = avg_predictions(mod_py)
     assert p.shape[0] == 1
+
+def issue_59():
+    p = predictions(mod_py, vcov = False)
+    assert p.shape[0] == df.shape[0]
+    assert p.shape[1] > 20

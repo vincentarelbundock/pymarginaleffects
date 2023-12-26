@@ -68,58 +68,44 @@ def plot_predictions(
         not by and newdata is not None
     ), "The `newdata` argument requires a `by` argument."
 
-    assert (condition is None and by) or (
-        condition is not None and not by
-    ), "One of the `condition` and `by` arguments must be supplied, but not both."
-
     assert not (
         wts is not None and not by
     ), "The `wts` argument requires a `by` argument."
 
-    if by:
-        if newdata is not None:
-            dt = predictions(
-                model,
-                by=by,
-                newdata=newdata,
-                conf_level=conf_level,
-                vcov=vcov,
-                transform=transform,
-                wts=wts,
-            )
-        else:
-            dt = predictions(
-                model,
-                by=by,
-                conf_level=conf_level,
-                vcov=vcov,
-                transform=transform,
-                wts=wts,
-            )
-
-        var_list = [by] if isinstance(by, str) else by
+    assert not (
+        condition is None and by is None
+    ), "One of the `condition` and `by` arguments must be supplied, but not both."
 
     if condition is not None:
-        dt_condition = dt_on_condition(model, condition)
-        if isinstance(condition, str):
-            var_list = [condition]
-        elif isinstance(condition, list):
-            var_list = condition
-        elif isinstance(condition, dict):
-            var_list = list(condition.keys())
-        dt = predictions(
-            model,
-            by=var_list,
-            newdata=dt_condition,
-            conf_level=conf_level,
-            vcov=vcov,
-            transform=transform,
-        )
+        newdata = dt_on_condition(model, condition)
 
-    dt = dt.drop_nulls(var_list[0])
-    dt = dt.sort(var_list[0])
+    dt = predictions(
+        model,
+        by=by,
+        newdata=newdata,
+        conf_level=conf_level,
+        vcov=vcov,
+        transform=transform,
+        wts=wts,
+    )
 
     if not draw:
         return dt
 
-    return plot_common(dt, model.response_name, var_list)
+    if isinstance(condition, str):
+        var_list = [condition]
+    elif isinstance(condition, list):
+        var_list = condition
+    elif isinstance(condition, dict):
+        var_list = list(condition.keys())
+    elif isinstance(by, str):
+        var_list = [by]
+    elif isinstance(by, list):
+        var_list = by
+    elif isinstance(by, dict):
+        var_list = list(by.keys())
+
+    # not sure why these get appended
+    var_list = [x for x in var_list if x not in ["newdata", "model"]]
+
+    return plot_common(dt, model.response_name, var_list=var_list)

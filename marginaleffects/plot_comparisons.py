@@ -85,64 +85,42 @@ def plot_comparisons(
         wts is not None and not by
     ), "The `wts` argument requires a `by` argument."
 
-    if by:
-        if newdata is not None:
-            dt = comparisons(
-                model,
-                variables=variables,
-                newdata=newdata,
-                comparison=comparison,
-                vcov=vcov,
-                conf_level=conf_level,
-                by=by,
-                wts=wts,
-                hypothesis=hypothesis,
-                equivalence=equivalence,
-                transform=transform,
-                eps=eps,
-            )
-        else:
-            dt = comparisons(
-                model,
-                variables=variables,
-                comparison=comparison,
-                vcov=vcov,
-                conf_level=conf_level,
-                by=by,
-                wts=wts,
-                hypothesis=hypothesis,
-                equivalence=equivalence,
-                transform=transform,
-                eps=eps,
-            )
+    if condition is not None:
+        newdata = dt_on_condition(model, condition)
 
-        var_list = [by] if isinstance(by, str) else by
+    dt = comparisons(
+        model,
+        variables=variables,
+        newdata=newdata,
+        comparison=comparison,
+        vcov=vcov,
+        conf_level=conf_level,
+        by=by,
+        wts=wts,
+        hypothesis=hypothesis,
+        equivalence=equivalence,
+        transform=transform,
+        eps=eps,
+    )
 
-    elif condition is not None:
-        dt_condition = dt_on_condition(model, condition)
-        if isinstance(condition, str):
-            var_list = [condition]
-        elif isinstance(condition, list):
-            var_list = condition
-        elif isinstance(condition, dict):
-            var_list = list(condition.keys())
-        dt = comparisons(
-            model,
-            variables=variables,
-            newdata=dt_condition,
-            comparison=comparison,
-            vcov=vcov,
-            conf_level=conf_level,
-            by=var_list,
-            wts=wts,
-            hypothesis=hypothesis,
-            equivalence=equivalence,
-            transform=transform,
-            eps=eps,
-        )
+    if not draw:
+        return dt
 
-    dt = dt.drop_nulls(var_list[0])
-    dt = dt.sort(var_list[0])
+    if isinstance(condition, str):
+        var_list = [condition]
+    elif isinstance(condition, list):
+        var_list = condition
+    elif isinstance(condition, dict):
+        var_list = list(condition.keys())
+    elif isinstance(by, str):
+        var_list = [by]
+    elif isinstance(by, list):
+        var_list = by
+    elif isinstance(by, dict):
+        var_list = list(by.keys())
+
+    # not sure why these get appended
+    var_list = [x for x in var_list if x not in ["newdata", "model"]]
 
     if not draw:
         return dt
