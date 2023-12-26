@@ -73,7 +73,7 @@ def get_hypothesis(x, hypothesis):
         else:
             raise ValueError(msg)
         out = lincom_multiply(x, hypmat.to_numpy())
-        out = out.with_columns(pl.Series(hypothesis.columns).alias("term"))
+        out = out.with_columns(pl.Series(hypmat.columns).alias("term"))
     else:
         raise ValueError(msg)
     return out
@@ -112,7 +112,10 @@ def lincom_reference(x):
         lab = [f"Row {i+1} - Row 1" for i in range(len(lincom))]
     else:
         lab = [f"{la} - {lab[0]}" for la in lab]
-    lincom = pl.DataFrame(lincom.T, schema=lab)
+    if lincom.shape[1] == 1:
+        lincom = pl.DataFrame(lincom, schema=lab)
+    else:
+        lincom = pl.DataFrame(lincom.T, schema=lab)
     lincom = lincom.select(lab[1:])
     return lincom
 
@@ -126,7 +129,10 @@ def lincom_revsequential(x):
         lab = [f"{lab[i]} - {lab[i+1]}" for i in range(lincom.shape[1])]
     for i in range(lincom.shape[1]):
         lincom[i : i + 2, i] = [1, -1]
-    lincom = pl.DataFrame(lincom.T, schema=lab)
+    if lincom.shape[1] == 1:
+        lincom = pl.DataFrame(lincom, schema=lab)
+    else:
+        lincom = pl.DataFrame(lincom.T, schema=lab)
     return lincom
 
 
@@ -139,7 +145,10 @@ def lincom_sequential(x):
         lab = [f"{lab[i+1]} - {lab[i]}" for i in range(lincom.shape[1])]
     for i in range(lincom.shape[1]):
         lincom[i : i + 2, i] = [-1, 1]
-    lincom = pl.DataFrame(lincom.T, schema=lab)
+    if lincom.shape[1] == 1:
+        lincom = pl.DataFrame(lincom, schema=lab)
+    else:
+        lincom = pl.DataFrame(lincom.T, schema=lab)
     return lincom
 
 
@@ -159,8 +168,10 @@ def lincom_revpairwise(x):
                     lab_col.append(f"Row {j+1} - Row {i+1}")
                 else:
                     lab_col.append(f"{lab_row[j]} - {lab_row[i]}")
-    lincom = np.hstack(mat)
-    lincom = pl.DataFrame(lincom.T, schema=lab_col)
+    if len(mat) == 1:
+        lincom = pl.DataFrame(mat[0], schema=lab_col)
+    else:
+        lincom = pl.DataFrame(np.hstack(mat).T, schema=lab_col)
     return lincom
 
 
@@ -180,6 +191,8 @@ def lincom_pairwise(x):
                     lab_col.append(f"Row {i+1} - Row {j+1}")
                 else:
                     lab_col.append(f"{lab_row[i]} - {lab_row[j]}")
-    lincom = np.hstack(mat)
-    lincom = pl.DataFrame(lincom.T, schema=lab_col)
+    if len(mat) == 1:
+        lincom = pl.DataFrame(mat[0], schema=lab_col)
+    else:
+        lincom = pl.DataFrame(np.hstack(mat).T, schema=lab_col)
     return lincom

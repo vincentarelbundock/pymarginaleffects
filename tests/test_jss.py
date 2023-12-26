@@ -94,6 +94,25 @@ def test_hypotheses():
   assert c["contrast"][0] == 'mean(Democracy) / mean(Autocracy)'
 
 
+def test_hypothesis_shape():
+  m = smf.logit(
+    "impartial ~ equal * democracy + continent",
+    data = dat.to_pandas()
+  ).fit()
+
+  for h in ["reference", "revreference", "sequential", "revsequential", "pairwise", "revpairwise"]:
+    for b in ["democracy", "continent"]:
+      c = comparisons(m,
+        by = b,
+        variables = {"equal": [30, 90]},
+        hypothesis = h,
+      )
+      assert isinstance(c, pl.DataFrame)
+      if b == "democracy":
+        assert c.shape[0] == 1
+      else:
+        assert c.shape[0] > 1
+
 
 def test_transform():
   c1 = avg_comparisons(m, comparison = "lnor")
@@ -120,8 +139,9 @@ def test_misc():
   # TODO: broken
   cmp = comparisons(m,
     by = "democracy",
-    variables = list(equal = c(30, 90)),
-    hypothesis = "pairwise")
+    variables = {"equal": [30, 90]},
+    hypothesis = "pairwise",
+  )
   cmp
 
   s = slopes(m, variables = "equal", newdata = datagrid(equal=[25, 50], model=m))
