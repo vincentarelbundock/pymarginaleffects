@@ -63,3 +63,18 @@ def test_issue_57():
     fig = plot_predictions(mod, condition={"am": None, "wt": None})
     assert assert_image(fig, "issue_57_04", "plot_predictions") is None
 
+
+
+def issue_62():
+    import types
+    mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+    mod = smf.ols("mpg ~ hp * wt * am", data = mtcars).fit()
+    cond = {
+    "hp": None,
+    "wt": [mtcars["wt"].mean() - mtcars["wt"].std(),
+            mtcars["wt"].mean(),
+            mtcars["wt"].mean() + mtcars["wt"].std()],
+    "am": None
+    }
+    p = plot_predictions(mod, condition = cond)
+    assert isinstance(p, types.ModuleType)
