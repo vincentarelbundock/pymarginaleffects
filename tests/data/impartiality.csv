@@ -1,167 +1,167 @@
-country_name,country_text_id,year,continent,impartial,impartial_ord,equal,regime_type,democracy,population,gdp,gdpPercap
-Mexico,MEX,2015,Americas,TRUE,2,31.2,Electoral democracy,Democracy,129200310.00000001,2081356150000,16113
-Suriname,SUR,2015,Americas,TRUE,2,68.10000000000001,Electoral democracy,Democracy,603450,7422430000.000001,12304
-Sweden,SWE,2015,Europe,TRUE,4,93.7,Liberal democracy,Democracy,10476790,481658030000,45983
-Switzerland,CHE,2015,Europe,TRUE,4,96.6,Liberal democracy,Democracy,8955980,481775110000,53812
-Ghana,GHA,2015,Africa,FALSE,1,53.300000000000004,Electoral democracy,Democracy,29364510,143219340000,4878
-South Africa,ZAF,2015,Africa,TRUE,3,38.6,Electoral democracy,Democracy,58489340,677984920000,11594
-Japan,JPN,2015,Asia,TRUE,3,97.3,Liberal democracy,Democracy,135348880,5149584550000,38057
-Burma/Myanmar,MMR,2015,Asia,TRUE,2,23.1,Electoral autocracy,Autocracy,55632900,282203500000,5074
-Russia,RUS,2015,Europe,FALSE,1,73.3,Electoral autocracy,Autocracy,153547630,3745012579999.9995,24398
-Albania,ALB,2015,Europe,TRUE,2,69.69999999999999,Electoral democracy,Democracy,3115610,31279260000,10041
-Egypt,EGY,2015,Africa,FALSE,1,12.7,Electoral autocracy,Autocracy,99869750,834860320000.0001,8362
-Yemen,YEM,2015,Asia,FALSE,0,10.9,Electoral autocracy,Autocracy,27946020,60793540000,2176
-Colombia,COL,2015,Americas,TRUE,3,36.7,Electoral democracy,Democracy,50237280,664016000000,13220
-Poland,POL,2015,Europe,TRUE,3,92.5,Liberal democracy,Democracy,40754990,957034299999.9999,23491
-Brazil,BRA,2015,Americas,TRUE,3,49.3,Electoral democracy,Democracy,217319350,2716425850000,12504
-United States of America,USA,2015,Americas,TRUE,4,69.8,Liberal democracy,Democracy,342788170,19420915660000,56666
-Portugal,PRT,2015,Europe,TRUE,3,92.10000000000001,Liberal democracy,Democracy,11040350,286628470000,25972
-El Salvador,SLV,2015,Americas,TRUE,2,28.4,Electoral democracy,Democracy,6636040,35022810000,5279
-Bangladesh,BGD,2015,Asia,FALSE,1,18.5,Electoral autocracy,Autocracy,168769260,559923880000,3319
-Bolivia,BOL,2015,Americas,TRUE,2,35.3,Electoral democracy,Democracy,11585580,63919709999.99999,5518
-Haiti,HTI,2015,Americas,FALSE,1,13,Electoral autocracy,Autocracy,11226389.999999998,18961430000,1689
-Honduras,HND,2015,Americas,TRUE,2,13.3,Electoral autocracy,Autocracy,9539700,42877190000,4495
-Mali,MLI,2015,Africa,FALSE,1,21.5,Electoral democracy,Democracy,18523730,37605530000,2031.0000000000002
-Pakistan,PAK,2015,Asia,FALSE,1,12.7,Electoral autocracy,Autocracy,212641160.00000003,915971860000,4309
-Peru,PER,2015,Americas,TRUE,3,39.300000000000004,Electoral democracy,Democracy,32339880,338904030000,10481
-Senegal,SEN,2015,Africa,TRUE,3,56.8,Electoral democracy,Democracy,15773160,43657590000,2768
-South Sudan,SSD,2015,Africa,FALSE,0,1.5,Closed autocracy,Autocracy,11277280,239168240000,21312
-Sudan,SDN,2015,Africa,FALSE,1,8,Electoral autocracy,Autocracy,42040100,175952419999.99997,4186
-Vietnam,VNM,2015,Asia,TRUE,2,77,Closed autocracy,Autocracy,99167230,564492340000,5694
-Afghanistan,AFG,2015,Asia,FALSE,1,31.8,Electoral autocracy,Autocracy,35594590,62528000000,1757
-Argentina,ARG,2015,Americas,TRUE,3,69.69999999999999,Electoral democracy,Democracy,45525320,785315350000,17254
-Ethiopia,ETH,2015,Africa,TRUE,2,37.4,Electoral autocracy,Autocracy,106328730,173742070000,1634
-India,IND,2015,Asia,TRUE,2,35.8,Electoral democracy,Democracy,1354224420,7880916230000,5821
-Kenya,KEN,2015,Africa,TRUE,3,47.699999999999996,Electoral democracy,Democracy,50691550,149678990000,2954
-North Korea,PRK,2015,Asia,FALSE,1,58.599999999999994,Closed autocracy,Autocracy,26684580,48078610000,1802
-South Korea,KOR,2015,Asia,TRUE,3,96.5,Liberal democracy,Democracy,54395460,2029338820000.0002,37321
-Lebanon,LBN,2015,Asia,FALSE,1,49.5,Electoral autocracy,Autocracy,7128800,78769390000,11052
-Nigeria,NGA,2015,Africa,FALSE,1,25.1,Electoral democracy,Democracy,193750180,873597260000,4510
-Philippines,PHL,2015,Asia,TRUE,2,32.1,Electoral democracy,Democracy,109973420,708260060000,6441
-Tanzania,TZA,2015,Africa,TRUE,3,71.7,Electoral autocracy,Autocracy,54254060,123002950000,2268
-Taiwan,TWN,2015,Asia,TRUE,3,95.89999999999999,Liberal democracy,Democracy,24996529.999999996,1176823630000,47095
-Thailand,THA,2015,Asia,FALSE,0,60.3,Closed autocracy,Autocracy,72690800,1110241390000,15277
-Uganda,UGA,2015,Africa,TRUE,2,33.4,Electoral autocracy,Autocracy,40369030,79181420000,1962
-Venezuela,VEN,2015,Americas,FALSE,1,22,Electoral autocracy,Autocracy,30095470,245598550000,8162.000000000001
-Benin,BEN,2015,Africa,TRUE,2,62.4,Electoral democracy,Democracy,11555960,28985680000.000004,2509
-Bhutan,BTN,2015,Asia,TRUE,3,92.2,Electoral democracy,Democracy,768250,7613700000,9914
-Burkina Faso,BFA,2015,Africa,TRUE,3,28.599999999999998,Electoral autocracy,Autocracy,19182670,37117130000,1935
-Cambodia,KHM,2015,Asia,FALSE,1,17.4,Electoral autocracy,Autocracy,16481770,57417230000,3484
-Indonesia,IDN,2015,Asia,TRUE,2,49.1,Electoral democracy,Democracy,271989380,2559716700000,9413
-Mozambique,MOZ,2015,Africa,TRUE,2,29.9,Electoral autocracy,Autocracy,27553910,43140290000.00001,1566
-Nepal,NPL,2015,Asia,TRUE,3,30.599999999999998,Electoral democracy,Democracy,29201890,68505970000,2347
-Nicaragua,NIC,2015,Americas,FALSE,1,28.999999999999996,Electoral autocracy,Autocracy,6577240,31389110000,4773
-Niger,NER,2015,Africa,TRUE,3,30.9,Electoral democracy,Democracy,21075450,22908010000,1087
-Zambia,ZMB,2015,Africa,TRUE,2,32.800000000000004,Electoral autocracy,Autocracy,16876440,49539150000,2936
-Zimbabwe,ZWE,2015,Africa,FALSE,1,45,Electoral autocracy,Autocracy,15229849.999999998,42042060000,2761
-Guinea,GIN,2015,Africa,FALSE,1,24.9,Electoral autocracy,Autocracy,12117200,25585640000,2112
-Ivory Coast,CIV,2015,Africa,TRUE,3,29.7,Electoral autocracy,Autocracy,26180500,84567800000,3231
-Mauritania,MRT,2015,Africa,FALSE,1,14.499999999999998,Electoral autocracy,Autocracy,4168780,14871150000,3568
-Canada,CAN,2015,Americas,TRUE,4,87.5,Liberal democracy,Democracy,38056500,1717958780000,45154
-Botswana,BWA,2015,Africa,TRUE,3,69.8,Liberal democracy,Democracy,2279850,32376110000,14205
-Burundi,BDI,2015,Africa,FALSE,1,28.9,Electoral autocracy,Autocracy,10919179.999999998,8295640000,760
-Cape Verde,CPV,2015,Africa,TRUE,3,74,Electoral democracy,Democracy,563110,3308090000.0000005,5876
-Central African Republic,CAF,2015,Africa,FALSE,1,27.3,Electoral autocracy,Autocracy,5110630,3612320000.0000005,707
-Chile,CHL,2015,Americas,TRUE,3,62.7,Liberal democracy,Democracy,19167050,427664200000,22316
-Costa Rica,CRI,2015,Americas,TRUE,4,91.9,Liberal democracy,Democracy,5175370,80355740000,15530
-Timor-Leste,TLS,2015,Asia,TRUE,2,27.3,Electoral democracy,Democracy,1274560,4296480000,3372
-Ecuador,ECU,2015,Americas,TRUE,2,66.8,Electoral democracy,Democracy,17156540,175956430000,10259
-France,FRA,2015,Europe,TRUE,4,96.2,Liberal democracy,Democracy,70857430,2733788390000,38588
-Germany,DEU,2015,Europe,TRUE,4,94.5,Liberal democracy,Democracy,87483010,3766437610000,43066
-Guatemala,GTM,2015,Americas,TRUE,2,18.9,Electoral democracy,Democracy,17095570,115330280000,6748
-Iran,IRN,2015,Asia,TRUE,3,79.3,Electoral autocracy,Autocracy,82386180,890411500000,10811
-Iraq,IRQ,2015,Asia,FALSE,1,38,Electoral autocracy,Autocracy,38261490,371003170000,9699
-Ireland,IRL,2015,Europe,TRUE,3,83.7,Liberal democracy,Democracy,5066670,293119970000,57873
-Italy,ITA,2015,Europe,TRUE,3,94.3,Liberal democracy,Democracy,64739760,2076540880000,32083
-Jordan,JOR,2015,Asia,TRUE,2,73.7,Closed autocracy,Autocracy,9358560,73493690000,7854
-Latvia,LVA,2015,Europe,TRUE,4,89.1,Liberal democracy,Democracy,2125600,49990240000,23523
-Lesotho,LSO,2015,Africa,TRUE,2,80.2,Electoral democracy,Democracy,2148300,6726360000,3132
-Liberia,LBR,2015,Africa,TRUE,2,29.799999999999997,Electoral democracy,Democracy,4777870,5389960000,1128
-Malawi,MWI,2015,Africa,TRUE,2,30.099999999999998,Electoral democracy,Democracy,18186590,22459740000,1235
-Maldives,MDV,2015,Asia,FALSE,1,45.2,Electoral autocracy,Autocracy,484990,6390549999.999999,13184
-Mongolia,MNG,2015,Asia,TRUE,3,70.1,Electoral democracy,Democracy,3200179.9999999995,27859680000,8708
-Morocco,MAR,2015,Africa,TRUE,2,39,Closed autocracy,Autocracy,36595850,277949670000,7597
-Netherlands,NLD,2015,Europe,TRUE,3,95.8,Liberal democracy,Democracy,18105380,827633250000,45724
-Panama,PAN,2015,Americas,TRUE,3,62.6,Electoral democracy,Democracy,4141920,90096209999.99998,21759
-Qatar,QAT,2015,Asia,TRUE,2,95.3,Closed autocracy,Autocracy,2628590,239686349999.99997,91206
-Sierra Leone,SLE,2015,Africa,TRUE,2,41.699999999999996,Electoral democracy,Democracy,7147290,11501160000,1610
-Spain,ESP,2015,Europe,TRUE,3,88.4,Liberal democracy,Democracy,49989340,1632694549999.9998,32668.999999999996
-Syria,SYR,2015,Asia,FALSE,0,12.1,Closed autocracy,Autocracy,19326550,73906970000,3825
-Tunisia,TUN,2015,Africa,TRUE,2,69.5,Electoral democracy,Democracy,11879280.000000002,127663730000,10748
-Turkey,TUR,2015,Asia,FALSE,1,68.2,Electoral autocracy,Autocracy,85665939.99999999,1797627520000,20989
-Ukraine,UKR,2015,Europe,FALSE,1,79.3,Electoral autocracy,Autocracy,47473270,434693100000,9160
-United Kingdom,GBR,2015,Europe,TRUE,4,91.8,Liberal democracy,Democracy,70197610,2721010170000,38768
-Uruguay,URY,2015,Americas,TRUE,4,91.3,Liberal democracy,Democracy,3618460,72835890000,20135
-Algeria,DZA,2015,Africa,FALSE,1,75,Electoral autocracy,Autocracy,41789620.00000001,506319730000,12118
-Angola,AGO,2015,Africa,FALSE,1,17.7,Electoral autocracy,Autocracy,26615790,174493710000,6558
-Armenia,ARM,2015,Asia,TRUE,2,84.5,Electoral autocracy,Autocracy,3129769.9999999995,31945430000,10210
-Azerbaijan,AZE,2015,Asia,FALSE,1,19.7,Electoral autocracy,Autocracy,10082590,148475870000,14729
-Belarus,BLR,2015,Europe,TRUE,2,90.5,Electoral autocracy,Autocracy,10120690,200358440000,19799
-Cameroon,CMR,2015,Africa,FALSE,1,33.4,Electoral autocracy,Autocracy,25196450,69860780000,2774
-Chad,TCD,2015,Africa,FALSE,1,21.7,Electoral autocracy,Autocracy,14694940,29569690000,2013
-China,CHN,2015,Asia,FALSE,1,41.8,Closed autocracy,Autocracy,1464466200,19531273270000,13340
-Democratic Republic of the Congo,COD,2015,Africa,FALSE,0,23.400000000000002,Electoral autocracy,Autocracy,84617870,71373860000,844
-Republic of the Congo,COG,2015,Africa,FALSE,1,32.6,Electoral autocracy,Autocracy,5143680.000000001,19959350000,3882
-Djibouti,DJI,2015,Africa,TRUE,2,29.5,Electoral autocracy,Autocracy,974090.0000000001,4301650000,4417
-Dominican Republic,DOM,2015,Americas,TRUE,2,26,Electoral democracy,Democracy,10928610.000000002,146336820000,13393
-Eritrea,ERI,2015,Africa,FALSE,0,73.3,Closed autocracy,Autocracy,3377950,69736210000,20693
-Gabon,GAB,2015,Africa,TRUE,3,67.30000000000001,Electoral autocracy,Autocracy,2056210,24294440000,11818
-The Gambia,GMB,2015,Africa,FALSE,1,45.4,Electoral autocracy,Autocracy,2174380,4575190000,2105
-Georgia,GEO,2015,Asia,TRUE,3,82.39999999999999,Electoral democracy,Democracy,4455000,46517950000,10444
-Guinea-Bissau,GNB,2015,Africa,FALSE,1,29.4,Electoral democracy,Democracy,1839560,2713910000,1476
-Jamaica,JAM,2015,Americas,TRUE,3,72.7,Electoral democracy,Democracy,3014180,21653270000.000004,7186
-Kazakhstan,KAZ,2015,Asia,FALSE,1,69.8,Electoral autocracy,Autocracy,18655420,408157310000,21886
-Kyrgyzstan,KGZ,2015,Asia,TRUE,2,64.5,Electoral autocracy,Autocracy,6087809.999999999,28113300000,4619
-Laos,LAO,2015,Asia,FALSE,1,44.1,Closed autocracy,Autocracy,7239970,38167740000,5273
-Libya,LBY,2015,Africa,FALSE,0,41.699999999999996,Closed autocracy,Autocracy,6834000,60756719999.99999,8892
-Madagascar,MDG,2015,Africa,FALSE,1,15.8,Electoral autocracy,Autocracy,25888520,33003720000,1275
-Moldova,MDA,2015,Europe,TRUE,2,70,Electoral democracy,Democracy,3709700.0000000005,24097340000,6497
-Namibia,NAM,2015,Africa,TRUE,3,48.6,Electoral democracy,Democracy,2504430,24662640000,9850
-Rwanda,RWA,2015,Africa,TRUE,3,81.8,Electoral autocracy,Autocracy,12067800,23963000000,1986
-Somalia,SOM,2015,Africa,FALSE,1,4.5,Closed autocracy,Autocracy,14629340,25067630000,1711
-Sri Lanka,LKA,2015,Asia,TRUE,2,77.7,Electoral democracy,Democracy,22388739.999999996,254722920000,11380
-Tajikistan,TJK,2015,Asia,FALSE,1,38.7,Electoral autocracy,Autocracy,8759410,29051180000,3317
-Togo,TGO,2015,Africa,TRUE,3,62.3,Electoral democracy,Democracy,8002120,12535930000,1567
-Trinidad and Tobago,TTO,2015,Americas,TRUE,3,81,Liberal democracy,Democracy,1398210,43043260000,30789
-Turkmenistan,TKM,2015,Asia,FALSE,1,43.3,Closed autocracy,Autocracy,5789800,121445790000,20980
-Uzbekistan,UZB,2015,Asia,FALSE,1,58.599999999999994,Closed autocracy,Autocracy,32455540,316194360000,9744
-Austria,AUT,2015,Europe,TRUE,4,93.8,Liberal democracy,Democracy,9286850,398890199999.99994,42963
-Bahrain,BHR,2015,Asia,FALSE,1,74.1,Closed autocracy,Autocracy,1492040,46982120000.00001,31495
-Barbados,BRB,2015,Americas,TRUE,3,94.1,Liberal democracy,Democracy,310270,5106090000,16461
-Belgium,BEL,2015,Europe,TRUE,4,94.89999999999999,Liberal democracy,Democracy,12110010,498891030000,41208
-Bosnia and Herzegovina,BIH,2015,Europe,TRUE,2,68.30000000000001,Electoral democracy,Democracy,3868700,39143980000,10120
-Bulgaria,BGR,2015,Europe,TRUE,3,74.7,Electoral democracy,Democracy,7700300,131859360000,17129
-Comoros,COM,2015,Africa,FALSE,1,41.099999999999994,Electoral autocracy,Autocracy,843420,2009450000,2383
-Croatia,HRV,2015,Europe,TRUE,3,86.1,Electoral democracy,Democracy,4413730,90422090000,20490
-Cuba,CUB,2015,Americas,FALSE,1,83.6,Closed autocracy,Autocracy,12117860,100975830000,8335
-Cyprus,CYP,2015,Asia,TRUE,3,93.8,Liberal democracy,Democracy,1058440,28381810000,26820
-Czechia,CZE,2015,Europe,TRUE,3,95.7,Liberal democracy,Democracy,11284220,358071270000,31740
-Denmark,DNK,2015,Europe,TRUE,4,98.3,Liberal democracy,Democracy,6050520,269629130000,44576
-Equatorial Guinea,GNQ,2015,Africa,FALSE,1,29.4,Electoral autocracy,Autocracy,1051240,32196930000.000004,30635
-Estonia,EST,2015,Europe,TRUE,4,96,Liberal democracy,Democracy,1401370,37379100000,26679
-Finland,FIN,2015,Europe,TRUE,4,95.6,Liberal democracy,Democracy,5815490,221399940000,38086
-Greece,GRC,2015,Europe,TRUE,3,90.10000000000001,Liberal democracy,Democracy,11545800,273161370000,23667
-Guyana,GUY,2015,Americas,TRUE,3,64.3,Electoral democracy,Democracy,830380,8040080000,9686
-Iceland,ISL,2015,Europe,TRUE,3,96.8,Liberal democracy,Democracy,354470,17033390000,48062
-Israel,ISR,2015,Asia,TRUE,3,86.4,Liberal democracy,Democracy,8686590,309903630000,35687
-Kuwait,KWT,2015,Asia,TRUE,2,93.60000000000001,Closed autocracy,Autocracy,4022590,204233920000,50786
-Lithuania,LTU,2015,Europe,TRUE,3,93.2,Liberal democracy,Democracy,3125170,82289360000,26338
-Luxembourg,LUX,2015,Europe,TRUE,4,96.7,Liberal democracy,Democracy,617660,50430930000,81662
-North Macedonia,MKD,2015,Europe,TRUE,2,73.9,Electoral autocracy,Autocracy,2223710,27930030000,12564
-Malaysia,MYS,2015,Asia,TRUE,2,78.2,Electoral autocracy,Autocracy,32219280,749064880000,23254
-Malta,MLT,2015,Europe,TRUE,3,93.7,Electoral democracy,Democracy,478420,15863240000,33165
-Mauritius,MUS,2015,Africa,TRUE,3,92.5,Electoral democracy,Democracy,1366020,29717779999.999996,21759
-Montenegro,MNE,2015,Europe,TRUE,3,87.8,Electoral autocracy,Autocracy,666910,9623730000,14434
-Norway,NOR,2015,Europe,TRUE,4,98.6,Liberal democracy,Democracy,5456190,321282700000,58899
-Oman,OMN,2015,Asia,TRUE,3,81.89999999999999,Closed autocracy,Autocracy,4490960,114354520000,25468
-Paraguay,PRY,2015,Americas,TRUE,2,14.899999999999999,Electoral democracy,Democracy,7237610,63061910000,8716
-Romania,ROU,2015,Europe,TRUE,2,74.5,Electoral democracy,Democracy,21064600,345333890000,16400
-Sao Tome and Principe,STP,2015,Africa,TRUE,3,55.60000000000001,Electoral democracy,Democracy,210320,694820000,3304
-Saudi Arabia,SAU,2015,Asia,TRUE,2,78.8,Closed autocracy,Autocracy,33839570,1217517900000,35986
-Serbia,SRB,2015,Europe,TRUE,3,82.39999999999999,Electoral autocracy,Autocracy,7670359.999999999,94731180000,12353
-Seychelles,SYC,2015,Africa,TRUE,3,89.4,Liberal democracy,Democracy,100239.99999999999,2579390000,25738
-Singapore,SGP,2015,Asia,TRUE,4,93.89999999999999,Electoral autocracy,Autocracy,6012300,389506210000,64796.00000000001
-Slovakia,SVK,2015,Europe,TRUE,3,82.8,Liberal democracy,Democracy,5811200,162917540000,28044
-Slovenia,SVN,2015,Europe,TRUE,4,94.6,Liberal democracy,Democracy,2207160,67709140000,30684
-United Arab Emirates,ARE,2015,Asia,TRUE,3,88.1,Closed autocracy,Autocracy,9840010,639280310000,64982
-Hungary,HUN,2015,Europe,TRUE,3,72.2,Electoral democracy,Democracy,10551020,234996490000,22275
+country,continent,impartial,equal,democracy
+Mexico,Americas,TRUE,31.2,Democracy
+Suriname,Americas,TRUE,68.10000000000001,Democracy
+Sweden,Europe,TRUE,93.7,Democracy
+Switzerland,Europe,TRUE,96.6,Democracy
+Ghana,Africa,FALSE,53.300000000000004,Democracy
+South Africa,Africa,TRUE,38.6,Democracy
+Japan,Asia,TRUE,97.3,Democracy
+Burma/Myanmar,Asia,TRUE,23.1,Autocracy
+Russia,Europe,FALSE,73.3,Autocracy
+Albania,Europe,TRUE,69.69999999999999,Democracy
+Egypt,Africa,FALSE,12.7,Autocracy
+Yemen,Asia,FALSE,10.9,Autocracy
+Colombia,Americas,TRUE,36.7,Democracy
+Poland,Europe,TRUE,92.5,Democracy
+Brazil,Americas,TRUE,49.3,Democracy
+United States of America,Americas,TRUE,69.8,Democracy
+Portugal,Europe,TRUE,92.10000000000001,Democracy
+El Salvador,Americas,TRUE,28.4,Democracy
+Bangladesh,Asia,FALSE,18.5,Autocracy
+Bolivia,Americas,TRUE,35.3,Democracy
+Haiti,Americas,FALSE,13,Autocracy
+Honduras,Americas,TRUE,13.3,Autocracy
+Mali,Africa,FALSE,21.5,Democracy
+Pakistan,Asia,FALSE,12.7,Autocracy
+Peru,Americas,TRUE,39.300000000000004,Democracy
+Senegal,Africa,TRUE,56.8,Democracy
+South Sudan,Africa,FALSE,1.5,Autocracy
+Sudan,Africa,FALSE,8,Autocracy
+Vietnam,Asia,TRUE,77,Autocracy
+Afghanistan,Asia,FALSE,31.8,Autocracy
+Argentina,Americas,TRUE,69.69999999999999,Democracy
+Ethiopia,Africa,TRUE,37.4,Autocracy
+India,Asia,TRUE,35.8,Democracy
+Kenya,Africa,TRUE,47.699999999999996,Democracy
+North Korea,Asia,FALSE,58.599999999999994,Autocracy
+South Korea,Asia,TRUE,96.5,Democracy
+Lebanon,Asia,FALSE,49.5,Autocracy
+Nigeria,Africa,FALSE,25.1,Democracy
+Philippines,Asia,TRUE,32.1,Democracy
+Tanzania,Africa,TRUE,71.7,Autocracy
+Taiwan,Asia,TRUE,95.89999999999999,Democracy
+Thailand,Asia,FALSE,60.3,Autocracy
+Uganda,Africa,TRUE,33.4,Autocracy
+Venezuela,Americas,FALSE,22,Autocracy
+Benin,Africa,TRUE,62.4,Democracy
+Bhutan,Asia,TRUE,92.2,Democracy
+Burkina Faso,Africa,TRUE,28.599999999999998,Autocracy
+Cambodia,Asia,FALSE,17.4,Autocracy
+Indonesia,Asia,TRUE,49.1,Democracy
+Mozambique,Africa,TRUE,29.9,Autocracy
+Nepal,Asia,TRUE,30.599999999999998,Democracy
+Nicaragua,Americas,FALSE,28.999999999999996,Autocracy
+Niger,Africa,TRUE,30.9,Democracy
+Zambia,Africa,TRUE,32.800000000000004,Autocracy
+Zimbabwe,Africa,FALSE,45,Autocracy
+Guinea,Africa,FALSE,24.9,Autocracy
+Ivory Coast,Africa,TRUE,29.7,Autocracy
+Mauritania,Africa,FALSE,14.499999999999998,Autocracy
+Canada,Americas,TRUE,87.5,Democracy
+Botswana,Africa,TRUE,69.8,Democracy
+Burundi,Africa,FALSE,28.9,Autocracy
+Cape Verde,Africa,TRUE,74,Democracy
+Central African Republic,Africa,FALSE,27.3,Autocracy
+Chile,Americas,TRUE,62.7,Democracy
+Costa Rica,Americas,TRUE,91.9,Democracy
+Timor-Leste,Asia,TRUE,27.3,Democracy
+Ecuador,Americas,TRUE,66.8,Democracy
+France,Europe,TRUE,96.2,Democracy
+Germany,Europe,TRUE,94.5,Democracy
+Guatemala,Americas,TRUE,18.9,Democracy
+Iran,Asia,TRUE,79.3,Autocracy
+Iraq,Asia,FALSE,38,Autocracy
+Ireland,Europe,TRUE,83.7,Democracy
+Italy,Europe,TRUE,94.3,Democracy
+Jordan,Asia,TRUE,73.7,Autocracy
+Latvia,Europe,TRUE,89.1,Democracy
+Lesotho,Africa,TRUE,80.2,Democracy
+Liberia,Africa,TRUE,29.799999999999997,Democracy
+Malawi,Africa,TRUE,30.099999999999998,Democracy
+Maldives,Asia,FALSE,45.2,Autocracy
+Mongolia,Asia,TRUE,70.1,Democracy
+Morocco,Africa,TRUE,39,Autocracy
+Netherlands,Europe,TRUE,95.8,Democracy
+Panama,Americas,TRUE,62.6,Democracy
+Qatar,Asia,TRUE,95.3,Autocracy
+Sierra Leone,Africa,TRUE,41.699999999999996,Democracy
+Spain,Europe,TRUE,88.4,Democracy
+Syria,Asia,FALSE,12.1,Autocracy
+Tunisia,Africa,TRUE,69.5,Democracy
+Turkey,Asia,FALSE,68.2,Autocracy
+Ukraine,Europe,FALSE,79.3,Autocracy
+United Kingdom,Europe,TRUE,91.8,Democracy
+Uruguay,Americas,TRUE,91.3,Democracy
+Algeria,Africa,FALSE,75,Autocracy
+Angola,Africa,FALSE,17.7,Autocracy
+Armenia,Asia,TRUE,84.5,Autocracy
+Azerbaijan,Asia,FALSE,19.7,Autocracy
+Belarus,Europe,TRUE,90.5,Autocracy
+Cameroon,Africa,FALSE,33.4,Autocracy
+Chad,Africa,FALSE,21.7,Autocracy
+China,Asia,FALSE,41.8,Autocracy
+Democratic Republic of the Congo,Africa,FALSE,23.400000000000002,Autocracy
+Republic of the Congo,Africa,FALSE,32.6,Autocracy
+Djibouti,Africa,TRUE,29.5,Autocracy
+Dominican Republic,Americas,TRUE,26,Democracy
+Eritrea,Africa,FALSE,73.3,Autocracy
+Gabon,Africa,TRUE,67.30000000000001,Autocracy
+The Gambia,Africa,FALSE,45.4,Autocracy
+Georgia,Asia,TRUE,82.39999999999999,Democracy
+Guinea-Bissau,Africa,FALSE,29.4,Democracy
+Jamaica,Americas,TRUE,72.7,Democracy
+Kazakhstan,Asia,FALSE,69.8,Autocracy
+Kyrgyzstan,Asia,TRUE,64.5,Autocracy
+Laos,Asia,FALSE,44.1,Autocracy
+Libya,Africa,FALSE,41.699999999999996,Autocracy
+Madagascar,Africa,FALSE,15.8,Autocracy
+Moldova,Europe,TRUE,70,Democracy
+Namibia,Africa,TRUE,48.6,Democracy
+Rwanda,Africa,TRUE,81.8,Autocracy
+Somalia,Africa,FALSE,4.5,Autocracy
+Sri Lanka,Asia,TRUE,77.7,Democracy
+Tajikistan,Asia,FALSE,38.7,Autocracy
+Togo,Africa,TRUE,62.3,Democracy
+Trinidad and Tobago,Americas,TRUE,81,Democracy
+Turkmenistan,Asia,FALSE,43.3,Autocracy
+Uzbekistan,Asia,FALSE,58.599999999999994,Autocracy
+Austria,Europe,TRUE,93.8,Democracy
+Bahrain,Asia,FALSE,74.1,Autocracy
+Barbados,Americas,TRUE,94.1,Democracy
+Belgium,Europe,TRUE,94.89999999999999,Democracy
+Bosnia and Herzegovina,Europe,TRUE,68.30000000000001,Democracy
+Bulgaria,Europe,TRUE,74.7,Democracy
+Comoros,Africa,FALSE,41.099999999999994,Autocracy
+Croatia,Europe,TRUE,86.1,Democracy
+Cuba,Americas,FALSE,83.6,Autocracy
+Cyprus,Asia,TRUE,93.8,Democracy
+Czechia,Europe,TRUE,95.7,Democracy
+Denmark,Europe,TRUE,98.3,Democracy
+Equatorial Guinea,Africa,FALSE,29.4,Autocracy
+Estonia,Europe,TRUE,96,Democracy
+Finland,Europe,TRUE,95.6,Democracy
+Greece,Europe,TRUE,90.10000000000001,Democracy
+Guyana,Americas,TRUE,64.3,Democracy
+Iceland,Europe,TRUE,96.8,Democracy
+Israel,Asia,TRUE,86.4,Democracy
+Kuwait,Asia,TRUE,93.60000000000001,Autocracy
+Lithuania,Europe,TRUE,93.2,Democracy
+Luxembourg,Europe,TRUE,96.7,Democracy
+North Macedonia,Europe,TRUE,73.9,Autocracy
+Malaysia,Asia,TRUE,78.2,Autocracy
+Malta,Europe,TRUE,93.7,Democracy
+Mauritius,Africa,TRUE,92.5,Democracy
+Montenegro,Europe,TRUE,87.8,Autocracy
+Norway,Europe,TRUE,98.6,Democracy
+Oman,Asia,TRUE,81.89999999999999,Autocracy
+Paraguay,Americas,TRUE,14.899999999999999,Democracy
+Romania,Europe,TRUE,74.5,Democracy
+Sao Tome and Principe,Africa,TRUE,55.60000000000001,Democracy
+Saudi Arabia,Asia,TRUE,78.8,Autocracy
+Serbia,Europe,TRUE,82.39999999999999,Autocracy
+Seychelles,Africa,TRUE,89.4,Democracy
+Singapore,Asia,TRUE,93.89999999999999,Autocracy
+Slovakia,Europe,TRUE,82.8,Democracy
+Slovenia,Europe,TRUE,94.6,Democracy
+United Arab Emirates,Asia,TRUE,88.1,Autocracy
+Hungary,Europe,TRUE,72.2,Democracy
