@@ -11,33 +11,38 @@ def plot_common(dt, y_label, var_list):
     discrete = get_variable_type(var_list[0], dt) != "numeric"
     interval = "conf_low" in dt.columns
 
+    # treat all variables except x-axis as categorical
+    if len(var_list) > 1:
+        for i in range(1, len(var_list)):
+            dt = dt.with_columns(pl.col(var_list[i]).cast(pl.Utf8))
+
     # aes
     mapping = {"x": var_list[0], "y": "estimate"}
     if interval:
         mapping["ymin"] = "conf_low"
         mapping["ymax"] = "conf_high"
-    if len(var_list) > 1:
-        mapping["color"] = var_list[1]
-        mapping["fill"] = var_list[1]
     mapping = aes(**mapping)
 
-    p = ggplot(data = dt, mapping = mapping)
+    p = ggplot(data=dt, mapping=mapping)
 
     if discrete:
         if interval:
             if len(var_list) > 1:
-                p = p + geom_pointrange(position = position_dodge(width = .1))
+                p = p + \
+                    geom_pointrange(
+                        aes(color=var_list[1]), position=position_dodge(width=.1))
             else:
                 p = p + geom_pointrange()
         else:
             p = p + geom_point()
     else:
         if interval:
-            p = (
-                p +
-                geom_ribbon(alpha = .2) +
-                geom_line()
-            )
+            if len(var_list) > 1:
+                p = p + geom_ribbon(aes(fill=var_list[1]), alpha=.2)
+            else:
+                p = p + geom_ribbon(alpha=.2)
+        if len(var_list) > 1:
+            p = p + geom_line(aes(color=var_list[1]))
         else:
             p = p + geom_line()
 
