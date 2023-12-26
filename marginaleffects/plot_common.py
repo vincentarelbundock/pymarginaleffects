@@ -35,7 +35,9 @@ def dt_on_condition(model, condition):
         to_datagrid = condition
 
     # not sure why `newdata` sometimes gets added
-    condition.pop("newdata", None)
+    if isinstance(condition, dict) and "newdata" in to_datagrid.keys():
+        condition.pop("newdata", None)
+
     assert (
         1 <= len(condition) <= 3
     ), f"Lenght of condition must be inclusively between 1 and 3. Got : {len(condition)}."
