@@ -122,6 +122,8 @@ def sanitize_comparison(comparison, by, wts=None):
         "expdydx": "exp(dY/dX)",
     }
 
+    assert out in lab.keys(), f"`comparison` must be one of: {', '.join(list(lab.keys()))}."
+
     return (out, lab[out])
 
 
