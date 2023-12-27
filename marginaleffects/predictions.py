@@ -14,7 +14,6 @@ from .sanity import (
     sanitize_vcov,
 )
 from .transform import get_transform
-from .datagrid import datagrid
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
 from .model_pyfixest import ModelPyfixest
@@ -204,7 +203,6 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
-
     if callable(newdata):
         newdata = newdata(model)
 

@@ -1,7 +1,6 @@
 from functools import reduce, partial
 
 import polars as pl
-import inspect
 
 from .sanitize_model import sanitize_model
 
@@ -60,11 +59,13 @@ def datagrid(
 
     # allow preditions() to pass `model` argument automatically
     if model is None and newdata is None:
-        out = partial(datagrid,
-                      grid_type=grid_type,
-                      FUN_numeric=FUN_numeric,
-                      FUN_other=FUN_other,
-                      **kwargs)
+        out = partial(
+            datagrid,
+            grid_type=grid_type,
+            FUN_numeric=FUN_numeric,
+            FUN_other=FUN_other,
+            **kwargs,
+        )
         return out
 
     msg = "grid_type must be 'mean_or_mode', 'balanced', or 'counterfactual'"
