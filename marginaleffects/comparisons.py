@@ -20,6 +20,7 @@ from .sanity import (
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
+from .model_pyfixest import ModelPyfixest
 
 
 def comparisons(
@@ -179,10 +180,18 @@ def comparisons(
         hi = pl.concat(upcast([pad, hi]), how="diagonal")
         lo = pl.concat(upcast([pad, lo]), how="diagonal")
 
-    # model matrices
-    y, hi_X = patsy.dmatrices(model.formula, hi.to_pandas())
-    y, lo_X = patsy.dmatrices(model.formula, lo.to_pandas())
-    y, nd_X = patsy.dmatrices(model.formula, nd.to_pandas())
+    # predictors
+    # we want this to be a model matrix to avoid converting data frames to
+    # matrices many times, which would be computationally wasteful. But in the
+    # case of PyFixest, the predict method only accepts a data frame.
+    if isinstance(model, ModelPyfixest):
+        hi_X = hi
+        lo_X = lo
+        nd_X = nd
+    else:
+        y, hi_X = patsy.dmatrices(model.formula, hi.to_pandas())
+        y, lo_X = patsy.dmatrices(model.formula, lo.to_pandas())
+        y, nd_X = patsy.dmatrices(model.formula, nd.to_pandas())
 
     # unpad
     if pad.shape[0] > 0:

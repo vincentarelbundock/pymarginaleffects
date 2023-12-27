@@ -2,52 +2,35 @@ import re
 import numpy as np
 import polars as pl
 import warnings
-import patsy
 from .model_abstract import ModelAbstract
 
 
-class ModelStatsmodels(ModelAbstract):
+class ModelPyfixest(ModelAbstract):
     def get_coef(self):
-        return np.array(self.model.params)
+        return np.array(self.model._beta_hat)
 
     def get_modeldata(self):
-        df = self.model.model.data.frame
+        df = self.model._data
         if not isinstance(df, pl.DataFrame):
             df = pl.from_pandas(df)
         return df
 
     def get_response_name(self):
-        return self.model.model.endog_names
+        return self.model._fml.split("~")[0]  # the response variable
 
     def get_vcov(self, vcov=True):
+        V = None
         if isinstance(vcov, bool):
             if vcov is True:
-                V = self.model.cov_params()
-            else:
-                V = None
-        elif isinstance(vcov, str):
-            lab = f"cov_{vcov}"
-            if hasattr(self.model, lab):
-                V = getattr(self.model, lab)
-            else:
-                raise ValueError(f"The model object has no {lab} attribute.")
-        else:
-            raise ValueError(
-                '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".'
-            )
-
-        if V is not None:
-            V = np.array(V)
-            if V.shape != (len(self.coef), len(self.coef)):
-                raise ValueError(
-                    "vcov must be a square numpy array with dimensions equal to the length of self.coef"
-                )
-
+                V = self.model._vcov
         return V
+
+    def get_formula(self):
+        return self.model._fml
 
     def get_variables_names(self, variables, newdata):
         if variables is None:
-            variables = self.model.model.exog_names
+            variables = self.model._coefnames
             variables = [re.sub("\[.*\]", "", x) for x in variables]
             variables = [x for x in variables if x in newdata.columns]
             variables = pl.Series(variables).unique().to_list()
@@ -71,11 +54,18 @@ class ModelStatsmodels(ModelAbstract):
         return variables
 
     def get_predict(self, params, newdata: pl.DataFrame):
-        if isinstance(newdata, np.ndarray):
-            exog = newdata
-        else:
-            y, exog = patsy.dmatrices(self.formula, newdata.to_pandas())
-        p = self.model.model.predict(params, exog)
+        # override the coefficients inside the model object to make different
+        # predictions
+        m = self.model
+        m._beta_hat = params
+
+        # pyfixest does not support polars
+        try:
+            newdata = newdata.to_pandas()
+        except:  #  noqa
+            pass
+
+        p = m.predict(newdata=newdata)
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
         elif p.ndim == 2:
@@ -94,6 +84,3 @@ class ModelStatsmodels(ModelAbstract):
             )
         p = p.with_columns(pl.col("rowid").cast(pl.Int32))
         return p
-
-    def get_formula(self):
-        return self.model.model.formula

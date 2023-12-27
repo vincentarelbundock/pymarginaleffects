@@ -1,5 +1,6 @@
 # dev
 
+* Support the `PyFixest` package. https://s3alfisc.github.io/pyfixest/
 * New `eps_vcov` argument to control the step size in the computation of the Jacobian used for standard errors.
 * Refactor and several bug fixes in the `plot_*()` functions.
 * plot_*() use `plotnine` instead of raw `matplotlib`
