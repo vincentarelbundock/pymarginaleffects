@@ -7,15 +7,20 @@ Breaking change:
 New:
 
 * Support the `PyFixest` package. https://s3alfisc.github.io/pyfixest/
+- `datagrid()` no longer requires specifying the `model` argument when called inside another marginaleffects function like `predictions()`.
 * `eps_vcov` argument to control the step size in the computation of the Jacobian used for standard errors.
 * plot_*() use `plotnine` instead of raw `matplotlib`
 * plot_*() `condition` argument gets string shortcuts for numeric variables: "threenum", "fivenum", "minmax".
 * `datagrid()` gets a `grid_type` argument: 'mean_or_mode', 'balance', 'counterfactual'
+* Plot labels are sorted for clarity and consistency.
+* `hypotheses()` function now supports raw models for conducting (non)-linear hypothesis tests on coefficients.
 
 Misc:
 
 * Refactor and several bug fixes in the `plot_*()` functions.
 * Many bug fixes.
+* Upgraded dependency on the `polars` package, with a shift from `.apply()` to `.map_*()` due to deprecation.
+* Removed `pandas` dependency.
 
 
 # 0.0.6
