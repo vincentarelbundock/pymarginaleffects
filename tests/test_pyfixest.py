@@ -1,5 +1,4 @@
 import polars as pl
-import random
 from polars.testing import assert_series_equal
 import numpy as np
 from pyfixest.estimation import feols
@@ -30,3 +29,14 @@ def test_bare_minimum():
     c = comparisons(fit, newdata = datagrid(X1 = [2, 4], model = fit))
     known = pl.Series([0.025874865365717037, 0.02587486536571701, 0.06166037023566736, 0.14618691715896967, -0.12440034801695467, -0.2807823993887409])
     assert_series_equal(c["estimate"], known, check_names=False, rtol=1e-4)
+
+
+
+# dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/Stat2Data/Titanic.csv").to_pandas()
+# mod = feols("Survived ~ SexCode * Age * PClass", data = dat)
+# avg_slopes(mod)
+# plot_slopes(mod, variables = "SexCode", condition = ["Age", "PClass"])
+
+# # average effect of an increase of 25 in age on the predicted probability of survival
+# mod = feols("Survived ~ SexCode * Age | PClass", data = dat)
+# avg_comparisons(mod, variables = {"Age": 50})
