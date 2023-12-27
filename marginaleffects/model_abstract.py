@@ -47,8 +47,14 @@ class ModelAbstract(ABC):
     def get_response_name(self):
         pass
 
+    # names of the variables in the original dataset, excluding interactions, intercept, etc.
     @abstractmethod
     def get_variables_names(self):
+        pass
+
+    # names of the parameters
+    @abstractmethod
+    def get_coef_names(self):
         pass
 
     @abstractmethod

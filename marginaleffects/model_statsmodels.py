@@ -10,6 +10,9 @@ class ModelStatsmodels(ModelAbstract):
     def get_coef(self):
         return np.array(self.model.params)
 
+    def get_coef_names(self):
+        return np.array(self.model.params.index.to_numpy())
+
     def get_modeldata(self):
         df = self.model.model.data.frame
         if not isinstance(df, pl.DataFrame):

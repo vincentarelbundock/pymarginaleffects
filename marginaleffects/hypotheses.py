@@ -79,7 +79,7 @@ def hypotheses(
 
     # estimands
     def fun(x):
-        out = pl.DataFrame({"term": model.get_variables_names(), "estimate": x})
+        out = pl.DataFrame({"term": model.get_coef_names(), "estimate": x})
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
 

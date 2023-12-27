@@ -9,6 +9,9 @@ class ModelPyfixest(ModelAbstract):
     def get_coef(self):
         return np.array(self.model._beta_hat)
 
+    def get_coef_names(self):
+        return np.array(self.model._coefnames)
+
     def get_modeldata(self):
         df = self.model._data
         if not isinstance(df, pl.DataFrame):
