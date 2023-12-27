@@ -15,6 +15,7 @@ scipy = "^1.10.0"
 plotnine = ">=0.12.4"
 
 [tool.poetry.group.dev.dependencies]
+pandas = "^2.0.2"
 pytest = "^7.4.0"
 jupyter = "^1.0.0"
 matplotlib = "^3.7.1"
