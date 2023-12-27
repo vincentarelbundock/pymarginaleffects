@@ -1,13 +1,19 @@
-from plotnine import *
-import numpy as np
+from plotnine import (
+    ggplot,
+    aes,
+    geom_pointrange,
+    position_dodge,
+    geom_ribbon,
+    geom_line,
+    geom_point,
+    facet_wrap,
+    facet_grid,
+)
 import polars as pl
-from .datagrid import datagrid  # noqa
-from .sanitize_model import sanitize_model
 from .utils import get_variable_type
 
 
 def plot_common(dt, y_label, var_list):
-
     discrete = get_variable_type(var_list[0], dt) != "numeric"
     interval = "conf_low" in dt.columns
 
@@ -28,9 +34,9 @@ def plot_common(dt, y_label, var_list):
     if discrete:
         if interval:
             if len(var_list) > 1:
-                p = p + \
-                    geom_pointrange(
-                        aes(color=var_list[1]), position=position_dodge(width=.1))
+                p = p + geom_pointrange(
+                    aes(color=var_list[1]), position=position_dodge(width=0.1)
+                )
             else:
                 p = p + geom_pointrange()
         else:
@@ -38,9 +44,9 @@ def plot_common(dt, y_label, var_list):
     else:
         if interval:
             if len(var_list) > 1:
-                p = p + geom_ribbon(aes(fill=var_list[1]), alpha=.2)
+                p = p + geom_ribbon(aes(fill=var_list[1]), alpha=0.2)
             else:
-                p = p + geom_ribbon(alpha=.2)
+                p = p + geom_ribbon(alpha=0.2)
         if len(var_list) > 1:
             p = p + geom_line(aes(color=var_list[1]))
         else:
