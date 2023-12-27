@@ -7,16 +7,15 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pandas = "^2.0.2"
 numpy = "^1.25.0"
 patsy = ">0.5.0"
 polars = ">0.18.3"
 pyarrow = "^14.0.1"
 scipy = "^1.10.0"
-matplotlib = "^3.7.2"
-pyfixest = ">= 0.11.0"
+plotnine = ">0.12.3"
 
 [tool.poetry.group.dev.dependencies]
+pandas = "^2.0.2"
 pytest = "^7.4.0"
 jupyter = "^1.0.0"
 matplotlib = "^3.7.1"

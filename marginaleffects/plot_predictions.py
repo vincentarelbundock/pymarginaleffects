@@ -1,4 +1,5 @@
-from .plot_common import dt_on_condition, plot_common
+from .plot_common import dt_on_condition
+from .p9 import plot_common
 from .predictions import predictions
 from .sanitize_model import sanitize_model
 
@@ -108,4 +109,5 @@ def plot_predictions(
     # not sure why these get appended
     var_list = [x for x in var_list if x not in ["newdata", "model"]]
 
+    # return plot_common(dt, model.response_name, var_list=var_list)
     return plot_common(dt, model.response_name, var_list=var_list)

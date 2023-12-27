@@ -1,6 +1,7 @@
 import os
 import re
 from matplotlib.testing.compare import compare_images
+from plotnine import ggsave
 
 
 from marginaleffects import *
@@ -36,9 +37,9 @@ def assert_image(fig, label, file, tolerance=5):
     unknown = f"{unknown_path}{label}.png"
     known = f"{known_path}{label}.png"
     if not os.path.exists(known):
-        fig.savefig(known)
+        ggsave(fig, filename = known)
         raise FileExistsError(f"File {known} does not exist. Creating it now.")
-    fig.savefig(unknown)
+    ggsave(fig, filename = unknown)
     out = compare_images(known, unknown, tol=tolerance)
     # os.remove(unknown)
     return out

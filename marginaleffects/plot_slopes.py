@@ -1,4 +1,5 @@
-from .plot_common import dt_on_condition, plot_common
+from .plot_common import dt_on_condition
+from .p9 import plot_common
 from .slopes import slopes
 from .sanitize_model import sanitize_model
 
@@ -125,5 +126,15 @@ def plot_slopes(
 
     # not sure why these get appended
     var_list = [x for x in var_list if x not in ["newdata", "model"]]
+
+    assert (
+        len(var_list) < 4
+    ), "The `condition` and `by` arguments can have a max length of 3."
+
+    if "contrast" in dt.columns and dt["contrast"].unique().len() > 1:
+        var_list = var_list + ["contrast"]
+
+    if not draw:
+        return dt
 
     return plot_common(dt, "Slope", var_list)
