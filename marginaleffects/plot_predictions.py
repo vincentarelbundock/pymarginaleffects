@@ -1,9 +1,7 @@
 from .plot_common import dt_on_condition
-import polars as pl
 from .p9 import plot_common
 from .predictions import predictions
 from .sanitize_model import sanitize_model
-from .utils import get_variable_type
 import copy
 from .plot_common import plot_labels
 
@@ -124,4 +122,3 @@ def plot_predictions(
 
     # return plot_common(dt, model.response_name, var_list=var_list)
     return plot_common(dt, model.response_name, var_list=var_list)
-

@@ -31,7 +31,6 @@
 #     assert_series_equal(c["estimate"], known, check_names=False, rtol=1e-4)
 
 
-
 # dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/Stat2Data/Titanic.csv").to_pandas()
 # mod = feols("Survived ~ SexCode * Age * PClass", data = dat)
 # avg_slopes(mod)
