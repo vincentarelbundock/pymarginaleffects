@@ -90,7 +90,6 @@ def plot_predictions(
     if condition is not None:
         newdata = dt_on_condition(model, condition)
 
-    
     dt = predictions(
         model,
         by=by,
@@ -127,31 +126,20 @@ def plot_predictions(
 
 
 def plot_labels(dt, condition):
-
     if not isinstance(condition, dict):
         return dt
 
     for k, v in condition.items():
         if get_variable_type(k, dt) == "numeric":
             if condition[k] == "threenum":
-                uniq = dict(zip(
-                    dt[k].unique().sort(),
-                    ["-SD", "Mean", "+SD"]))
-                dt = dt.with_columns(
-                    dt[k].replace(uniq).cast(pl.Categorical).alias(k)
-                )
+                uniq = dict(zip(dt[k].unique().sort(), ["-SD", "Mean", "+SD"]))
+                dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
             elif condition[k] == "fivenum":
-                uniq = dict(zip(
-                    dt[k].unique().sort(),
-                    ["Min", "Q1", "Q2", "Q3", "Max"]))
-                dt = dt.with_columns(
-                    dt[k].replace(uniq).cast(pl.Categorical).alias(k)
+                uniq = dict(
+                    zip(dt[k].unique().sort(), ["Min", "Q1", "Q2", "Q3", "Max"])
                 )
+                dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
             elif condition[k] == "minmax":
-                uniq = dict(zip(
-                    dt[k].unique().sort(),
-                    ["Min", "Max"]))
-                dt = dt.with_columns(
-                    dt[k].replace(uniq).cast(pl.Categorical).alias(k)
-                )
+                uniq = dict(zip(dt[k].unique().sort(), ["Min", "Max"]))
+                dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
     return dt
