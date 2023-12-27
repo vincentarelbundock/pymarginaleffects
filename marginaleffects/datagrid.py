@@ -8,6 +8,7 @@ from .sanitize_model import sanitize_model
 def datagrid(
     model=None,
     newdata=None,
+    grid_type="mean_or_mode",
     FUN_numeric=lambda x: x.mean(),
     FUN_other=lambda x: x.mode()[0],  # mode can return multiple values
     **kwargs,
@@ -17,13 +18,14 @@ def datagrid(
 
     Generate a data grid of user-specified values for use in the 'newdata' argument of the 'predictions()', 'comparisons()', and 'slopes()' functions. This is useful to define where in the predictor space we want to evaluate the quantities of interest. Ex: the predicted outcome or slope for a 37 year old college graduate.
 
-    - `datagrid()` generates data frames with combinations of "typical" or user-supplied predictor values.
-    - `datagridcf()` generates "counter-factual" data frames, by replicating the entire dataset once for every combination of predictor values supplied by the user.
-
     Parameters:
 
     - `model`: Model object
     - `newdata`: DataFrame (one and only one of the `model` and `newdata` arguments can be used.)
+    - `grid_type`: Determines the functions to apply to each variable. The defaults can be overridden by defining individual variables explicitly in `...`, or by supplying a function to one of the `FUN_*` arguments.
+        * "mean_or_mode": Character, factor, logical, and binary variables are set to their modes. Numeric, integer, and other variables are set to their means.
+        * "balanced": Each unique level of character, factor, logical, and binary variables are preserved. Numeric, integer, and other variables are set to their means. Warning: When there are many variables and many levels per variable, a balanced grid can be very large. In those cases, it is better to use `grid_type="mean_or_mode"` and to specify the unique levels of a subset of named variables explicitly.
+        * "counterfactual": the entire dataset is duplicated for each combination of the variable values specified in `...`. Variables not explicitly supplied to `datagrid()` are set to their observed values in the original dataset.
     - `FUN_numeric`: The function to be applied to numeric variables.
     - `FUN_other`: The function to be applied to other variable types.
 
@@ -51,9 +53,16 @@ def datagrid(
     slopes(mod, newdata = nd)
 
     # The full dataset is duplicated with each observation given counterfactual values of 100 and 110 for the `hp` variable. The original `mtcars` includes 32 rows, so the resulting dataset includes 64 rows.
-    dg = datagridcf(newdata = mtcars, hp = [100, 110])
+    dg = datagrid(newdata = mtcars, hp = [100, 110], grid_type = "counterfactual")
     print(dg.shape)
     """
+
+    msg = "grid_type must be 'mean_or_mode', 'balanced', or 'counterfactual'"
+    assert isinstance(grid_type, str) and grid_type in [
+        "mean_or_mode",
+        "explicit",
+        "counterfactual",
+    ], msg
 
     if model is None and newdata is None:
         raise ValueError("One of model or newdata must be specified")
@@ -62,6 +71,31 @@ def datagrid(
 
     if newdata is None:
         newdata = model.modeldata
+
+    if grid_type == "counterfactual":
+        return datagridcf(model=model, newdata=newdata, **kwargs)
+
+    elif grid_type == "mean_or_mode":
+        if FUN_numeric is None:
+
+            def FUN_numeric(x):
+                x.mean()
+
+        if FUN_other is None:
+            # mode can return multiple values
+            def FUN_other(x):
+                x.mode()[0]
+
+    elif grid_type == "balanced":
+        if FUN_numeric is None:
+
+            def FUN_numeric(x):
+                x.mean()
+
+        if FUN_other is None:
+            # mode can return multiple values
+            def FUN_other(x):
+                x.unique()[0]
 
     out = {}
     for key, value in kwargs.items():
@@ -98,24 +132,6 @@ def datagrid(
 
 
 def datagridcf(model=None, newdata=None, **kwargs):
-    """
-    Data grids
-
-    Generate a data grid of user-specified values for use in the 'newdata' argument of the 'predictions()', 'comparisons()', and 'slopes()' functions. This is useful to define where in the predictor space we want to evaluate the quantities of interest. Ex: the predicted outcome or slope for a 37 year old college graduate.
-
-    - `datagrid()` generates data frames with combinations of "typical" or user-supplied predictor values.
-    - `datagridcf()` generates "counter-factual" data frames, by replicating the entire dataset once for every combination of predictor values supplied by the user.
-
-    Parameters:
-
-    - `model`: Model object
-    - `newdata`: DataFrame (one and only one of the `model` and `newdata` arguments can be used.)
-
-    Returns:
-
-    A Polars DataFrame in which each row corresponds to one combination of the named predictors supplied by the user. Variables which are not explicitly defined are held at their mean or mode.
-    """
-
     if model is None and newdata is None:
         raise ValueError("One of model or newdata must be specified")
 

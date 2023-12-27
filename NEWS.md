@@ -1,11 +1,22 @@
 # dev
 
+Breaking change:
+
+* `datagridcf()` is deprecated. Use `datagrid(grid_type='counterfactual')` instead.
+
+New:
+
 * Support the `PyFixest` package. https://s3alfisc.github.io/pyfixest/
-* New `eps_vcov` argument to control the step size in the computation of the Jacobian used for standard errors.
-* Refactor and several bug fixes in the `plot_*()` functions.
+* `eps_vcov` argument to control the step size in the computation of the Jacobian used for standard errors.
 * plot_*() use `plotnine` instead of raw `matplotlib`
 * plot_*() `condition` argument gets string shortcuts for numeric variables: "threenum", "fivenum", "minmax".
+* `datagrid()` gets a `grid_type` argument: 'mean_or_mode', 'balance', 'counterfactual'
+
+Misc:
+
+* Refactor and several bug fixes in the `plot_*()` functions.
 * Many bug fixes.
+
 
 # 0.0.6
 

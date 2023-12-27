@@ -49,7 +49,9 @@ class ModelStatsmodels(ModelAbstract):
         if variables is None:
             variables = self.model.model.exog_names
             variables = [re.sub("\[.*\]", "", x) for x in variables]
+            variables = [x for x in variables if x in self.modeldata.columns]
             variables = pl.Series(variables).unique().to_list()
+
         if isinstance(variables, (str, dict)):
             variables = [variables] if isinstance(variables, str) else variables
         elif isinstance(variables, list) and all(

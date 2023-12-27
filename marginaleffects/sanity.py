@@ -70,7 +70,7 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         if (isinstance(wts, str) is False) or (wts not in out.columns):
             raise ValueError(f"`newdata` does not have a column named '{wts}'.")
 
-    xnames = model.get_variables_names(variables=None, newdata=out)
+    xnames = model.get_variables_names(variables=None, newdata=modeldata)
     ynames = model.response_name
     if isinstance(ynames, str):
         ynames = [ynames]
@@ -387,7 +387,7 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
     modeldata = model.modeldata
 
     if variables is None:
-        vlist = model.get_variables_names(variables, newdata)
+        vlist = model.get_variables_names(variables, modeldata)
         vlist.sort()
         for v in vlist:
             out.append(
