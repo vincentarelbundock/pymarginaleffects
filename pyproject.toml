@@ -23,7 +23,6 @@ typing-extensions = "^4.7.0"
 pytest-xdist = "^3.3.1"
 ruff = ">0.0.283"
 statsmodels = ">0.14.0"
-pyfixest = "^0.11.1"
 
 [build-system]
 requires = ["poetry-core"]
