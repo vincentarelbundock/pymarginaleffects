@@ -28,7 +28,7 @@ class ModelPyfixest(ModelAbstract):
     def get_formula(self):
         return self.model._fml
 
-    def get_variables_names(self, variables, newdata):
+    def get_variables_names(self, variables=None, newdata=None):
         if variables is None:
             variables = self.model._coefnames
             variables = [re.sub("\[.*\]", "", x) for x in variables]
@@ -44,13 +44,14 @@ class ModelPyfixest(ModelAbstract):
             raise ValueError(
                 "`variables` must be None, a dict, string, or list of strings"
             )
-        good = [x for x in variables if x in newdata.columns]
-        bad = [x for x in variables if x not in newdata.columns]
-        if len(bad) > 0:
-            bad = ", ".join(bad)
-            warnings.warn(f"Variable(s) not in newdata: {bad}")
-        if len(good) == 0:
-            raise ValueError("There is no valid column name in `variables`.")
+        if newdata is not None:
+            good = [x for x in variables if x in newdata.columns]
+            bad = [x for x in variables if x not in newdata.columns]
+            if len(bad) > 0:
+                bad = ", ".join(bad)
+                warnings.warn(f"Variable(s) not in newdata: {bad}")
+            if len(good) == 0:
+                raise ValueError("There is no valid column name in `variables`.")
         return variables
 
     def get_predict(self, params, newdata: pl.DataFrame):

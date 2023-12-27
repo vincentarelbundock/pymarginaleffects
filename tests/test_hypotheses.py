@@ -49,3 +49,10 @@ def test_hypothesis_list():
     assert np.allclose(hyp["statistic"], hypothesis_values)
     hyp = hypotheses(mod, hypothesis=3.0)
     assert np.allclose(hyp["statistic"], hypothesis_values)
+
+
+def test_coef():
+    h = hypotheses(mod, hypothesis="Pop1831=Desertion")
+    assert isinstance(h, pl.DataFrame)
+    assert h.shape[0] == 1
+    assert h["term"][0] == "Pop1831=Desertion"
