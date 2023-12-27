@@ -1,4 +1,5 @@
 import numpy as np
+import polars as pl
 from .datagrid import datagrid  # noqa
 from .sanitize_model import sanitize_model
 
@@ -91,3 +92,32 @@ def condition_numeric(modeldata, key, value, first):
         out = value
 
     return out
+
+
+def plot_labels(dt, condition):
+    if not isinstance(condition, dict):
+        return dt
+
+    for k, v in condition.items():
+        if get_variable_type(k, dt) == "numeric":
+            if condition[k] == "threenum":
+                lab = ["-SD", "Mean", "+SD"]
+                dt = ordered_cat(dt, k, lab)
+            elif condition[k] == "fivenum":
+                lab = ["Min", "Q1", "Q2", "Q3", "Max"]
+                dt = ordered_cat(dt, k, lab)
+            elif condition[k] == "minmax":
+                lab = ["Min", "Max"]
+                dt = ordered_cat(dt, k, lab)
+    return dt
+
+
+# polars does not seem to have a custom ordered categorical. only physical and lexical.
+def ordered_cat(dt, k, lab):
+    uniq = dict(zip(dt[k].unique().sort(), list(range(len(lab)))))
+    dt = dt.with_columns(dt[k].replace(uniq).alias(k))
+    dt = dt.sort(by=k)
+    uniq = dict(zip(list(range(len(lab))), lab))
+    dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
+    dt = dt.sort(by="rowid")
+    return dt

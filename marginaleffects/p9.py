@@ -20,7 +20,8 @@ def plot_common(dt, y_label, var_list):
     # treat all variables except x-axis as categorical
     if len(var_list) > 1:
         for i in range(1, len(var_list)):
-            dt = dt.with_columns(pl.col(var_list[i]).cast(pl.Utf8))
+            if dt[var_list[i]].dtype != pl.Categorical:
+                dt = dt.with_columns(pl.col(var_list[i]).cast(pl.Utf8))
 
     # aes
     mapping = {"x": var_list[0], "y": "estimate"}

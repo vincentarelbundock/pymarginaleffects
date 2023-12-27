@@ -5,6 +5,7 @@ from .predictions import predictions
 from .sanitize_model import sanitize_model
 from .utils import get_variable_type
 import copy
+from .plot_common import plot_labels
 
 
 def plot_predictions(
@@ -124,22 +125,3 @@ def plot_predictions(
     # return plot_common(dt, model.response_name, var_list=var_list)
     return plot_common(dt, model.response_name, var_list=var_list)
 
-
-def plot_labels(dt, condition):
-    if not isinstance(condition, dict):
-        return dt
-
-    for k, v in condition.items():
-        if get_variable_type(k, dt) == "numeric":
-            if condition[k] == "threenum":
-                uniq = dict(zip(dt[k].unique().sort(), ["-SD", "Mean", "+SD"]))
-                dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
-            elif condition[k] == "fivenum":
-                uniq = dict(
-                    zip(dt[k].unique().sort(), ["Min", "Q1", "Q2", "Q3", "Max"])
-                )
-                dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
-            elif condition[k] == "minmax":
-                uniq = dict(zip(dt[k].unique().sort(), ["Min", "Max"]))
-                dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
-    return dt

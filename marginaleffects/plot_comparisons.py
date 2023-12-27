@@ -2,6 +2,8 @@ from .comparisons import comparisons
 from .plot_common import dt_on_condition
 from .p9 import plot_common
 from .sanitize_model import sanitize_model
+from .plot_common import plot_labels
+import copy
 
 
 def plot_comparisons(
@@ -90,6 +92,9 @@ def plot_comparisons(
         wts is not None and not by
     ), "The `wts` argument requires a `by` argument."
 
+    # before dt_on_condition, which modifies in-place
+    condition_input = copy.deepcopy(condition)
+
     if condition is not None:
         newdata = dt_on_condition(model, condition)
 
@@ -107,6 +112,8 @@ def plot_comparisons(
         transform=transform,
         eps=eps,
     )
+
+    dt = plot_labels(dt, condition_input)
 
     if not draw:
         return dt

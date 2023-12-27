@@ -1,7 +1,8 @@
-from .plot_common import dt_on_condition
+from .plot_common import dt_on_condition, plot_labels
 from .p9 import plot_common
 from .slopes import slopes
 from .sanitize_model import sanitize_model
+import copy
 
 
 def plot_slopes(
@@ -96,6 +97,9 @@ def plot_slopes(
         condition is None and by is None
     ), "One of the `condition` and `by` arguments must be supplied, but not both."
 
+    # before dt_on_condition, which modifies in-place
+    condition_input = copy.deepcopy(condition)
+
     if condition is not None:
         newdata = dt_on_condition(model, condition)
 
@@ -111,6 +115,8 @@ def plot_slopes(
         eps=eps,
         eps_vcov=eps_vcov,
     )
+
+    dt = plot_labels(dt, condition_input)
 
     if not draw:
         return dt
