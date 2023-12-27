@@ -52,6 +52,10 @@ def plot_slopes(
             Numeric variables in position 1 is summarized by 100 numbers
             Numeric variables in positions 2 and 3 are summarized by Tukey’s five numbers
         dictionary : Keys correspond to predictors. Values are numeric vectors.
+            - Series of lists of the same type as the original variable.
+            - Numeric variables:
+                - Series or list of numeric values.
+                - String: "minmax", "threenum", "fivenum".
 
     by : bool, str, list
         Max length : 3.
