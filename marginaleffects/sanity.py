@@ -47,6 +47,7 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     else:
         try:
             import pandas as pd
+
             if isinstance(newdata, pd.DataFrame):
                 out = pl.from_pandas(newdata)
             else:
