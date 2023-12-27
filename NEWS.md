@@ -1,4 +1,4 @@
-# dev
+# 0.0.7
 
 Breaking change:
 
