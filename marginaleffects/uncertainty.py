@@ -66,14 +66,14 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
 
     df = df.with_columns(
         pl.col("statistic")
-        .apply(lambda x: (2 * (1 - stats.t.cdf(np.abs(x), dof))))
+        .map_elements(lambda x: (2 * (1 - stats.t.cdf(np.abs(x), dof))))
         .alias("p_value")
     )
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         try:
             df = df.with_columns(
-                pl.col("p_value").apply(lambda x: -np.log2(x)).alias("s_value")
+                pl.col("p_value").map_elements(lambda x: -np.log2(x)).alias("s_value")
             )
         except Exception as e:
             print(f"An exception occurred: {e}")

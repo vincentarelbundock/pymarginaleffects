@@ -29,9 +29,9 @@ def get_by(model, estimand, newdata, by=None, wts=None):
         return out
 
     if wts is None:
-        out = out.groupby(by, maintain_order=True).agg(pl.col("estimate").mean())
+        out = out.group_by(by, maintain_order=True).agg(pl.col("estimate").mean())
     else:
-        out = out.groupby(by, maintain_order=True).agg(
+        out = out.group_by(by, maintain_order=True).agg(
             (pl.col("estimate") * pl.col(wts)).sum() / pl.col(wts).sum()
         )
     return out

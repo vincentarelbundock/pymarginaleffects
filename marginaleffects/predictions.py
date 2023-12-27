@@ -125,7 +125,7 @@ def predictions(
     pad = []
     vs = model.get_variables_names(variables=None, newdata=modeldata)
     for v in vs:
-        if not newdata[v].is_numeric():
+        if not newdata[v].dtype.is_numeric():
             uniqs = modeldata[v].unique()
             if not all(uniq in newdata[v] for uniq in uniqs):
                 pad.append(get_pad(modeldata, v, uniqs))

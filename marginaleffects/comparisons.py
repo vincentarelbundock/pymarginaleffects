@@ -273,7 +273,7 @@ def comparisons(
 
         # maintain_order is extremely important
         by = [x for x in by if x in tmp.columns]
-        tmp = tmp.groupby(by, maintain_order=True).apply(applyfun_outer)
+        tmp = tmp.group_by(by, maintain_order=True).map_groups(applyfun_outer)
 
         tmp = get_hypothesis(tmp, hypothesis=hypothesis)
 

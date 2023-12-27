@@ -58,8 +58,8 @@ class MarginaleffectsDataFrame(pl.DataFrame):
         mapping = {key: mapping[key] for key in mapping if key in valid}
         tmp = self.select(valid).rename(mapping)
         for col in tmp.columns:
-            if tmp[col].is_numeric():
-                tmp = tmp.with_columns(pl.col(col).apply(lambda x: f"{x:.3g}"))
+            if tmp[col].dtype.is_numeric():
+                tmp = tmp.with_columns(pl.col(col).map_elements(lambda x: f"{x:.3g}"))
         out = tmp.__str__()
         out = out + f"\n\nColumns: {', '.join(self.columns)}\n"
         return out

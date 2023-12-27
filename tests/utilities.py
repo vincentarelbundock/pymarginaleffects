@@ -38,10 +38,10 @@ def assert_image(fig, label, file, tolerance=5):
     unknown = f"{unknown_path}{label}.png"
     known = f"{known_path}{label}.png"
     if not os.path.exists(known):
-        ggsave(fig, filename=known)
+        ggsave(fig, filename=known, verbose=False)
         warnings.warn(f"File {known} does not exist. Creating it now.")
         return None
-    ggsave(fig, filename=unknown)
+    ggsave(fig, filename=unknown, verbose=False)
     out = compare_images(known, unknown, tol=tolerance)
     # os.remove(unknown)
     return out
