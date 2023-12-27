@@ -1,7 +1,4 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import polars as pl
-from matplotlib.lines import Line2D
 from .datagrid import datagrid  # noqa
 from .sanitize_model import sanitize_model
 
@@ -73,9 +70,7 @@ def dt_on_condition(model, condition):
 def condition_numeric(modeldata, key, value, first):
     if value is None:
         if first:
-            out = np.linspace(
-                modeldata[key].min(), modeldata[key].max(), 100
-            ).tolist()
+            out = np.linspace(modeldata[key].min(), modeldata[key].max(), 100).tolist()
         else:
             out = np.percentile(
                 modeldata[key], [0, 25, 50, 75, 100], method="midpoint"
@@ -85,7 +80,7 @@ def condition_numeric(modeldata, key, value, first):
         s = modeldata[key].std()
         out = [m - s, m, m + s]
     elif isinstance(value, str) and value == "fivenum":
-        out = [0, .25, .5, .75, 1]
+        out = [0, 0.25, 0.5, 0.75, 1]
         out = [modeldata[key].quantile(x) for x in out]
     elif isinstance(value, str) and value == "minmax":
         out = [0, 1]

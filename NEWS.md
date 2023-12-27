@@ -2,6 +2,9 @@
 
 * New `eps_vcov` argument to control the step size in the computation of the Jacobian used for standard errors.
 * Refactor and several bug fixes in the `plot_*()` functions.
+* plot_*() use `plotnine` instead of raw `matplotlib`
+* plot_*() `condition` argument gets string shortcuts for numeric variables: "threenum", "fivenum", "minmax".
+* Many bug fixes.
 
 # 0.0.6
 
