@@ -1,9 +1,6 @@
-import os
-
 import polars as pl
 import pytest
 import statsmodels.formula.api as smf
-from matplotlib.testing.compare import compare_images
 
 from marginaleffects import *
 from marginaleffects.plot_slopes import *
@@ -25,18 +22,23 @@ def test_by():
     fig = plot_slopes(mod, variables="species", by="island")
     assert assert_image(fig, "by_01", "plot_slopes") is None
 
-    fig = plot_slopes(mod, variables='bill_length_mm', by=['species', 'island'])
+    fig = plot_slopes(mod, variables="bill_length_mm", by=["species", "island"])
     assert assert_image(fig, "by_02", "plot_slopes") is None
 
 
 def test_condition():
-    fig = plot_slopes(mod, variables='bill_length_mm', condition=['flipper_length_mm', 'species'], eps_vcov=1e-2)
+    fig = plot_slopes(
+        mod,
+        variables="bill_length_mm",
+        condition=["flipper_length_mm", "species"],
+        eps_vcov=1e-2,
+    )
     assert assert_image(fig, "condition_01", "plot_slopes") is None
 
     fig = plot_slopes(mod, variables="species", condition="bill_length_mm")
     assert assert_image(fig, "condition_02", "plot_slopes") is None
 
-    fig = plot_slopes(mod, variables="island", condition="bill_length_mm", eps = 1e-2)
+    fig = plot_slopes(mod, variables="island", condition="bill_length_mm", eps=1e-2)
     assert assert_image(fig, "condition_03", "plot_slopes") is None
 
     fig = plot_slopes(
