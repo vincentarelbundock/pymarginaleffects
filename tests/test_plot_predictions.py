@@ -1,5 +1,3 @@
-import os
-
 import polars as pl
 import statsmodels.formula.api as smf
 from matplotlib.testing.compare import compare_images

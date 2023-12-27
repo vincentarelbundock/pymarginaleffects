@@ -1,5 +1,4 @@
 import polars as pl
-import numpy as np
 
 
 class MarginaleffectsDataFrame(pl.DataFrame):

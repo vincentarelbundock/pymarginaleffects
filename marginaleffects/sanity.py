@@ -2,7 +2,6 @@ from collections import namedtuple
 from warnings import warn
 
 import numpy as np
-import pandas as pd
 import polars as pl
 
 from .datagrid import datagrid
@@ -45,11 +44,16 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     elif isinstance(newdata, str) and newdata == "median":
         out = datagrid(newdata=modeldata, FUN_numeric=lambda x: x.median())
 
-    elif isinstance(newdata, pd.DataFrame):
-        out = pl.from_pandas(newdata)
-
     else:
-        out = newdata
+        try:
+            import pandas as pd
+
+            if isinstance(newdata, pd.DataFrame):
+                out = pl.from_pandas(newdata)
+            else:
+                out = newdata
+        except ImportError:
+            out = newdata
 
     datagrid_explicit = None
     if isinstance(out, pl.DataFrame) and hasattr(out, "datagrid_explicit"):
@@ -122,7 +126,9 @@ def sanitize_comparison(comparison, by, wts=None):
         "expdydx": "exp(dY/dX)",
     }
 
-    assert out in lab.keys(), f"`comparison` must be one of: {', '.join(list(lab.keys()))}."
+    assert (
+        out in lab.keys()
+    ), f"`comparison` must be one of: {', '.join(list(lab.keys()))}."
 
     return (out, lab[out])
 
@@ -268,10 +274,17 @@ def get_one_variable_hi_lo(
             raise ValueError(msg)
 
         out = [
-            HiLo(variable=variable, lo=lo, hi=hi, lab=lab, pad=None, comparison=comparison)
+            HiLo(
+                variable=variable,
+                lo=lo,
+                hi=hi,
+                lab=lab,
+                pad=None,
+                comparison=comparison,
+            )
         ]
         return out
-    
+
     raise ValueError(msg)
 
 
@@ -296,7 +309,7 @@ def get_categorical_combinations(
                     variable=variable,
                     hi=clean([u]),
                     lo=clean([uniqs[0]]),
-                    lab=lab.format(hi = u, lo = uniqs[0]),
+                    lab=lab.format(hi=u, lo=uniqs[0]),
                     pad=uniqs,
                     comparison=comparison,
                 )
@@ -309,7 +322,7 @@ def get_categorical_combinations(
                     variable=variable,
                     hi=clean([u]),
                     lo=clean([last_element]),
-                    lab=lab.format(hi = u, lo = last_element),
+                    lab=lab.format(hi=u, lo=last_element),
                     comparison=comparison,
                     pad=uniqs,
                 )
@@ -320,7 +333,7 @@ def get_categorical_combinations(
                 variable=variable,
                 hi=clean([uniqs[i + 1]]),
                 lo=clean([uniqs[i]]),
-                lab=lab.format(hi = uniqs[i + 1], lo = uniqs[i]),
+                lab=lab.format(hi=uniqs[i + 1], lo=uniqs[i]),
                 comparison=comparison,
                 pad=uniqs,
             )
@@ -331,7 +344,7 @@ def get_categorical_combinations(
                 variable=variable,
                 hi=clean([uniqs[i - 1]]),
                 lo=clean([uniqs[i]]),
-                lab=lab.format(hi = uniqs[i - 1], lo = uniqs[i]),
+                lab=lab.format(hi=uniqs[i - 1], lo=uniqs[i]),
                 comparison=comparison,
                 pad=uniqs,
             )
@@ -343,7 +356,7 @@ def get_categorical_combinations(
                     variable=variable,
                     hi=clean([uniqs[j]]),
                     lo=clean([uniqs[i]]),
-                    lab=lab.format(hi = uniqs[j], lo = uniqs[i]),
+                    lab=lab.format(hi=uniqs[j], lo=uniqs[i]),
                     comparison=comparison,
                     pad=uniqs,
                 )
@@ -355,7 +368,7 @@ def get_categorical_combinations(
                     variable=variable,
                     hi=clean([uniqs[i]]),
                     lo=clean([uniqs[j]]),
-                    lab=lab.format(hi = uniqs[i], lo = uniqs[j]),
+                    lab=lab.format(hi=uniqs[i], lo=uniqs[j]),
                     comparison=comparison,
                     pad=uniqs,
                 )
