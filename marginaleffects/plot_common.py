@@ -8,36 +8,38 @@ from .utils import get_variable_type
 def dt_on_condition(model, condition):
     model = sanitize_model(model)
 
+    condition_new = condition
+
     # not sure why newdata gets added
     modeldata = model.modeldata
 
-    if isinstance(condition, str):
-        condition = [condition]
+    if isinstance(condition_new, str):
+        condition_new = [condition_new]
 
     to_datagrid = {}
     first_key = ""  # special case when the first element is numeric
 
-    if isinstance(condition, list):
+    if isinstance(condition_new, list):
         assert all(
-            ele in modeldata.columns for ele in condition
+            ele in modeldata.columns for ele in condition_new
         ), "All elements of condition must be columns of the model."
-        first_key = condition[0]
-        to_datagrid = {key: None for key in condition}
+        first_key = condition_new[0]
+        to_datagrid = {key: None for key in condition_new}
 
-    elif isinstance(condition, dict):
+    elif isinstance(condition_new, dict):
         assert all(
-            key in modeldata.columns for key in condition.keys()
+            key in modeldata.columns for key in condition_new.keys()
         ), "All keys of condition must be columns of the model."
-        first_key = next(iter(condition))
-        to_datagrid = condition
+        first_key = next(iter(condition_new))
+        to_datagrid = condition_new
 
     # not sure why `newdata` sometimes gets added
-    if isinstance(condition, dict) and "newdata" in to_datagrid.keys():
-        condition.pop("newdata", None)
+    if isinstance(condition_new, dict) and "newdata" in to_datagrid.keys():
+        condition_new.pop("newdata", None)
 
     assert (
-        1 <= len(condition) <= 3
-    ), f"Lenght of condition must be inclusively between 1 and 3. Got : {len(condition)}."
+        1 <= len(condition_new) <= 3
+    ), f"Lenght of condition must be inclusively between 1 and 3. Got : {len(condition_new)}."
 
     for key, value in to_datagrid.items():
         variable_type = get_variable_type(key, modeldata)

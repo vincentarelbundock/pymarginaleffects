@@ -99,7 +99,8 @@ def upcast(dfs: list) -> list:
 def get_variable_type(variable, newdata):
     inttypes = [pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64]
     if variable not in newdata.columns:
-        raise ValueError(f"`{variable}` is not in `newdata`")
+        return None
+        # raise ValueError(f"`{variable}` is not in `newdata`")
     if newdata[variable].dtype in [pl.Utf8, pl.Categorical]:
         return "character"
     elif newdata[variable].dtype == pl.Boolean:
