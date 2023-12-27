@@ -2,7 +2,6 @@ from collections import namedtuple
 from warnings import warn
 
 import numpy as np
-import pandas as pd
 import polars as pl
 
 from .datagrid import datagrid
@@ -45,11 +44,15 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     elif isinstance(newdata, str) and newdata == "median":
         out = datagrid(newdata=modeldata, FUN_numeric=lambda x: x.median())
 
-    elif isinstance(newdata, pd.DataFrame):
-        out = pl.from_pandas(newdata)
-
     else:
-        out = newdata
+        try:
+            import pandas as pd
+            if isinstance(newdata, pd.DataFrame):
+                out = pl.from_pandas(newdata)
+            else:
+                out = newdata
+        except ImportError:
+            out = newdata
 
     datagrid_explicit = None
     if isinstance(out, pl.DataFrame) and hasattr(out, "datagrid_explicit"):

@@ -7,7 +7,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pandas = "^2.0.2"
 numpy = "^1.25.0"
 patsy = ">0.5.0"
 polars = ">0.18.3"
