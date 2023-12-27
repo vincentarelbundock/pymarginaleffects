@@ -109,6 +109,9 @@ def comparisons(
     The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
     """
 
+    if callable(newdata):
+        newdata = newdata(model)
+
     model = sanitize_model(model)
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
@@ -317,6 +320,10 @@ def avg_comparisons(
     transform=None,
     eps=1e-4,
 ):
+
+    if callable(newdata):
+        newdata = newdata(model)
+
     out = comparisons(
         model=model,
         variables=variables,

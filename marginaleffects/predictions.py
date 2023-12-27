@@ -14,6 +14,7 @@ from .sanity import (
     sanitize_vcov,
 )
 from .transform import get_transform
+from .datagrid import datagrid
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
 from .model_pyfixest import ModelPyfixest
@@ -74,6 +75,9 @@ def predictions(
         - conf_low: lower bound of the confidence interval (or equal-tailed interval for Bayesian models)
         - conf_high: upper bound of the confidence interval (or equal-tailed interval for Bayesian models)
     """
+
+    if callable(newdata):
+        newdata = newdata(model)
 
     # sanity checks
     model = sanitize_model(model)
@@ -200,6 +204,10 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
+
+    if callable(newdata):
+        newdata = newdata(model)
+
     out = predictions(
         model=model,
         conf_level=conf_level,

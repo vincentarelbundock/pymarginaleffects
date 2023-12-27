@@ -15,6 +15,10 @@ def slopes(
     eps=1e-4,
     eps_vcov=None,
 ):
+
+    if callable(newdata):
+        newdata = newdata(model)
+
     assert isinstance(eps, float)
 
     if slope not in ["dydx", "eyex", "eydx", "dyex"]:
@@ -51,6 +55,10 @@ def avg_slopes(
     eps=1e-4,
     eps_vcov=None,
 ):
+
+    if callable(newdata):
+        newdata = newdata(model)
+
     if slope not in ["dydx", "eyex", "eydx", "dyex"]:
         raise ValueError("slope must be one of 'dydx', 'eyex', 'eydx', 'dyex'")
     out = slopes(
