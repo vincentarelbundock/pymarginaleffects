@@ -15,7 +15,7 @@ df = pl.read_csv(
     null_values="NA",
 ).drop_nulls()
 mod = smf.ols(
-    "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island",
+    "body_mass_g ~ flipper_length_mm * species * bill_length_mm * island",
     df.to_pandas(),
 ).fit()
 
