@@ -1,7 +1,4 @@
-import os
-
 import polars as pl
-import pytest
 import statsmodels.formula.api as smf
 
 from marginaleffects import *
@@ -10,12 +7,14 @@ from marginaleffects.plot_comparisons import *
 from .utilities import *
 
 
-
-df = pl.read_csv(
-    "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
-    null_values="NA",) \
-        .drop_nulls() \
-        .sort(pl.col("species"))
+df = (
+    pl.read_csv(
+        "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
+        null_values="NA",
+    )
+    .drop_nulls()
+    .sort(pl.col("species"))
+)
 mod = smf.ols(
     "body_mass_g ~ flipper_length_mm * species * bill_length_mm * island",
     df.to_pandas(),
