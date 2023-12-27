@@ -53,9 +53,10 @@ def predictions(
 
     wts: Column name of weights to use for marginalization. Must be a column in `newdata`
 
-    transform : Callable, optional
-        A function applied to unit-level adjusted predictions and confidence intervals just before
-        the function returns results, by default None.
+    transform (function): a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
+        - `transform = numpy.exp`
+        - `transform = lambda x: x.exp()`
+        - `transform = lambda x: x.map_elements()`
 
     hypothesis: String formula of hypothesis test or numpy array.
 

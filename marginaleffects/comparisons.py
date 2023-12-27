@@ -81,7 +81,10 @@ def comparisons(
         + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
     - newdata (polars or pandas DataFrame, or str): a data frame or a string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
     - comparison (str): a string specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
-    - transform (function): a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a series and return a series of the same length.
+    - transform (function): a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
+        - `transform = numpy.exp`
+        - `transform = lambda x: x.exp()`
+        - `transform = lambda x: x.map_elements()`
     - equivalence (list): a list of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
     - by (bool, str): a logical value, a list of column names in `newdata`. If `True`, estimates are aggregated for each term.
     - hypothesis (str, numpy array): a string specifying a numeric value specifying the null hypothesis used for computing p-values.
@@ -156,7 +159,7 @@ def comparisons(
 
     # we must pad with *all* variables in the model, not just the ones in the `variables` argument
     vars = model.get_variables_names(variables=None, newdata=modeldata)
-    vars = [re.sub("\[.*", "", x) for x in vars]
+    vars = [re.sub(r"\[.*", "", x) for x in vars]
     vars = list(set(vars))
     for v in vars:
         if v in modeldata.columns:
