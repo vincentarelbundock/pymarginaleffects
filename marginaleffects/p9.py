@@ -13,7 +13,7 @@ import polars as pl
 
 
 def plot_common(model, dt, y_label, var_list):
-    discrete = model.variables_type[var_list[0]] != "numeric"
+    discrete = model.variables_type[var_list[0]] not in ["numeric", "integer"]
     interval = "conf_low" in dt.columns
 
     # treat all variables except x-axis as categorical

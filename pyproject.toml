@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "marginaleffects"
-version = "0.0.7"
+version = "0.0.7-dev"
 description = ""
 authors = ["Vincent Arel-Bundock <vincent.arel-bundock@umontreal.ca>"]
 readme = "README.md"

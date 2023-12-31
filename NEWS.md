@@ -1,3 +1,7 @@
+# Development
+
+* PyFixest: Fixed effects variables are recognized as categorical by `datagrid()`
+
 # 0.0.7
 
 Breaking change:

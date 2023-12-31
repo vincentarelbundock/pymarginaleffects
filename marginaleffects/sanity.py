@@ -69,13 +69,6 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         if (isinstance(wts, str) is False) or (wts not in out.columns):
             raise ValueError(f"`newdata` does not have a column named '{wts}'.")
 
-    xnames = model.get_variables_names(variables=None, newdata=modeldata)
-    ynames = model.response_name
-    if isinstance(ynames, str):
-        ynames = [ynames]
-    # cols = [x for x in xnames + ynames if x in out.columns]
-    # out = out.drop_nulls(subset=cols)
-
     if any([isinstance(out[x], pl.Categorical) for x in out.columns]):
         raise ValueError("Categorical type columns are not supported in `newdata`.")
 

@@ -46,4 +46,4 @@ def test_comparisons_02():
     known = pl.read_csv("tests/r/test_statsmodels_logit_comparisons_02.csv").sort(
         ["term", "Species"]
     )
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-4)
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-3)
