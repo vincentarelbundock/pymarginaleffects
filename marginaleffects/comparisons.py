@@ -166,7 +166,7 @@ def comparisons(
     vars = list(set(vars))
     for v in vars:
         if v in modeldata.columns:
-            if modeldata[v].dtype in [pl.Utf8, pl.Boolean]:
+            if model.variables_type[v] not in ["numeric", "integer"]:
                 pad.append(get_pad(newdata, v, modeldata[v].unique()))
 
     # ugly hack, but polars is very strict and `value / 2`` is float

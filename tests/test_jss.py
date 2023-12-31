@@ -210,10 +210,17 @@ def test_titanic():
 
 
 def test_python_section():
-    p = avg_predictions(m, by="continent")
+    p = avg_predictions(    m, by="continent")
     assert isinstance(p, pl.DataFrame)
     assert p.shape[0] == 4
 
     s = slopes(m, newdata="mean")
     assert isinstance(s, pl.DataFrame)
     assert s.shape[0] == 5
+
+
+def test_files_hosted_online():
+    dat = pl.DataFrame("https://marginalffects.com/data/impartiality.csv")
+    assert isinstance(dat, pl.DataFrame)
+    dat = pl.DataFrame("https://marginalffects.com/data/titanic.csv")
+    assert isinstance(dat, pl.DataFrame)

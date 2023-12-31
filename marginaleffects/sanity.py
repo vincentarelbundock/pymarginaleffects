@@ -6,7 +6,6 @@ import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
-from .utils import get_variable_type
 
 
 def sanitize_vcov(vcov, model):
@@ -39,10 +38,10 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         out = modeldata
 
     elif isinstance(newdata, str) and newdata == "mean":
-        out = datagrid(newdata=modeldata)
+        out = datagrid(model=model)
 
     elif isinstance(newdata, str) and newdata == "median":
-        out = datagrid(newdata=modeldata, FUN_numeric=lambda x: x.median())
+        out = datagrid(model=model, FUN_numeric=lambda x: x.median())
 
     else:
         try:
@@ -69,13 +68,6 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     if wts is not None:
         if (isinstance(wts, str) is False) or (wts not in out.columns):
             raise ValueError(f"`newdata` does not have a column named '{wts}'.")
-
-    xnames = model.get_variables_names(variables=None, newdata=modeldata)
-    ynames = model.response_name
-    if isinstance(ynames, str):
-        ynames = [ynames]
-    cols = [x for x in xnames + ynames if x in out.columns]
-    out = out.drop_nulls(subset=cols)
 
     if any([isinstance(out[x], pl.Categorical) for x in out.columns]):
         raise ValueError("Categorical type columns are not supported in `newdata`.")
@@ -151,10 +143,10 @@ def clean_global(k, n):
 
 
 def get_one_variable_hi_lo(
-    variable, value, newdata, comparison, eps, by, wts=None, modeldata=None
+    model, variable, value, newdata, comparison, eps, by, wts=None, modeldata=None
 ):
     msg = "`value` must be a numeric, a list of length two, or 'sd'"
-    vartype = get_variable_type(variable, newdata)
+    vartype = model.variables_type[variable]
 
     def clean(k):
         return clean_global(k, newdata.shape[0])
@@ -173,7 +165,7 @@ def get_one_variable_hi_lo(
     # default
     if value is None:
         # derivatives are not supported for character or boolean variables
-        if vartype in ["character", "boolean"]:
+        if vartype not in ["integer", "numeric"]:
             value = "reference"
             if comparison in ["eyexavg", "dyexavg", "eydxavg", "dydxavg"]:
                 comparison = "differenceavg"
@@ -234,7 +226,7 @@ def get_one_variable_hi_lo(
         else:
             raise ValueError(msg)
 
-    if vartype == "numeric":
+    if vartype in ["integer", "numeric"]:
         if isinstance(value, str):
             if value == "sd":
                 value = modeldata[variable].std()
@@ -392,7 +384,15 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
         for v in vlist:
             out.append(
                 get_one_variable_hi_lo(
-                    v, None, newdata, comparison, eps, by, wts, modeldata=modeldata
+                    model,
+                    v,
+                    None,
+                    newdata,
+                    comparison,
+                    eps,
+                    by,
+                    wts,
+                    modeldata=modeldata,
                 )
             )
 
@@ -404,6 +404,7 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
             else:
                 out.append(
                     get_one_variable_hi_lo(
+                        model,
                         v,
                         variables[v],
                         newdata,
@@ -420,7 +421,15 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
             raise ValueError(f"Variable {variables} is not in newdata.")
         out.append(
             get_one_variable_hi_lo(
-                variables, None, newdata, comparison, eps, by, wts, modeldata=modeldata
+                model,
+                variables,
+                None,
+                newdata,
+                comparison,
+                eps,
+                by,
+                wts,
+                modeldata=modeldata,
             )
         )
 
@@ -431,7 +440,15 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
             else:
                 out.append(
                     get_one_variable_hi_lo(
-                        v, None, newdata, comparison, eps, by, wts, modeldata=modeldata
+                        model,
+                        v,
+                        None,
+                        newdata,
+                        comparison,
+                        eps,
+                        by,
+                        wts,
+                        modeldata=modeldata,
                     )
                 )
 

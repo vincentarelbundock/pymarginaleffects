@@ -6,6 +6,13 @@ from .model_abstract import ModelAbstract
 
 
 class ModelPyfixest(ModelAbstract):
+    def __init__(self, model):
+        super().__init__(model)
+        if hasattr(self.model, "_fixef"):
+            fe = self.model._fixef.split("+")
+            for f in fe:
+                self.variables_type[f] = "character"
+
     def get_coef(self):
         return np.array(self.model._beta_hat)
 

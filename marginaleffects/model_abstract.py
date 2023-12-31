@@ -1,6 +1,7 @@
 import numpy as np
 import polars as pl
 from abc import ABC, abstractmethod
+from .utils import get_type_dictionary
 
 
 class ModelAbstract(ABC):
@@ -10,6 +11,7 @@ class ModelAbstract(ABC):
         self.validate_modeldata()
         self.validate_response_name()
         self.validate_formula()
+        self.variables_type = get_type_dictionary(self.modeldata)
 
     def validate_coef(self):
         coef = self.get_coef()

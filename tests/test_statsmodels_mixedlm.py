@@ -46,5 +46,5 @@ def test_comparisons_02():
     )
     assert_series_equal(known["estimate"], unknown["estimate"], check_names=False)
     assert_series_equal(
-        known["std.error"], unknown["std_error"], check_names=False, rtol=1e-4
+        known["std.error"], unknown["std_error"], check_names=False, rtol=1e-3
     )

@@ -113,7 +113,7 @@ def plot_comparisons(
         eps=eps,
     )
 
-    dt = plot_labels(dt, condition_input)
+    dt = plot_labels(model, dt, condition_input)
 
     if not draw:
         return dt
@@ -144,4 +144,4 @@ def plot_comparisons(
     if not draw:
         return dt
 
-    return plot_common(dt, "Comparison", var_list)
+    return plot_common(model, dt, "Comparison", var_list)
