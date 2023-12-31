@@ -34,7 +34,7 @@ filterwarnings = [
 
 [tool.ruff]
 ignore-init-module-imports = true
-extend-ignore = ["F405", "F403"]
+extend-ignore = ["F405", "F403", "E501"]
 
 
 [tool.ruff.extend-per-file-ignores]
