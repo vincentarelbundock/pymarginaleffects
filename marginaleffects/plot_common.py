@@ -3,8 +3,6 @@ import polars as pl
 from .datagrid import datagrid  # noqa
 from .sanitize_model import sanitize_model
 
-from .utils import get_variable_type
-
 
 def dt_on_condition(model, condition):
     model = sanitize_model(model)
@@ -43,16 +41,7 @@ def dt_on_condition(model, condition):
     ), f"Lenght of condition must be inclusively between 1 and 3. Got : {len(condition_new)}."
 
     for key, value in to_datagrid.items():
-        variable_type = get_variable_type(key, modeldata)
-
-        # TODO: This too demanding for numeric with "threenum"
-        # # Check type of user-supplied dict values
-        # if value is not None:
-        #     test_df = pl.DataFrame({key: value})
-        #     assert (
-        #         variable_type == get_variable_type(key, test_df)
-        #     ), f"Supplied data type of {key} column ({get_variable_type(key, test_df)}) does not match the type of the variable ({variable_type})."
-        #     continue
+        variable_type = model.variables_type[key]
 
         if variable_type == "numeric":
             to_datagrid[key] = condition_numeric(
@@ -94,12 +83,12 @@ def condition_numeric(modeldata, key, value, first):
     return out
 
 
-def plot_labels(dt, condition):
+def plot_labels(model, dt, condition):
     if not isinstance(condition, dict):
         return dt
 
     for k, v in condition.items():
-        if get_variable_type(k, dt) == "numeric":
+        if model.variables_type[k] == "numeric":
             if condition[k] == "threenum":
                 lab = ["-SD", "Mean", "+SD"]
                 dt = ordered_cat(dt, k, lab)

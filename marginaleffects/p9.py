@@ -10,11 +10,10 @@ from plotnine import (
     facet_grid,
 )
 import polars as pl
-from .utils import get_variable_type
 
 
-def plot_common(dt, y_label, var_list):
-    discrete = get_variable_type(var_list[0], dt) != "numeric"
+def plot_common(model, dt, y_label, var_list):
+    discrete = model.variables_type[var_list[0]] != "numeric"
     interval = "conf_low" in dt.columns
 
     # treat all variables except x-axis as categorical

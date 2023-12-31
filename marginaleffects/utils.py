@@ -96,21 +96,24 @@ def upcast(dfs: list) -> list:
     return tmp
 
 
-def get_variable_type(variable, newdata):
-    inttypes = [pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64]
-    if variable not in newdata.columns:
-        return None
-        # raise ValueError(f"`{variable}` is not in `newdata`")
-    if newdata[variable].dtype in [pl.Utf8, pl.Categorical]:
-        return "character"
-    elif newdata[variable].dtype == pl.Boolean:
-        return "boolean"
-    elif newdata[variable].dtype in inttypes:
-        if newdata[variable].is_in([0, 1]).all():
-            return "binary"
+def get_type_dictionary(modeldata):
+    out = dict()
+    for v in modeldata.columns:
+        t_i = [pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64]
+        t_c = [pl.Utf8, pl.Categorical]
+        t_n = [pl.Float32, pl.Float64]
+        t_b = [pl.Boolean]
+        if modeldata[v].dtype in t_i:
+            if modeldata[v].is_in([0, 1]).all():
+                out[v] = "boolean"
+            else:
+                out[v] = "integer"
+        elif modeldata[v].dtype in t_c:
+            out[v] = "character"
+        elif modeldata[v].dtype in t_b:
+            out[v] = "boolean"
+        elif modeldata[v].dtype in t_n:
+            out[v] = "numeric"
         else:
-            return "numeric"
-    elif newdata[variable].dtype in [pl.Float32, pl.Float64]:
-        return "numeric"
-    else:
-        raise ValueError(f"Unknown type for `{variable}`: {newdata[variable].dtype}")
+            out[v] = "unknown"
+    return out

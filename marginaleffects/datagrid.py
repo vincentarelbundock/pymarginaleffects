@@ -126,12 +126,18 @@ def datagrid(
     ]
 
     for col in newdata.columns:
-        # not specified manually
         if col not in out.keys():
-            # numeric
-            if newdata[col].dtype in numtypes:
+            # model classes include relevant information. use if available
+            if model is not None:
+                coltype = model.variables_type[col]
+            else:
+                if newdata[col].dtype in numtypes:
+                    coltype = "numeric"
+                else:
+                    coltype = "other"
+
+            if coltype == "numeric":
                 out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
-            # other
             else:
                 out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
 

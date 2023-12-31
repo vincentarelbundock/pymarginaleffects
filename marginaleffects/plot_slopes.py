@@ -116,7 +116,7 @@ def plot_slopes(
         eps_vcov=eps_vcov,
     )
 
-    dt = plot_labels(dt, condition_input)
+    dt = plot_labels(model, dt, condition_input)
 
     if not draw:
         return dt
@@ -147,4 +147,4 @@ def plot_slopes(
     if not draw:
         return dt
 
-    return plot_common(dt, "Slope", var_list)
+    return plot_common(model, dt, "Slope", var_list)
