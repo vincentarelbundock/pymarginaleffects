@@ -60,6 +60,7 @@ def get_pad(df, colname, uniqs):
 
 def upcast(dfs: list) -> list:
     numeric_types = [
+        pl.Boolean,
         pl.Int8,
         pl.Int16,
         pl.Int32,

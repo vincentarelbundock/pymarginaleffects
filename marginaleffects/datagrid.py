@@ -110,7 +110,8 @@ def datagrid(
 
     out = {}
     for key, value in kwargs.items():
-        out[key] = pl.DataFrame({key: value})
+        if value is not None:
+            out[key] = pl.DataFrame({key: value})
 
     numtypes = [
         pl.Int8,

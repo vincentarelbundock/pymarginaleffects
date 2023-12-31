@@ -38,10 +38,10 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         out = modeldata
 
     elif isinstance(newdata, str) and newdata == "mean":
-        out = datagrid(newdata=modeldata)
+        out = datagrid(model=model)
 
     elif isinstance(newdata, str) and newdata == "median":
-        out = datagrid(newdata=modeldata, FUN_numeric=lambda x: x.median())
+        out = datagrid(model=model, FUN_numeric=lambda x: x.median())
 
     else:
         try:
@@ -73,8 +73,8 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     ynames = model.response_name
     if isinstance(ynames, str):
         ynames = [ynames]
-    cols = [x for x in xnames + ynames if x in out.columns]
-    out = out.drop_nulls(subset=cols)
+    # cols = [x for x in xnames + ynames if x in out.columns]
+    # out = out.drop_nulls(subset=cols)
 
     if any([isinstance(out[x], pl.Categorical) for x in out.columns]):
         raise ValueError("Categorical type columns are not supported in `newdata`.")
