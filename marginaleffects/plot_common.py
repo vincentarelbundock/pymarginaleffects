@@ -43,7 +43,7 @@ def dt_on_condition(model, condition):
     for key, value in to_datagrid.items():
         variable_type = model.variables_type[key]
 
-        if variable_type == "numeric":
+        if variable_type in ["numeric", "integer"]:
             to_datagrid[key] = condition_numeric(
                 modeldata, key, value, key == first_key
             )
@@ -88,7 +88,7 @@ def plot_labels(model, dt, condition):
         return dt
 
     for k, v in condition.items():
-        if model.variables_type[k] == "numeric":
+        if model.variables_type[k] in ["numeric", "integer"]:
             if condition[k] == "threenum":
                 lab = ["-SD", "Mean", "+SD"]
                 dt = ordered_cat(dt, k, lab)
