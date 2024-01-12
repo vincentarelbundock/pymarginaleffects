@@ -94,7 +94,7 @@ def plot_slopes(
     ), "The `wts` argument requires a `by` argument."
 
     assert not (
-        condition is None and by is None
+        condition is None and not by
     ), "One of the `condition` and `by` arguments must be supplied, but not both."
 
     # before dt_on_condition, which modifies in-place
