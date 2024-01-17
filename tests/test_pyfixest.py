@@ -1,8 +1,14 @@
+try:
+    from pyfixest.estimation import feols, fepois
+    from pyfixest.utils import ssc
+    # Other code that requires the above imports can go here
+except ImportError:
+    print("pyfixest is not installed but required to run these tests.")
+
+
 import polars as pl
 from polars.testing import assert_series_equal
 import numpy as np
-from pyfixest.estimation import feols, fepois
-from pyfixest.utils import ssc
 from marginaleffects import *
 import pytest
 import sys
@@ -29,6 +35,7 @@ def create_test_data():
 
 @pytest.mark.skipif(sys.version_info > (3, 11), reason="Requires Python 3.11 or lower")
 def test_bare_minimum():
+
     data = create_test_data()
 
     # test 1: no fixed effects
@@ -119,6 +126,7 @@ def test_bare_minimum():
 @pytest.mark.skip(reason="predict method with newdata not yet implemented for fepois.")
 @pytest.mark.skipif(sys.version_info > (3, 11), reason="Requires Python 3.11 or lower")
 def test_bare_minimum_fepois():
+
     data = create_test_data().to_pandas()
     data["Y"] = data["Y"].abs()
 
