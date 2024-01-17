@@ -7,7 +7,7 @@ on:
 jobs:
   unit-tests:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         python:
           - "3.9"
