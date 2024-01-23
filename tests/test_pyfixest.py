@@ -33,9 +33,9 @@ def create_test_data():
 
     return data
 
+
 @pytest.mark.skipif(sys.version_info > (3, 11), reason="Requires Python 3.11 or lower")
 def test_bare_minimum():
-
     data = create_test_data()
 
     # test 1: no fixed effects
@@ -126,7 +126,6 @@ def test_bare_minimum():
 @pytest.mark.skip(reason="predict method with newdata not yet implemented for fepois.")
 @pytest.mark.skipif(sys.version_info > (3, 11), reason="Requires Python 3.11 or lower")
 def test_bare_minimum_fepois():
-
     data = create_test_data().to_pandas()
     data["Y"] = data["Y"].abs()
 

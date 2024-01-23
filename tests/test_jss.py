@@ -210,7 +210,7 @@ def test_titanic():
 
 
 def test_python_section():
-    p = avg_predictions(    m, by="continent")
+    p = avg_predictions(m, by="continent")
     assert isinstance(p, pl.DataFrame)
     assert p.shape[0] == 4
 
