@@ -297,12 +297,14 @@ def comparisons(
         out = get_z_p_ci(
             out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
         )
+    else:
+        J = None
 
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
     out = sort_columns(out, by=by, newdata=newdata)
 
-    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level, newdata=newdata)
+    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata)
     return out
 
 
