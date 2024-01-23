@@ -304,7 +304,9 @@ def comparisons(
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
     out = sort_columns(out, by=by, newdata=newdata)
 
-    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata)
+    out = MarginaleffectsDataFrame(
+        out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
+    )
     return out
 
 

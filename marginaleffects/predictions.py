@@ -190,7 +190,9 @@ def predictions(
     if "rowid" in out.columns and pad.shape[0] > 0:
         out = out[: -pad.shape[0] :]
 
-    out = MarginaleffectsDataFrame(out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata)
+    out = MarginaleffectsDataFrame(
+        out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
+    )
     return out
 
 

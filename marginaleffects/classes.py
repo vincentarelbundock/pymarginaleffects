@@ -2,7 +2,9 @@ import polars as pl
 
 
 class MarginaleffectsDataFrame(pl.DataFrame):
-    def __init__(self, data=None, by=None, conf_level=0.95, jacobian=None, newdata=None):
+    def __init__(
+        self, data=None, by=None, conf_level=0.95, jacobian=None, newdata=None
+    ):
         if isinstance(data, pl.DataFrame):
             self._df = data._df
             self.by = by
