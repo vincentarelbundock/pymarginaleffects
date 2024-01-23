@@ -1,6 +1,7 @@
 # Development
 
 * PyFixest: Fixed effects variables are recognized as categorical by `datagrid()`
+* `MarginalEffectsDataFrame` class now has a `jacobian` attribute.
 
 # 0.0.7
 

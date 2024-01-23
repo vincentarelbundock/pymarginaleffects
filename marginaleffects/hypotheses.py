@@ -91,7 +91,9 @@ def hypotheses(
         out = get_z_p_ci(
             out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
         )
+    else:
+        J = None
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=None)
-    out = MarginaleffectsDataFrame(out, conf_level=conf_level)
+    out = MarginaleffectsDataFrame(out, conf_level=conf_level, jacobian=J)
     return out
