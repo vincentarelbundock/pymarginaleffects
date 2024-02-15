@@ -8,6 +8,10 @@ from polars.testing import assert_series_equal
 import marginaleffects
 from marginaleffects import *
 
+
+# Translated from https://github.com/vincentarelbundock/marginaleffects/blob/main/inst/tinytest/test-analytic.R
+
+
 def test_linear_quadratic():
 	np.random.seed(1)
 	f = "y ~ x + I(x**2)"
