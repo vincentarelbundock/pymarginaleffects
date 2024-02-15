@@ -23,7 +23,7 @@ def test_linear_quadratic():
 		y = (1 + pl.col('x') + pl.col('x')**2 + np.random.normal(size=N))
 	)
 	mod = smf.ols(f, dat.to_pandas()).fit()
-	nd = datagrid(newdata = dat, x = [-2, 2])
+	nd = datagrid(newdata = dat, x = range(-2, 3))
 	res = slopes(mod, newdata = nd)
 	res = res.with_columns(
 		truth = truth(pl.col('x')).cast(pl.Float64)
@@ -46,7 +46,7 @@ def test_linear_quadratic():
 # 		y = np.log(pl.col('x')) + np.random.normal(size=N)
 # 	)
 # 	mod = smf.ols(f, dat.to_pandas()).fit()
-# 	nd = datagrid(newdata = dat, x = [1, 4])
+# 	nd = datagrid(newdata = dat, x = range(1, 5))
 # 	res = slopes(mod, newdata = nd)
 # 	res = res.with_columns(
 # 		truth = truth(pl.col('x')).cast(pl.Float64)
@@ -69,7 +69,7 @@ def test_logit():
 		y = np.random.binomial(1, pr, size=N)
 	)
 	mod = smf.glm(f, data = dat, family = sm.families.Binomial()).fit()
-	nd = datagrid(newdata = dat, x = [-10, 10])
+	nd = datagrid(newdata = dat, x = range(-10, 11))
 	res = slopes(mod, newdata = nd)
 	tru = truth(res['x'])
 	res = res.with_columns(
@@ -80,9 +80,19 @@ def test_logit():
 	)
 
 
-def test_golder():
+
+
+############################################################################
+#  golder tests copied to the R version of `marginaleffects`               #
+#  from the `margins` github repository on 2021-09-18                      #
+#  and translated to Python on 2024-02-15                                  #
+#  LICENSE: MIT Thomas J. Leeper                                           #
+############################################################################
+
 # tests based on formulae from Matt Golder's OLS examples, for numerical accuracy and precision
 # http://mattgolder.com/wp-content/uploads/2015/05/standarderrors1.png
+
+def test_golder():
 
 	# example data for tests
 	np.random.seed(1)
