@@ -262,6 +262,13 @@ def get_one_variable_hi_lo(
             hi = newdata[variable] + value / 2
             lo = newdata[variable] - value / 2
 
+        elif callable(value):
+            tmp = value(newdata[variable])
+            assert tmp.shape[1] == 2, f"The function passed to `variables` must return a DataFrame with two columns. Got {tmp.shape[1]}."
+            lo = tmp[:,0]
+            hi = tmp[:,1]
+            lab = "custom"
+
         else:
             raise ValueError(msg)
 
