@@ -3,7 +3,9 @@ import re
 import numpy as np
 import polars as pl
 import statsmodels.formula.api as smf
+import statsmodels.api as sm
 from polars.testing import assert_series_equal
+import pytest
 
 import marginaleffects
 from marginaleffects import *
@@ -26,6 +28,10 @@ dat = dat.with_columns(
 ).to_pandas()
 
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
+
+mtcars = pl.read_csv(
+    "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
+)
 
 
 def test_difference():
@@ -143,3 +149,49 @@ def test_bare_minimum():
         type(comparisons(fit, variables={"Pop1831": [100, 2000]}))
         == marginaleffects.classes.MarginaleffectsDataFrame
     )
+
+
+def test_variables_function():
+    def forward_diff(x):
+        return pl.DataFrame({'base' : x, 'forward' : x+10})
+    def backward_diff(x):
+        return pl.DataFrame({'backward' : x-10, 'base' : x})
+    def center_diff(x):
+        return pl.DataFrame({'low' : x-5, 'high' : x+5})
+
+    mod = smf.glm("vs ~ hp", data=mtcars, family=sm.families.Binomial()).fit()
+
+    cmp_py = comparisons(mod, variables = {'hp': forward_diff})
+    cmp_r = pl.read_csv("tests/r/test_comparisons_08_forward_diff.csv")
+    assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+    assert_series_equal(
+        cmp_py["std_error"], cmp_r["std.error"], check_names=False
+    )
+    cmp_py = comparisons(mod, variables = {'hp': backward_diff})
+    cmp_r = pl.read_csv("tests/r/test_comparisons_08_backward_diff.csv")
+    assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+    assert_series_equal(
+        cmp_py["std_error"], cmp_r["std.error"], check_names=False
+    )
+    cmp_py = comparisons(mod, variables = {'hp': center_diff})
+    cmp_r = pl.read_csv("tests/r/test_comparisons_08_center_diff.csv")
+    assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
+    assert_series_equal(
+        cmp_py["std_error"], cmp_r["std.error"], check_names=False
+    )
+
+
+def test_contrast():
+    mod = smf.ols("mpg ~ hp * qsec", data=mtcars).fit()
+    comp = avg_comparisons(mod, variables={"hp" : "2sd"})
+    assert comp["contrast"].item(), "mean((x+sd)) - mean((x-sd))"
+
+
+def test_lift():
+    mod = smf.ols("am ~ hp", data=mtcars).fit()
+    cmp1 = comparisons(mod, comparison = "lift")
+    cmp2 = comparisons(mod, comparison = "liftavg")
+    assert cmp1.shape[0] == 32
+    assert cmp2.shape[0] == 1
+    with pytest.raises(AssertionError):
+        comparisons(mod, comparison = "liftr")

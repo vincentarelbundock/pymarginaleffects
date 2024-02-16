@@ -262,6 +262,12 @@ def get_one_variable_hi_lo(
             hi = newdata[variable] + value / 2
             lo = newdata[variable] - value / 2
 
+        elif callable(value):
+            tmp = value(newdata[variable])
+            lo = tmp[:,0]
+            hi = tmp[:,1]
+            lab = "custom"
+
         else:
             raise ValueError(msg)
 
