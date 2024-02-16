@@ -5,7 +5,6 @@ import statsmodels.api as sm
 from scipy.stats import logistic
 from polars.testing import assert_series_equal
 
-import marginaleffects
 from marginaleffects import *
 
 
