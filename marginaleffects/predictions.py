@@ -68,7 +68,7 @@ def predictions(
         - type: prediction type, as defined by the `type` argument
         - group: (optional) value of the grouped outcome (e.g., categorical outcome models)
         - estimate: predicted outcome
-        - std.error: standard errors computed using the delta method.
+        - std_error: standard errors computed using the delta method.
         - p_value: p value associated with the `estimate` column.
         - s_value: Shannon information transforms of p values.
         - conf_low: lower bound of the confidence interval (or equal-tailed interval for Bayesian models)
