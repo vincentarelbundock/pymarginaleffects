@@ -54,15 +54,15 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         except ImportError:
             out = newdata
 
-    # reserved_names = {
-    #     "rowid", "type",
-    #     "group", "estimate",
-    #     "std_error", "p_value",
-    #     "s_value", "conf_low",
-    #     "conf_high", "term",
-    #     "contrast", "statistic"}
-    # assert not (set(out.columns) & reserved_names), \
-    #     f"Input data contain reserved column name(s) : {set(out.columns).intersection(reserved_names)}"
+    reserved_names = {
+        "rowid", "type",
+        "group", "estimate",
+        "std_error", "p_value",
+        "s_value", "conf_low",
+        "conf_high", "term",
+        "contrast", "statistic"}
+    assert not (set(out.columns) & reserved_names), \
+        f"Input data contain reserved column name(s) : {set(out.columns).intersection(reserved_names)}"
 
     datagrid_explicit = None
     if isinstance(out, pl.DataFrame) and hasattr(out, "datagrid_explicit"):
