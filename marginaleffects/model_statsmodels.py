@@ -50,10 +50,9 @@ class ModelStatsmodels(ModelAbstract):
 
     def get_variables_names(self, variables=None, newdata=None):
         if variables is None:
-            variables = self.model.model.exog_names
-            variables = [re.sub("\[.*\]", "", x) for x in variables]
-            variables = [x for x in variables if x in self.modeldata.columns]
-            variables = pl.Series(variables).unique().to_list()
+            formula = self.formula
+            columns = self.modeldata.columns
+            variables = list({var for var in columns if re.search(rf"\b{re.escape(var)}\b", formula.split('~')[1])})
 
         if isinstance(variables, (str, dict)):
             variables = [variables] if isinstance(variables, str) else variables

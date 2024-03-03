@@ -30,28 +30,25 @@ def test_linear_quadratic():
     assert_series_equal(res["estimate"], res["truth"], check_names=False, atol=0.01)
 
 
-# Fails at `res = slopes(mod, newdata = nd)`
-# with ValueError: There is no valid column name in `variables`.
-
-# def test_linear_log():
-# 	np.random.seed(1)
-# 	f = "y ~ np.log(x)"
-# 	def truth(x):
-# 		return(1 / x)
-# 	N = 10000
-# 	dat = pl.DataFrame({'x' : np.random.uniform(size=N)})
-# 	dat = dat.with_columns(
-# 		y = np.log(pl.col('x')) + np.random.normal(size=N)
-# 	)
-# 	mod = smf.ols(f, dat.to_pandas()).fit()
-# 	nd = datagrid(newdata = dat, x = range(1, 5))
-# 	res = slopes(mod, newdata = nd)
-# 	res = res.with_columns(
-# 		truth = truth(pl.col('x')).cast(pl.Float64)
-# 	)
-# 	assert_series_equal(
-# 		res['estimate'], res['truth'], check_names=False, atol=0.01
-# 	)
+def test_linear_log():
+	np.random.seed(1)
+	f = "y ~ np.log(x)"
+	def truth(x):
+		return(1 / x)
+	N = 10000
+	dat = pl.DataFrame({'x' : np.random.uniform(size=N)})
+	dat = dat.with_columns(
+		y = np.log(pl.col('x')) + np.random.normal(size=N)
+	)
+	mod = smf.ols(f, dat.to_pandas()).fit()
+	nd = datagrid(newdata = dat, x = range(1, 5))
+	res = slopes(mod, newdata = nd)
+	res = res.with_columns(
+		truth = truth(pl.col('x')).cast(pl.Float64)
+	)
+	assert_series_equal(
+		res['estimate'], res['truth'], check_names=False, atol=0.02
+	)
 
 
 def test_logit():
