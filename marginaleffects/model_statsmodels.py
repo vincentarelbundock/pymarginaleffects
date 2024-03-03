@@ -52,7 +52,13 @@ class ModelStatsmodels(ModelAbstract):
         if variables is None:
             formula = self.formula
             columns = self.modeldata.columns
-            variables = list({var for var in columns if re.search(rf"\b{re.escape(var)}\b", formula.split('~')[1])})
+            variables = list(
+                {
+                    var
+                    for var in columns
+                    if re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
+                }
+            )
 
         if isinstance(variables, (str, dict)):
             variables = [variables] if isinstance(variables, str) else variables
