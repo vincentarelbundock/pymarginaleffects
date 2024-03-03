@@ -15,9 +15,8 @@ readme: ## render Quarto readme
 	mv -f docs/get_started.md README.md
 
 lint: ## run the lint checkers
-	poetry run isort marginaleffects --check
-	poetry run black marginaleffects --check
-	poetry run flake8 marginaleffects
+	poetry run ruff format marginaleffects
+	poetry run ruff format tests
 
 install: ## install in poetry venv
 	poetry install
