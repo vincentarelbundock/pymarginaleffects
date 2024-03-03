@@ -1,6 +1,7 @@
-# Development
+# 0.0.9
 
 * Issue #90: Informative error on reserved keyword like 'group'.
+* Issue #91: get_variables_names() in class ModelStatsmodels does not return all variables which causes errors
 
 # 0.0.8
 
