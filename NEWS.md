@@ -1,3 +1,7 @@
+# Development
+
+* Issue #90: Informative error on reserved keyword like 'group'.
+
 # 0.0.8
 
 * PyFixest: Fixed effects variables are recognized as categorical by `datagrid()`
