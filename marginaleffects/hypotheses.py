@@ -7,10 +7,18 @@ from .sanity import sanitize_hypothesis_null, sanitize_vcov
 from .sanitize_model import sanitize_model
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
+from .hypotheses_joint import joint_hypotheses
 
 
 def hypotheses(
-    model, hypothesis=None, conf_level=0.95, vcov=True, equivalence=None, eps_vcov=None
+    model,
+    hypothesis=None,
+    conf_level=0.95,
+    vcov=True,
+    equivalence=None,
+    eps_vcov=None,
+    joint=False,
+    joint_test="f",
 ):
     """
     (Non-)Linear Tests for Null Hypotheses, Joint Hypotheses, Equivalence, Non Superiority, and Non Inferiority.
@@ -73,9 +81,15 @@ def hypotheses(
     """
 
     model = sanitize_model(model)
-    V = sanitize_vcov(vcov, model)
+
+    if joint:
+        out = joint_hypotheses(
+            model, joint_index=joint, joint_test=joint_test, hypothesis=hypothesis
+        )
+        return out
 
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
+    V = sanitize_vcov(vcov, model)
 
     # estimands
     def fun(x):

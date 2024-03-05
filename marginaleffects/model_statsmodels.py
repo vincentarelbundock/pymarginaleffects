@@ -52,13 +52,12 @@ class ModelStatsmodels(ModelAbstract):
         if variables is None:
             formula = self.formula
             columns = self.modeldata.columns
-            variables = list(
-                {
-                    var
-                    for var in columns
-                    if re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
-                }
-            )
+            order = {}
+            for var in columns:
+                match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
+                if match:
+                    order[var] = match.start()
+            variables = sorted(order, key=lambda i: order[i])
 
         if isinstance(variables, (str, dict)):
             variables = [variables] if isinstance(variables, str) else variables
@@ -108,3 +107,6 @@ class ModelStatsmodels(ModelAbstract):
 
     def get_formula(self):
         return self.model.model.formula
+
+    def get_df(self):
+        return self.model.df_resid
