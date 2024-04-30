@@ -274,12 +274,9 @@ def comparisons(
                 tmp = x.with_columns(pl.lit(est).alias("estimate"))
             return tmp
 
-        def applyfun_outer(x):
-            return applyfun(x, by=by, wts=wts)
-
         # maintain_order is extremely important
         by = [x for x in by if x in tmp.columns]
-        tmp = tmp.group_by(by, maintain_order=True).map_groups(applyfun_outer)
+        tmp = tmp.group_by(*by, maintain_order=True).map_groups(function=lambda x: applyfun(x, by=by, wts=wts))
 
         tmp = get_hypothesis(tmp, hypothesis=hypothesis)
 
