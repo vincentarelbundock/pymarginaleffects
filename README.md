@@ -91,12 +91,3 @@ using a simple and consistent user interface. Its benefits include:
     requests on
     Github.](https://github.com/vincentarelbundock/marginaleffects/issues)
 -   *Active development*: Bugs are fixed promptly.
-
-<center>
-<a href = "https://marginaleffects.com" target = "_blank"><img src="man/figures/marginaleffects_logo_word.svg" width = "100%"></a>
-<br> <br>
-<a href = "https://github.com/vincentarelbundock/marginaleffects/blob/main/LICENSE.md" target = "_blank"><img src="https://img.shields.io/badge/license-GPLv3-blue"></a>
-<a href = "https://marginaleffects.com" target = "_blank"><img src="https://img.shields.io/static/v1?label=Website&message=Visit&color=blue"></a>
-<a href = "https://marginaleffects.com" target = "_blank"><img src="https://cranlogs.r-pkg.org/badges/grand-total/marginaleffects"></a>
-<br><br>
-</center>
