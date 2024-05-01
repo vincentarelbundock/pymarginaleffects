@@ -276,7 +276,9 @@ def comparisons(
 
         # maintain_order is extremely important
         by = [x for x in by if x in tmp.columns]
-        tmp = tmp.group_by(*by, maintain_order=True).map_groups(function=lambda x: applyfun(x, by=by, wts=wts))
+        tmp = tmp.group_by(*by, maintain_order=True).map_groups(
+            function=lambda x: applyfun(x, by=by, wts=wts)
+        )
 
         tmp = get_hypothesis(tmp, hypothesis=hypothesis)
 
