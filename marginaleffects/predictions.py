@@ -15,7 +15,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, upcast
+from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 
 
