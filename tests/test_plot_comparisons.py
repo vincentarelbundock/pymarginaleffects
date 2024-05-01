@@ -27,12 +27,12 @@ def test_continuous():
         variables="bill_length_mm",
         by="island",
     )
-    assert assert_image(fig, "continous_01", "plot_comparisons") is None
+    assert assert_image(fig, "continuous_01", "plot_comparisons") is None
 
     fig = plot_comparisons(
         mod, variables="bill_length_mm", condition=["flipper_length_mm", "species"]
     )
-    assert assert_image(fig, "continous_02", "plot_comparisons") is None
+    assert assert_image(fig, "continuous_02", "plot_comparisons") is None
 
     fig = plot_comparisons(mod, variables="bill_length_mm", condition="species")
     assert assert_image(fig, "continuous_03", "plot_comparisons") is None
