@@ -15,7 +15,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, upcast
+from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 
 
@@ -125,21 +125,6 @@ def predictions(
 
         newdata.datagrid_explicit = list(variables.keys())
 
-    # pad
-    pad = []
-    vs = model.get_variables_names(variables=None, newdata=modeldata)
-    for v in vs:
-        if not newdata[v].dtype.is_numeric():
-            uniqs = modeldata[v].unique()
-            if not all(uniq in newdata[v] for uniq in uniqs):
-                pad.append(get_pad(modeldata, v, uniqs))
-    if len(pad) > 0:
-        pad = pl.concat(pad)
-        tmp = upcast([newdata, pad])
-        newdata = pl.concat(tmp, how="diagonal")
-    else:
-        pad = pl.DataFrame()
-
     # predictors
     # we want this to be a model matrix to avoid converting data frames to
     # matrices many times, which would be computationally wasteful. But in the
@@ -147,7 +132,8 @@ def predictions(
     if isinstance(model, ModelPyfixest):
         exog = newdata.to_pandas()
     else:
-        y, exog = patsy.dmatrices(model.formula, newdata.to_pandas())
+        design_info = model.model.model.data.design_info
+        exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
 
     # estimands
     def inner(x):
@@ -185,10 +171,6 @@ def predictions(
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by, newdata=newdata)
-
-    # unpad
-    if "rowid" in out.columns and pad.shape[0] > 0:
-        out = out[: -pad.shape[0] :]
 
     out = MarginaleffectsDataFrame(
         out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata

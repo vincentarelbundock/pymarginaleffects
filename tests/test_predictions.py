@@ -1,4 +1,5 @@
 import polars as pl
+from polars.testing import assert_series_equal
 import statsmodels.formula.api as smf
 
 import marginaleffects
@@ -15,6 +16,7 @@ df = df.with_columns(pl.Series(range(df.shape[0])).alias("row_id")).sort(
 )
 mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
 
+diamonds = pl.read_csv("https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/ggplot2/diamonds.csv")
 
 def test_predictions():
     pre_py = predictions(mod_py)
@@ -55,3 +57,37 @@ def issue_59():
     p = predictions(mod_py, vcov=False)
     assert p.shape[0] == df.shape[0]
     assert p.shape[1] > 20
+
+
+def test_issue_83():
+    diamonds83 = diamonds.with_columns(
+        cut_ideal_null = pl.when(pl.col('cut') == 'Ideal')
+                            .then(pl.lit(None))
+                            .otherwise(pl.col('cut'))
+    )
+
+    model = smf.ols("price ~ cut_ideal_null", diamonds83.to_pandas()).fit()
+
+    newdata = diamonds.slice(0,20)
+    newdata = newdata.with_columns(
+        cut_ideal_null = pl.when(pl.col('cut') == 'Ideal')
+                            .then(pl.lit('Premium'))
+                            .otherwise(pl.col('cut'))
+    )
+
+    p = predictions(model, newdata=newdata)
+    assert p.shape[0] == newdata.shape[0]
+
+
+def test_issue_95():
+    model = smf.ols("price ~ cut + clarity + color", diamonds.to_pandas()).fit()
+
+    newdata = diamonds.slice(0,20)
+    p = predictions(model, newdata=newdata, by="cut")
+
+    newdata = newdata.with_columns(pred = pl.Series(model.predict(newdata.to_pandas())))
+    newdata = newdata.group_by("cut").agg(pl.col("pred").mean())
+    p = p.sort(by="cut")
+    newdata = newdata.sort(by="cut")
+
+    assert_series_equal(p["estimate"], newdata["pred"], check_names=False)
