@@ -29,19 +29,19 @@ def get_equivalence(
     if np.isinf(df):
         x = x.with_columns(
             pl.col("statistic_noninf")
-            .map_elements(lambda x: norm.sf(x))
+            .map_elements(lambda x: 1 - norm.cdf(x), return_dtype=pl.Float64)
             .alias("p_value_noninf"),
             pl.col("statistic_nonsup")
-            .map_elements(lambda x: norm.cdf(x))
+             .map_elements(lambda x: norm.cdf(x), return_dtype=pl.Float64)
             .alias("p_value_nonsup"),
         )
     else:
         x = x.with_columns(
             pl.col("statistic_noninf")
-            .map_elements(lambda x: t.sf(x))
+            .map_elements(lambda x: 1 - t.cdf(x), return_dtype=pl.Float64)
             .alias("p_value_noninf"),
             pl.col("statistic_nonsup")
-            .map_elements(lambda x: t.cdf(x))
+            .map_elements(lambda x: t.cdf(x), return_dtype=pl.Float64)
             .alias("p_value_nonsup"),
         )
 

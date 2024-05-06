@@ -2,7 +2,6 @@ import polars as pl
 import pytest
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-
 from marginaleffects import *
 
 dat = pl.read_csv(
@@ -19,7 +18,7 @@ dat = dat.rename(
 dat = dat.drop_nulls("Species")
 mod = smf.quantreg(
     "Sepal_Length ~ Sepal_Width * Petal_Length + Species", data=dat.to_pandas()
-).fit(0.25)
+).fit(0.25, max_iter=1000)
 
 
 def test_predictions_01():

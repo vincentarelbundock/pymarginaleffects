@@ -1,3 +1,8 @@
+# 0.0.11
+
+* Workaround for upstream regression in Polars.
+* Bugfix for p value calculation in equivalence tests. Results could be incorrect.
+
 # 0.0.10
 
 * Polars 0.20.7 introduced a breaking change by error. Pinning version until thi is fixed. https://github.com/pola-rs/polars/issues/14401
