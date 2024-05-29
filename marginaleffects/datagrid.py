@@ -71,7 +71,7 @@ def datagrid(
     msg = "grid_type must be 'mean_or_mode', 'balanced', or 'counterfactual'"
     assert isinstance(grid_type, str) and grid_type in [
         "mean_or_mode",
-        "explicit",
+        "balanced",
         "counterfactual",
     ], msg
 
