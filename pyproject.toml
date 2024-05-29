@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "marginaleffects"
-version = "0.0.11"
+version = "0.0.11.1"
 description = ""
 authors = ["Vincent Arel-Bundock <vincent.arel-bundock@umontreal.ca>"]
 readme = "README.md"
@@ -33,10 +33,10 @@ filterwarnings = [
     'ignore:ConvergenceWarning',
 ]
 
-[tool.ruff]
-ignore-init-module-imports = true
+
+[tool.ruff.lint]
 extend-ignore = ["F405", "F403", "E501"]
 
-
-[tool.ruff.extend-per-file-ignores]
-"__init__.py" = ["F401"]
+[tool.ruff.lint.extend-per-file-ignores]
+# Also ignore `E402` in all `__init__.py` files.
+"__init__.py" = ["E402"]

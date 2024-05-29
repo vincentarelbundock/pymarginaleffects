@@ -16,7 +16,10 @@ df = df.with_columns(pl.Series(range(df.shape[0])).alias("row_id")).sort(
 )
 mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
 
-diamonds = pl.read_csv("https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/ggplot2/diamonds.csv")
+diamonds = pl.read_csv(
+    "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/ggplot2/diamonds.csv"
+)
+
 
 def test_predictions():
     pre_py = predictions(mod_py)
@@ -61,18 +64,18 @@ def issue_59():
 
 def test_issue_83():
     diamonds83 = diamonds.with_columns(
-        cut_ideal_null = pl.when(pl.col('cut') == 'Ideal')
-                            .then(pl.lit(None))
-                            .otherwise(pl.col('cut'))
+        cut_ideal_null=pl.when(pl.col("cut") == "Ideal")
+        .then(pl.lit(None))
+        .otherwise(pl.col("cut"))
     )
 
     model = smf.ols("price ~ cut_ideal_null", diamonds83.to_pandas()).fit()
 
-    newdata = diamonds.slice(0,20)
+    newdata = diamonds.slice(0, 20)
     newdata = newdata.with_columns(
-        cut_ideal_null = pl.when(pl.col('cut') == 'Ideal')
-                            .then(pl.lit('Premium'))
-                            .otherwise(pl.col('cut'))
+        cut_ideal_null=pl.when(pl.col("cut") == "Ideal")
+        .then(pl.lit("Premium"))
+        .otherwise(pl.col("cut"))
     )
 
     p = predictions(model, newdata=newdata)
@@ -82,10 +85,10 @@ def test_issue_83():
 def test_issue_95():
     model = smf.ols("price ~ cut + clarity + color", diamonds.to_pandas()).fit()
 
-    newdata = diamonds.slice(0,20)
+    newdata = diamonds.slice(0, 20)
     p = predictions(model, newdata=newdata, by="cut")
 
-    newdata = newdata.with_columns(pred = pl.Series(model.predict(newdata.to_pandas())))
+    newdata = newdata.with_columns(pred=pl.Series(model.predict(newdata.to_pandas())))
     newdata = newdata.group_by("cut").agg(pl.col("pred").mean())
     p = p.sort(by="cut")
     newdata = newdata.sort(by="cut")

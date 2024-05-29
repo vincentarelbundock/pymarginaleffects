@@ -1,3 +1,7 @@
+# Development
+
+* Bug in datagrid() prevented "balanced" grid type. Thanks to @danielkberry for the fix (PR #104).
+ 
 # 0.0.11
 
 * Workaround for upstream regression in Polars.
