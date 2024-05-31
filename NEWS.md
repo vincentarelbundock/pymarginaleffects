@@ -1,6 +1,7 @@
-# Development
+# 0.0.12
 
 * Bug in datagrid() prevented "balanced" grid type. Thanks to @danielkberry for the fix (PR #104).
+* Bug: Missing values leading to ValueError: "Something went wrong" in predictions() (Issue #83)
  
 # 0.0.11
 
