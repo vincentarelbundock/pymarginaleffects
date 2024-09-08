@@ -42,7 +42,7 @@ class ModelPyfixest(ModelAbstract):
     def get_variables_names(self, variables=None, newdata=None):
         if variables is None:
             variables = self.model._coefnames
-            variables = [re.sub("\[.*\]", "", x) for x in variables]
+            variables = [re.sub(r"\[.*\]", "", x) for x in variables]
             variables = [x for x in variables if x in self.modeldata.columns]
             variables = pl.Series(variables).unique().to_list()
         if isinstance(variables, (str, dict)):

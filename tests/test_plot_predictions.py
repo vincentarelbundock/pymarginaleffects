@@ -82,3 +82,30 @@ def issue_62():
     }
     p = plot_predictions(mod, condition=cond)
     assert isinstance(p, types.ModuleType)
+
+def test_issue_114():
+    mod = smf.ols(
+    "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island", 
+    data = penguins.to_pandas()).fit()
+
+    # # A
+    # plot_predictions(mod, condition = ["flipper_length_mm", "species"])
+
+    # # B
+    # plot_predictions(mod, condition = ["flipper_length_mm", "bill_length_mm"])
+
+    # C
+    plot_predictions(mod, condition = {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"]})
+
+    # D
+    plot_predictions(mod, condition = {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"]})
+
+    # E
+    plot_predictions(mod, condition = {"flipper_length_mm": None, "bill_length_mm": "threenum"})
+
+    # F
+    plot_predictions(mod, condition = {"flipper_length_mm": None, "bill_length_mm": "fivenum"})
+
+    # G
+    plot_predictions(mod, condition = {"flipper_length_mm": None, "bill_length_mm": "minmax"})
+

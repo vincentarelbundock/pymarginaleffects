@@ -10,11 +10,15 @@ def plot_predictions(
     condition=None,
     by=False,
     newdata=None,
+    type=None,
     vcov=True,
     conf_level=0.95,
-    transform=None,
-    draw=True,
     wts=None,
+    transform=None,
+    points=0,
+    rug=False,
+    gray=False,
+    draw=True,
 ):
     """
     Plot predictions on the y-axis against values of one or more predictors (x-axis, colors, and facets).
