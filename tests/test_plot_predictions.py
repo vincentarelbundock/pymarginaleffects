@@ -109,3 +109,9 @@ def test_issue_114():
     # G
     plot_predictions(mod, condition = {"flipper_length_mm": None, "bill_length_mm": "minmax"})
 
+    # H
+    plot_predictions(mod, condition = {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"], "bill_length_mm": None})
+
+    # I
+    plot_predictions(mod, condition = {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"], "bill_length_mm": None, "island": None})
+
