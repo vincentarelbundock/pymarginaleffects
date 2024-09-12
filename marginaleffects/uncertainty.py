@@ -54,7 +54,7 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
     if hasattr(model, "df_resid") and isinstance(model.df_resid, float):
         dof = model.df_resid
     else:
-        dof = np.Inf
+        dof = np.inf
     critical_value = stats.t.ppf((1 + conf_level) / 2, dof)
 
     df = df.with_columns(
