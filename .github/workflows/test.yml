@@ -30,7 +30,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install .
+          uv venv;uv pip install .
 
       - name: Run pytest
         run: |
