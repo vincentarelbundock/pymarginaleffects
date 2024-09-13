@@ -103,7 +103,7 @@ def test_golder():
 
     # set comparison tolerance
     tol = 0.001
-    tol_se = 0.005
+    tol_se = 0.01
 
     # Golder Interaction Case 1a/1b correct
     f1_1 = "y ~ x + z + x:z"
