@@ -34,4 +34,4 @@ jobs:
 
       - name: Run pytest
         run: |
-          uv run --all-extras run pytest
+          uv run --all-extras pytest
