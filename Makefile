@@ -15,6 +15,7 @@ readme: ## render Quarto readme
 	mv -f docs/get_started.md README.md
 
 lint: ## run the lint checkers
+	uv run --all-extras ruff check marginaleffects
 	uv run --all-extras ruff format marginaleffects
 	uv run --all-extras ruff format tests
 
