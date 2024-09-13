@@ -5,7 +5,7 @@ help:  ## Display this help screen
 	@grep -E '^[a-z.A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' | sort
 
 test: install ## run pytest suite
-	poetry run pytest
+	uv run --all-extras pytest
 
 snapshot: ## snapshot test
 	R CMD BATCH tests/r/run.R
@@ -15,11 +15,12 @@ readme: ## render Quarto readme
 	mv -f docs/get_started.md README.md
 
 lint: ## run the lint checkers
-	poetry run ruff format marginaleffects
-	poetry run ruff format tests
+	uv run --all-extras ruff check marginaleffects
+	uv run --all-extras ruff format marginaleffects
+	uv run --all-extras ruff format tests
 
 install: ## install in poetry venv
-	poetry install
+	uv pip install .
 
 docs: readme ## build docs
-	poetry run mkdocs build
+	uv run mkdocs build

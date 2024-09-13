@@ -1,9 +1,5 @@
-try:
-    from pyfixest.estimation import feols, fepois
-    from pyfixest.utils import ssc
-    # Other code that requires the above imports can go here
-except ImportError:
-    print("pyfixest is not installed but required to run these tests.")
+from pyfixest.estimation import feols, fepois
+from pyfixest.utils import ssc
 
 
 import polars as pl
@@ -34,7 +30,7 @@ def create_test_data():
     return data
 
 
-@pytest.mark.skipif(sys.version_info > (3, 11), reason="Requires Python 3.11 or lower")
+# @pytest.mark.skipif(sys.version_info > (3, 11), reason="Requires Python 3.11 or lower")
 def test_bare_minimum():
     data = create_test_data()
 
@@ -124,7 +120,6 @@ def test_bare_minimum():
 
 
 @pytest.mark.skip(reason="predict method with newdata not yet implemented for fepois.")
-@pytest.mark.skipif(sys.version_info > (3, 11), reason="Requires Python 3.11 or lower")
 def test_bare_minimum_fepois():
     data = create_test_data().to_pandas()
     data["Y"] = data["Y"].abs()

@@ -24,13 +24,14 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Install dependencies
         run: |
-          poetry install
+          uv venv
 
       - name: Run pytest
         run: |
-          poetry run pytest
+          uv run --all-extras run pytest

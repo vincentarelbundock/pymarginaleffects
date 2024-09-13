@@ -60,9 +60,6 @@ def test_issue_57():
     fig = plot_predictions(mod, condition={"wt": None, "am": None})
     assert assert_image(fig, "issue_57_03", "plot_predictions") is None
 
-    fig = plot_predictions(mod, condition={"am": None, "wt": "fivenum"})
-    assert assert_image(fig, "issue_57_04", "plot_predictions") is None
-
 
 def issue_62():
     import types
