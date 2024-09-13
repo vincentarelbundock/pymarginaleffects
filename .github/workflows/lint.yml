@@ -11,19 +11,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup python 3.10
+      - name: Setup python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Install dependencies
         run: |
-          poetry install
+          uv pip install .
 
       - name: Check
         run: |
-          poetry run ruff check marginaleffects
-          poetry run ruff format marginaleffects --check
+          uv run --all-extras ruff check marginaleffects
+          uv run --all-extras ruff format marginaleffects --check
