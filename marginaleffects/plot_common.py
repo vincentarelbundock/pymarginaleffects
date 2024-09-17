@@ -37,8 +37,8 @@ def dt_on_condition(model, condition):
         condition_new.pop("newdata", None)
 
     assert (
-        1 <= len(condition_new) <= 3
-    ), f"Lenght of condition must be inclusively between 1 and 3. Got : {len(condition_new)}."
+        1 <= len(condition_new) <= 4
+    ), f"Lenght of condition must be inclusively between 1 and 4. Got : {len(condition_new)}."
 
     for key, value in to_datagrid.items():
         variable_type = model.variables_type[key]

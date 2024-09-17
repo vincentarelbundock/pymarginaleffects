@@ -3,65 +3,74 @@ import statsmodels.formula.api as smf
 from marginaleffects import *
 from marginaleffects.plot_predictions import *
 from .utilities import *
+import pytest
 
 penguins = pl.read_csv(
     "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
     null_values="NA",
 ).drop_nulls()
 
+mtcars = pl.read_csv(
+    "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
+)
 
-def test_by():
+FIGURES_FOLDER = "plot_predictions"
+
+
+@pytest.fixture
+def model():
     mod = smf.ols(
         "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island",
-        penguins.to_pandas(),
+        data=penguins.to_pandas(),
     ).fit()
-
-    fig = plot_predictions(mod, by="species")
-    assert assert_image(fig, "by_01", "plot_predictions") is None
-
-    fig = plot_predictions(mod, by=["species", "island"])
-    assert assert_image(fig, "by_02", "plot_predictions") is None
+    return mod
 
 
-def test_condition():
-    mod = smf.ols(
-        "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island",
-        penguins.to_pandas(),
-    ).fit()
-
-    fig = plot_predictions(
-        mod,
-        condition={"flipper_length_mm": list(range(180, 220)), "species": None},
-    )
-    assert assert_image(fig, "condition_01", "plot_predictions") is None
-
-    fig = plot_predictions(mod, condition=["bill_length_mm", "species", "island"])
-    assert assert_image(fig, "condition_02", "plot_predictions") is None
+@pytest.mark.parametrize(
+    "input_condition, expected_figure_filename",
+    [
+        ("species", "by_01"),
+        (["species", "island"], "by_02"),
+    ],
+)
+def test_by(input_condition, expected_figure_filename, model):
+    fig = plot_predictions(model, by=input_condition)
+    assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
 
-def test_issue_57():
-    mtcars = pl.read_csv(
-        "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-    )
+@pytest.mark.parametrize(
+    "input_condition, expected_figure_filename",
+    [
+        ({"flipper_length_mm": list(range(180, 220)), "species": None}, "condition_01"),
+        (["bill_length_mm", "species", "island"], "condition_02"),
+    ],
+)
+def test_condition(input_condition, expected_figure_filename, model):
+
+    fig = plot_predictions(model, condition=input_condition)
+    assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
+
+
+@pytest.mark.parametrize(
+    "input_condition, expected_figure_filename",
+    [
+        (["qsec", "am"], "issue_57_01"),
+        (
+            {
+                "am": None,
+                "qsec": [mtcars["qsec"].min(), mtcars["qsec"].max()],
+            },
+            "issue_57_02",
+        ),
+        ({"wt": None, "am": None}, "issue_57_03"),
+        ({"am": None, "wt": "fivenum"}, "issue_57_04"),
+    ],
+)
+def test_issue_57(input_condition, expected_figure_filename):
     mod = smf.ols("mpg ~ wt + am + qsec", mtcars.to_pandas()).fit()
 
-    fig = plot_predictions(mod, condition=["qsec", "am"])
-    assert assert_image(fig, "issue_57_01", "plot_predictions") is None
-
-    fig = plot_predictions(
-        mod,
-        condition={
-            "am": None,
-            "qsec": [mtcars["qsec"].min(), mtcars["qsec"].max()],
-        },
-    )
-    assert assert_image(fig, "issue_57_02", "plot_predictions") is None
-
-    fig = plot_predictions(mod, condition={"wt": None, "am": None})
-    assert assert_image(fig, "issue_57_03", "plot_predictions") is None
-
-    fig = plot_predictions(mod, condition={"am": None, "wt": "fivenum"})
-    assert assert_image(fig, "issue_57_04", "plot_predictions") is None
+    fig = plot_predictions(mod, condition=input_condition)
+    assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
 
 def issue_62():
@@ -83,35 +92,38 @@ def issue_62():
     p = plot_predictions(mod, condition=cond)
     assert isinstance(p, types.ModuleType)
 
-def test_issue_114():
-    mod = smf.ols(
-    "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island", 
-    data = penguins.to_pandas()).fit()
 
-    # # A
-    # plot_predictions(mod, condition = ["flipper_length_mm", "species"])
-
-    # # B
-    # plot_predictions(mod, condition = ["flipper_length_mm", "bill_length_mm"])
-
-    # C
-    plot_predictions(mod, condition = {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"]})
-
-    # D
-    plot_predictions(mod, condition = {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"]})
-
-    # E
-    plot_predictions(mod, condition = {"flipper_length_mm": None, "bill_length_mm": "threenum"})
-
-    # F
-    plot_predictions(mod, condition = {"flipper_length_mm": None, "bill_length_mm": "fivenum"})
-
-    # G
-    plot_predictions(mod, condition = {"flipper_length_mm": None, "bill_length_mm": "minmax"})
-
-    # H
-    plot_predictions(mod, condition = {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"], "bill_length_mm": None})
-
-    # I
-    plot_predictions(mod, condition = {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"], "bill_length_mm": None, "island": None})
-
+@pytest.mark.parametrize(
+    "input_condition, expected_figure_filename",
+    [
+        (["flipper_length_mm", "species"], "issue_114_01"),
+        (["flipper_length_mm", "bill_length_mm"], "issue_114_02"),
+        (
+            {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"]},
+            "issue_114_03",
+        ),
+        ({"flipper_length_mm": None, "bill_length_mm": "threenum"}, "issue_114_04"),
+        ({"flipper_length_mm": None, "bill_length_mm": "fivenum"}, "issue_114_05"),
+        ({"flipper_length_mm": None, "bill_length_mm": "minmax"}, "issue_114_06"),
+        (
+            {
+                "flipper_length_mm": None,
+                "species": ["Adelie", "Chinstrap"],
+                "bill_length_mm": None,
+            },
+            "issue_114_07",
+        ),
+        (
+            {
+                "flipper_length_mm": None,
+                "species": ["Adelie", "Chinstrap"],
+                "bill_length_mm": None,
+                "island": None,
+            },
+            "issue_114_08",
+        ),
+    ],
+)
+def test_issue_114(input_condition, expected_figure_filename, model):
+    fig = plot_predictions(model, condition=input_condition)
+    assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None

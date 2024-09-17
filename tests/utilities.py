@@ -26,9 +26,9 @@ def compare_r_to_py(r_obj, py_obj, tolr=1e-3, tola=1e-3, msg=""):
             assert flag, f"{msg} trel: {gap_rel}. tabs: {gap_abs}"
 
 
-def assert_image(fig, label, file, tolerance=5):
-    known_path = f"./tests/images/{file}/"
-    unknown_path = f"./tests/images/.tmp_{file}/"
+def assert_image(fig, label, folder, tolerance=5):
+    known_path = f"./tests/images/{folder}/"
+    unknown_path = f"./tests/images/.tmp_{folder}/"
     if os.path.isdir(unknown_path):
         for root, dirs, files in os.walk(unknown_path):
             for fname in files:
