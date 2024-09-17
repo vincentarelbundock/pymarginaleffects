@@ -14,6 +14,7 @@ def plot_predictions(
     conf_level=0.95,
     transform=None,
     draw=True,
+    wts=None
 ):
     """
     Plot predictions on the y-axis against values of one or more predictors (x-axis, colors, and facets).
