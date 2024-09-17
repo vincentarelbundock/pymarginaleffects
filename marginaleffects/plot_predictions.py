@@ -10,14 +10,9 @@ def plot_predictions(
     condition=None,
     by=False,
     newdata=None,
-    type=None,
     vcov=True,
     conf_level=0.95,
-    wts=None,
     transform=None,
-    points=0,
-    rug=False,
-    gray=False,
     draw=True,
 ):
     """

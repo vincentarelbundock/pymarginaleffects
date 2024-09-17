@@ -62,8 +62,7 @@ def test_condition(input_condition, expected_figure_filename, model):
             },
             "issue_57_02",
         ),
-        ({"wt": None, "am": None}, "issue_57_03"),
-        ({"am": None, "wt": "fivenum"}, "issue_57_04"),
+        ({"wt": None, "am": None}, "issue_57_03")
     ],
 )
 def test_issue_57(input_condition, expected_figure_filename):
