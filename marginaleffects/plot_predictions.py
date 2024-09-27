@@ -14,7 +14,7 @@ def plot_predictions(
     conf_level=0.95,
     transform=None,
     draw=True,
-    wts=None,
+    wts=None
 ):
     """
     Plot predictions on the y-axis against values of one or more predictors (x-axis, colors, and facets).
@@ -40,8 +40,8 @@ def plot_predictions(
         Model object.
 
     condition : str, list, dictionary
-        Max length : 3.
-        1: x-axis. 2: color. 3: facets.
+        Max length : 4.
+        1: x-axis. 2: color. 3: facet (wrap if no fourth variable, otherwise cols of grid). 4: facet (rows of grid).
         list : Names of the predictors to display
             Numeric variables in position 1 is summarized by 100 numbers
             Numeric variables in positions 2 and 3 are summarized by Tukey’s five numbers
