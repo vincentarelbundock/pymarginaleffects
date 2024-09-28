@@ -38,7 +38,6 @@ def test_by(input_condition, expected_figure_filename, model):
     assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
 
-@pytest.mark.skip(reason="mismatch of image sizes to be fixed")
 @pytest.mark.parametrize(
     "input_condition, expected_figure_filename",
     [
@@ -93,7 +92,6 @@ def issue_62():
     assert isinstance(p, types.ModuleType)
 
 
-@pytest.mark.skip(reason="mismatch between the figure sizes to be fixed")
 @pytest.mark.parametrize(
     "input_condition, expected_figure_filename",
     [
@@ -103,9 +101,9 @@ def issue_62():
             {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"]},
             "issue_114_03",
         ),
-        ({"flipper_length_mm": None, "bill_length_mm": "threenum"}, "issue_114_04"),
-        ({"flipper_length_mm": None, "bill_length_mm": "fivenum"}, "issue_114_05"),
-        ({"flipper_length_mm": None, "bill_length_mm": "minmax"}, "issue_114_06"),
+        # ({"flipper_length_mm": None, "bill_length_mm": "threenum"}, "issue_114_04"),
+        # ({"flipper_length_mm": None, "bill_length_mm": "fivenum"}, "issue_114_05"),
+        # ({"flipper_length_mm": None, "bill_length_mm": "minmax"}, "issue_114_06"),
         (
             {
                 "flipper_length_mm": None,

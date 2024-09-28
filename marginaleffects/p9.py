@@ -19,10 +19,13 @@ def plot_common(model, dt, y_label, var_list):
     # treat all variables except x-axis as categorical
     if len(var_list) > 1:
         for i in range(1, len(var_list)):
-            if dt[var_list[i]].dtype != pl.Categorical:
+            if dt[var_list[i]].dtype.is_numeric() and i != 0 and i != 1:
+                dt = dt.with_columns(pl.col(var_list[i]))
+            elif dt[var_list[i]].dtype != pl.Categorical:
                 dt = dt.with_columns(pl.col(var_list[i]).cast(pl.Utf8))
 
     # aes
+    # mapping = {"x": var_list[0], "y": y_label}  # proposed change to make y axis label correspond to R  but needs some debugging
     mapping = {"x": var_list[0], "y": "estimate"}
     if interval:
         mapping["ymin"] = "conf_low"
@@ -57,5 +60,6 @@ def plot_common(model, dt, y_label, var_list):
 
     elif len(var_list) == 4:
         p = p + facet_grid(f"{var_list[3]} ~ {var_list[2]}")
+
 
     return p
