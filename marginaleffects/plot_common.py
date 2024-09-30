@@ -108,7 +108,8 @@ def ordered_cat(dt, k, lab):
     uniq = dict(zip(dt[k].unique().sort(), list(range(len(lab)))))
     dt = dt.with_columns(dt[k].replace(uniq).alias(k))
     dt = dt.sort(by=k)
-    uniq = dict(zip(list(range(len(lab))), lab))
-    dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
+    uniq = dict(zip(list(range(len(lab))), lab)) # try creating a new column deleting the old, and renaming the new to the old
+    # dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k + "_new"))
+    # dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
     dt = dt.sort(by="rowid")
     return dt
