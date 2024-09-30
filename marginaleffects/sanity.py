@@ -36,12 +36,23 @@ def sanitize_newdata(model, newdata, wts, by=[]):
 
     if newdata is None:
         out = modeldata
+        newdata = modeldata
 
-    elif isinstance(newdata, str) and newdata == "mean":
-        out = datagrid(model=model)
+    # if newdata is a string, then we need to treat `by` as unique entries.
+    args = {'model': model}
+    if isinstance(by, list) and len(by) > 0:
+        for col in by:
+            if isinstance(col, str):
+                if col in modeldata.columns:
+                    args[col] = modeldata[col].unique()
+
+    if isinstance(newdata, str) and newdata == "mean":
+        out = datagrid(**args)
 
     elif isinstance(newdata, str) and newdata == "median":
-        out = datagrid(model=model, FUN_numeric=lambda x: x.median())
+        args['FUN_numeric'] = lambda x: x.median()
+        args['newdata'] = modeldata
+        out = datagrid(**args, )
 
     else:
         try:
