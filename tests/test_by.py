@@ -1,6 +1,5 @@
 import polars as pl
 import statsmodels.formula.api as smf
-
 from marginaleffects import *
 
 from .utilities import *
@@ -34,6 +33,12 @@ def test_predictions_by_wts():
     pre_py = predictions(mod_py, by="Region", wts="Donations")
     pre_r = pl.read_csv("tests/r/test_by_04.csv").sort("Region")
     compare_r_to_py(pre_r, pre_py)
+
+
+def test_median_by():
+    mod = smf.ols(formula='Lottery ~ Literacy + Wealth + C(Region)', data=Guerry.to_pandas()).fit()
+    s = avg_slopes(mod, variables = "Literacy", by = "Region", newdata = "median")
+    assert s.shape[0] == 5, "by variable not treated as unique in datagrid"
 
 
 ########### snapshot tests don't work
