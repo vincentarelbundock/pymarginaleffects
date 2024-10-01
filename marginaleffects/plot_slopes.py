@@ -73,7 +73,7 @@ def plot_slopes(
 
     model = sanitize_model(model)
 
-    assert ( variables ), "The `variables` argument must be supplied."
+    assert variables, "The `variables` argument must be supplied."
 
     assert not (
         not by and newdata is not None

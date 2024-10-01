@@ -61,5 +61,4 @@ def plot_common(model, dt, y_label, var_list):
     elif len(var_list) == 4:
         p = p + facet_grid(f"{var_list[3]} ~ {var_list[2]}")
 
-
     return p

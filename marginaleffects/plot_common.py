@@ -1,5 +1,4 @@
 import numpy as np
-import polars as pl
 from .datagrid import datagrid  # noqa
 from .sanitize_model import sanitize_model
 
@@ -7,7 +6,7 @@ from .sanitize_model import sanitize_model
 def dt_on_condition(model, condition):
     model = sanitize_model(model)
 
-    condition_new = condition # two pointers to the same object? this looks like a bug
+    condition_new = condition  # two pointers to the same object? this looks like a bug
 
     # not sure why newdata gets added
     modeldata = model.modeldata
@@ -30,7 +29,9 @@ def dt_on_condition(model, condition):
             key in modeldata.columns for key in condition_new.keys()
         ), "All keys of condition must be columns of the model."
         first_key = next(iter(condition_new))
-        to_datagrid = condition_new  # third pointer to the same object? looks like a BUG
+        to_datagrid = (
+            condition_new  # third pointer to the same object? looks like a BUG
+        )
 
     # not sure why `newdata` sometimes gets added
     if isinstance(condition_new, dict) and "newdata" in to_datagrid.keys():
@@ -51,7 +52,11 @@ def dt_on_condition(model, condition):
         elif variable_type in ["boolean", "character", "binary"]:
             # get specified names of the condition
             # here is the BUG, we take the values of "species" back from the model
-            to_datagrid[key] = to_datagrid[key] if to_datagrid[key] else modeldata[key].unique().sort().to_list() 
+            to_datagrid[key] = (
+                to_datagrid[key]
+                if to_datagrid[key]
+                else modeldata[key].unique().sort().to_list()
+            )
             assert (
                 len(to_datagrid[key]) <= 10
             ), f"Character type variables of more than 10 unique values are not supported. {key} variable has {len(to_datagrid[key])} unique values."
@@ -108,7 +113,9 @@ def ordered_cat(dt, k, lab):
     uniq = dict(zip(dt[k].unique().sort(), list(range(len(lab)))))
     dt = dt.with_columns(dt[k].replace(uniq).alias(k))
     dt = dt.sort(by=k)
-    uniq = dict(zip(list(range(len(lab))), lab)) # try creating a new column deleting the old, and renaming the new to the old
+    uniq = dict(
+        zip(list(range(len(lab))), lab)
+    )  # try creating a new column deleting the old, and renaming the new to the old
     # dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k + "_new"))
     # dt = dt.with_columns(dt[k].replace(uniq).cast(pl.Categorical).alias(k))
     dt = dt.sort(by="rowid")
