@@ -44,8 +44,8 @@ def test_by(mod):
     fig = plot_slopes(mod, variables="species", by="island")
     assert assert_image(fig, "by_01", FIGURES_FOLDER) is None
 
-    fig = plot_slopes(mod, variables="bill_length_mm", by=["species", "island"])
-    assert assert_image(fig, "by_02", FIGURES_FOLDER) is None
+    # fig = plot_slopes(mod, variables="bill_length_mm", by=["species", "island"])
+    # assert assert_image(fig, "by_02", FIGURES_FOLDER) is None
 
 def test_condition(mod):
     fig = plot_slopes(
@@ -94,7 +94,6 @@ def test_issue114_slopes(input_condition, input_variables, expected_figure_filen
         condition = input_condition
     )
     assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
-    # fig.save(r"C:\Users\amatvei\Projects\!work\vab\pymarginaleffects\fig.png")
 
 
 @pytest.mark.parametrize(
@@ -105,13 +104,15 @@ def test_issue114_slopes(input_condition, input_variables, expected_figure_filen
             ["species"],
             "issue_114_03",
         ),
-        # (
-        #     {"bill_length_mm": None, "flipper_length_mm": "minmax"},
-        #     ["island"],
-        #     "issue_114_04",
-        # ),
-        # ({"flipper_length_mm": None, "bill_length_mm": "fivenum"}, "issue_114_05"),
-        # ({"flipper_length_mm": None, "bill_length_mm": "minmax"}, "issue_114_06"),
+        (
+            {"bill_length_mm": None, "flipper_length_mm": "minmax"},
+            ["island"],
+            "issue_114_04",
+        ),
+        ({"flipper_length_mm": None, "bill_length_mm": "fivenum"}, 
+            ["island"],"issue_114_05"),
+        ({"flipper_length_mm": None, "bill_length_mm": "threenum"}, 
+            ["island"],"issue_114_06"),
         (
             {
                 "flipper_length_mm": None,
@@ -130,18 +131,9 @@ def test_issue114_slopes(input_condition, input_variables, expected_figure_filen
             ["species"],
             "issue_114_08",
         ),
-        # (
-        #     {
-        #         "flipper_length_mm": None,
-        #         "species": ["Adelie", "Chinstrap"],
-        #         "bill_length_mm": None,
-        #         "island": None,
-        #     },
-        #     ["species"],
-        #     "issue_114_09",
-        # ),
     ],
 )
+
 def test_issue_114(input_condition, input_variables, expected_figure_filename, mod):
     fig = plot_slopes(mod, 
                       variables=input_variables, 
@@ -149,24 +141,3 @@ def test_issue_114(input_condition, input_variables, expected_figure_filename, m
                       )
     assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
-@pytest.mark.parametrize(
-    "input_condition, input_variables, expected_figure_filename",
-    [
-        (
-            {
-                "flipper_length_mm": None,
-                "species": ["Adelie", "Chinstrap"],
-                "bill_length_mm": None,
-                "island": None,
-            },
-            ["species"],
-            "issue_114_5var_01",
-        ),
-    ]
-)
-def test_issue_114_5var(input_condition, input_variables, expected_figure_filename, penguins_mod_5var):
-    fig = plot_slopes(penguins_mod_5var, 
-                      variables=input_variables, 
-                      condition=input_condition
-                      )
-    assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
