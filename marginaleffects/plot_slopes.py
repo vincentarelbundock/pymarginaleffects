@@ -47,8 +47,8 @@ def plot_slopes(
         Refer to the `comparisons()` documentation.
 
     condition : str, list, dictionary
-        Max length : 3.
-        1: x-axis. 2: color. 3: facets.
+        Max length : 4.
+        1: x-axis. 2: color.  3: facet (wrap if no fourth variable, otherwise cols of grid). 4: facet (rows of grid).
         list : Names of the predictors to display
             Numeric variables in position 1 is summarized by 100 numbers
             Numeric variables in positions 2 and 3 are summarized by Tukey’s five numbers
@@ -72,6 +72,8 @@ def plot_slopes(
     """
 
     model = sanitize_model(model)
+
+    assert variables, "The `variables` argument must be supplied."
 
     assert not (
         not by and newdata is not None
@@ -138,8 +140,8 @@ def plot_slopes(
     var_list = [x for x in var_list if x not in ["newdata", "model"]]
 
     assert (
-        len(var_list) < 4
-    ), "The `condition` and `by` arguments can have a max length of 3."
+        len(var_list) < 5
+    ), "The `condition` and `by` arguments can have a max length of 4."
 
     if "contrast" in dt.columns and dt["contrast"].unique().len() > 1:
         var_list = var_list + ["contrast"]
