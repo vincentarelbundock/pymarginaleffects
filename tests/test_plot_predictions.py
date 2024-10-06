@@ -62,7 +62,7 @@ def test_condition(input_condition, expected_figure_filename, model):
             },
             "issue_57_02",
         ),
-        ({"wt": None, "am": None}, "issue_57_03")
+        ({"wt": None, "am": None}, "issue_57_03"),
     ],
 )
 def test_issue_57(input_condition, expected_figure_filename):
@@ -101,9 +101,9 @@ def issue_62():
             {"flipper_length_mm": None, "species": ["Adelie", "Chinstrap"]},
             "issue_114_03",
         ),
-        # ({"flipper_length_mm": None, "bill_length_mm": "threenum"}, "issue_114_04"),
-        # ({"flipper_length_mm": None, "bill_length_mm": "fivenum"}, "issue_114_05"),
-        # ({"flipper_length_mm": None, "bill_length_mm": "minmax"}, "issue_114_06"),
+        ({"flipper_length_mm": None, "bill_length_mm": "threenum"}, "issue_114_04"),
+        ({"flipper_length_mm": None, "bill_length_mm": "fivenum"}, "issue_114_05"),
+        ({"flipper_length_mm": None, "bill_length_mm": "minmax"}, "issue_114_06"),
         (
             {
                 "flipper_length_mm": None,
@@ -121,6 +121,16 @@ def issue_62():
             },
             "issue_114_08",
         ),
+    ],
+    ids=[
+        "issue_114_01",
+        "issue_114_02",
+        "issue_114_03",
+        "issue_114_04",
+        "issue_114_05",
+        "issue_114_06",
+        "issue_114_07",
+        "issue_114_08"
     ],
 )
 def test_issue_114(input_condition, expected_figure_filename, model):
