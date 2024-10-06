@@ -1,12 +1,9 @@
 import polars as pl
 import statsmodels.formula.api as smf
-
+from .conftest import mtcars_df
 from marginaleffects import *
 
-mtcars = pl.read_csv(
-    "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-)
-mod = smf.probit("am ~ hp + wt", data=mtcars).fit()
+mod = smf.probit("am ~ hp + wt", data=mtcars_df).fit()
 
 
 def test_mean_median():

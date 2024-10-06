@@ -2,13 +2,11 @@ import polars as pl
 import statsmodels.formula.api as smf
 
 from marginaleffects import *
-
+from .conftest import mtcars_df
 from .utilities import *
 
-mtcars = pl.read_csv(
-    "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-)
-mod_py = smf.ols("mpg ~ wt * hp", mtcars).fit()
+
+mod_py = smf.ols("mpg ~ wt * hp", mtcars_df).fit()
 
 
 def test_comparison_derivatives():
@@ -31,18 +29,14 @@ def test_slopes():
 
 
 def test_slopes_padding():
-    dat = pl.read_csv(
-        "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-    ).with_columns(pl.col("cyl").cast(pl.Utf8))
+    dat = mtcars_df.with_columns(pl.col("cyl").cast(pl.Utf8))
     mod = smf.ols("mpg ~ cyl + hp", dat.to_pandas()).fit()
     s = slopes(mod, newdata="mean")
     assert s.shape[0] == 3
 
 
 def test_bug_newdata_variables():
-    dat = pl.read_csv(
-        "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-    ).with_columns(pl.col("cyl").cast(pl.Utf8))
+    dat = mtcars_df.with_columns(pl.col("cyl").cast(pl.Utf8))
     mod = smf.ols("mpg ~ cyl + hp", dat.to_pandas()).fit()
     s = slopes(mod, newdata="mean", variables="hp")
     assert s.shape[0] == 1

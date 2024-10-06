@@ -10,35 +10,6 @@ from .utilities import *
 
 FIGURES_FOLDER = "plot_slopes"
 
-@pytest.fixture
-def mod():
-    df = pl.read_csv(
-        "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
-        null_values="NA",
-    ).drop_nulls()
-    mod = smf.ols(
-        "body_mass_g ~ flipper_length_mm * species * bill_length_mm * island",
-        df.to_pandas(),
-    ).fit()
-    return mod
-
-@pytest.fixture
-def penguins_mod_5var():
-    df = pl.read_csv(
-        "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
-        null_values="NA",
-    ).drop_nulls()
-    mod = smf.ols(
-        "body_mass_g ~ flipper_length_mm * species * bill_length_mm * island * bill_depth_mm",
-        df.to_pandas(),
-    ).fit()
-    return mod
-
-@pytest.fixture
-def mtcars_mod():
-    mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
-    mod = smf.ols("mpg ~ hp * wt * disp * cyl * qsec", data = mtcars).fit()
-    return mod
 
 def test_by(mod):
     fig = plot_slopes(mod, variables="species", by="island")
@@ -46,6 +17,7 @@ def test_by(mod):
 
     # fig = plot_slopes(mod, variables="bill_length_mm", by=["species", "island"])
     # assert assert_image(fig, "by_02", FIGURES_FOLDER) is None
+
 
 def test_condition(mod):
     fig = plot_slopes(
@@ -67,32 +39,31 @@ def test_condition(mod):
     )
     assert assert_image(fig, "condition_04", FIGURES_FOLDER) is None
 
+
 @pytest.mark.parametrize(
     "input_condition, input_variables, expected_figure_filename",
     [
         (
-            { "wt": None, "cyl": None, "disp": None, "qsec": None },
+            {"wt": None, "cyl": None, "disp": None, "qsec": None},
             "hp",
-            "issue114_slopes_01"
+            "issue114_slopes_01",
         ),
         (
-            { "wt": None, "cyl": None, "disp": None, "qsec": None },
+            {"wt": None, "cyl": None, "disp": None, "qsec": None},
             "cyl",
-            "issue114_slopes_02"
+            "issue114_slopes_02",
         ),
         (
-            { "cyl": None, "wt": "minmax", "disp": None, "qsec": None },
+            {"cyl": None, "wt": "minmax", "disp": None, "qsec": None},
             "hp",
-            "issue114_slopes_03"
+            "issue114_slopes_03",
         ),
-
     ],
 )
-def test_issue114_slopes(input_condition, input_variables, expected_figure_filename, mtcars_mod):
-    fig = plot_slopes(mtcars_mod,
-        variables = input_variables,
-        condition = input_condition
-    )
+def test_issue114_slopes(
+    input_condition, input_variables, expected_figure_filename, mtcars_mod
+):
+    fig = plot_slopes(mtcars_mod, variables=input_variables, condition=input_condition)
     assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
 
@@ -109,10 +80,16 @@ def test_issue114_slopes(input_condition, input_variables, expected_figure_filen
             ["island"],
             "issue_114_04",
         ),
-        ({"flipper_length_mm": None, "bill_length_mm": "fivenum"}, 
-            ["island"],"issue_114_05"),
-        ({"flipper_length_mm": None, "bill_length_mm": "threenum"}, 
-            ["island"],"issue_114_06"),
+        (
+            {"flipper_length_mm": None, "bill_length_mm": "fivenum"},
+            ["island"],
+            "issue_114_05",
+        ),
+        (
+            {"flipper_length_mm": None, "bill_length_mm": "threenum"},
+            ["island"],
+            "issue_114_06",
+        ),
         (
             {
                 "flipper_length_mm": None,
@@ -133,11 +110,6 @@ def test_issue114_slopes(input_condition, input_variables, expected_figure_filen
         ),
     ],
 )
-
 def test_issue_114(input_condition, input_variables, expected_figure_filename, mod):
-    fig = plot_slopes(mod, 
-                      variables=input_variables, 
-                      condition=input_condition
-                      )
+    fig = plot_slopes(mod, variables=input_variables, condition=input_condition)
     assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
-
