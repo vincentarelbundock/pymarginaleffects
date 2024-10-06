@@ -20,6 +20,18 @@ diamonds = pl.read_csv(
     "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/ggplot2/diamonds.csv"
 )
 
+def test_newdata_balanced():
+    df = pl.read_csv(
+        "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
+        null_values="NA",
+    ).drop_nulls()
+    mod = smf.ols(
+        "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island",
+        df.to_pandas(),
+    ).fit()
+    pre_py = predictions(mod, newdata="balanced")
+    pre_r = pl.read_csv("tests/r/test_predictions_newdata_balanced_01.csv")
+    compare_r_to_py(pre_r, pre_py)
 
 def test_predictions():
     pre_py = predictions(mod_py)

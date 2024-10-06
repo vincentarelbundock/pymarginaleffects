@@ -11,6 +11,7 @@ def datagrid(
     grid_type="mean_or_mode",
     FUN_numeric=lambda x: x.mean(),
     FUN_other=lambda x: x.mode()[0],  # mode can return multiple values
+    FUN_categorical=lambda x: x.unique(),
     **kwargs,
 ):
     """
@@ -27,6 +28,7 @@ def datagrid(
         * "balanced": Each unique level of character, factor, logical, and binary variables are preserved. Numeric, integer, and other variables are set to their means. Warning: When there are many variables and many levels per variable, a balanced grid can be very large. In those cases, it is better to use `grid_type="mean_or_mode"` and to specify the unique levels of a subset of named variables explicitly.
         * "counterfactual": the entire dataset is duplicated for each combination of the variable values specified in `...`. Variables not explicitly supplied to `datagrid()` are set to their observed values in the original dataset.
     - `FUN_numeric`: The function to be applied to numeric variables.
+    - `FUN_categorical`: The function to be applied to categorical variable types.
     - `FUN_other`: The function to be applied to other variable types.
 
     Returns:
@@ -87,26 +89,13 @@ def datagrid(
         return datagridcf(model=model, newdata=newdata, **kwargs)
 
     elif grid_type == "mean_or_mode":
-        if FUN_numeric is None:
-
-            def FUN_numeric(x):
-                x.mean()
-
-        if FUN_other is None:
-            # mode can return multiple values
-            def FUN_other(x):
-                x.mode()[0]
+        pass
 
     elif grid_type == "balanced":
-        if FUN_numeric is None:
-
-            def FUN_numeric(x):
-                x.mean()
-
         if FUN_other is None:
             # mode can return multiple values
             def FUN_other(x):
-                x.unique()[0]
+                x.unique()
 
     out = {}
     for key, value in kwargs.items():
@@ -137,8 +126,10 @@ def datagrid(
                 else:
                     coltype = "other"
 
-            if coltype == "numeric":
+            if coltype in ["numeric", "integer"]:
                 out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
+            elif coltype == "cagegorical":
+                out[col] = pl.DataFrame({col: FUN_categorical(newdata[col])})
             else:
                 out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
 
