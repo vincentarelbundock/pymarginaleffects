@@ -4,26 +4,12 @@ from marginaleffects import *
 from marginaleffects.plot_predictions import *
 from .utilities import *
 import pytest
+from .conftest import mtcars_df
 
-penguins = pl.read_csv(
-    "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
-    null_values="NA",
-).drop_nulls()
-
-mtcars = pl.read_csv(
-    "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-)
 
 FIGURES_FOLDER = "plot_predictions"
 
 
-@pytest.fixture
-def model():
-    mod = smf.ols(
-        "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island",
-        data=penguins.to_pandas(),
-    ).fit()
-    return mod
 
 
 @pytest.mark.parametrize(
@@ -58,7 +44,7 @@ def test_condition(input_condition, expected_figure_filename, model):
         (
             {
                 "am": None,
-                "qsec": [mtcars["qsec"].min(), mtcars["qsec"].max()],
+                "qsec": [mtcars_df["qsec"].min(), mtcars_df["qsec"].max()],
             },
             "issue_57_02",
         ),
@@ -66,7 +52,7 @@ def test_condition(input_condition, expected_figure_filename, model):
     ],
 )
 def test_issue_57(input_condition, expected_figure_filename):
-    mod = smf.ols("mpg ~ wt + am + qsec", mtcars.to_pandas()).fit()
+    mod = smf.ols("mpg ~ wt + am + qsec", mtcars_df.to_pandas()).fit()
 
     fig = plot_predictions(mod, condition=input_condition)
     assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
@@ -75,16 +61,13 @@ def test_issue_57(input_condition, expected_figure_filename):
 def issue_62():
     import types
 
-    mtcars = pl.read_csv(
-        "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-    )
-    mod = smf.ols("mpg ~ hp * wt * am", data=mtcars).fit()
+    mod = smf.ols("mpg ~ hp * wt * am", data=mtcars_df).fit()
     cond = {
         "hp": None,
         "wt": [
-            mtcars["wt"].mean() - mtcars["wt"].std(),
-            mtcars["wt"].mean(),
-            mtcars["wt"].mean() + mtcars["wt"].std(),
+            mtcars_df["wt"].mean() - mtcars_df["wt"].std(),
+            mtcars_df["wt"].mean(),
+            mtcars_df["wt"].mean() + mtcars_df["wt"].std(),
         ],
         "am": None,
     }
@@ -130,7 +113,7 @@ def issue_62():
         "issue_114_05",
         "issue_114_06",
         "issue_114_07",
-        "issue_114_08"
+        "issue_114_08",
     ],
 )
 def test_issue_114(input_condition, expected_figure_filename, model):

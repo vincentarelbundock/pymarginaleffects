@@ -3,14 +3,12 @@ import statsmodels.formula.api as smf
 from polars.testing import assert_frame_equal
 
 from marginaleffects import *
+from .conftest import mtcars_df
 
-mtcars = pl.read_csv(
-    "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-)
 
-mod = smf.ols("am ~ hp + wt + disp", data=mtcars).fit()
+mod = smf.ols("am ~ hp + wt + disp", data=mtcars_df).fit()
 
-mod_without_intercept = smf.ols("am ~ 0 + hp + wt + disp", data=mtcars).fit()
+mod_without_intercept = smf.ols("am ~ 0 + hp + wt + disp", data=mtcars_df).fit()
 
 
 def test_hypotheses_joint():

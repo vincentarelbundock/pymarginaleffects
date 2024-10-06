@@ -9,23 +9,6 @@ from .utilities import *
 FIGURES_FOLDER = "plot_comparisons"
 
 
-@pytest.fixture
-def mod():
-    df = (
-        pl.read_csv(
-            "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
-            null_values="NA",
-        )
-        .drop_nulls()
-        .sort(pl.col("species"))
-    )
-    mod = smf.ols(
-        "body_mass_g ~ flipper_length_mm * species * bill_length_mm * island",
-        df.to_pandas(),
-    ).fit()
-    return mod
-
-
 def test_continuous(mod):
     fig = plot_comparisons(
         mod,
@@ -69,7 +52,7 @@ def test_discrete(mod):
             {"bill_length_mm": None, "flipper_length_mm": "threenum", "island": None},
             "threenum_color",
         ),
-    ]
+    ],
 )
 def test_threenum(variables, condition, expected_file, mod):
     fig = plot_comparisons(mod, variables=variables, condition=condition)
