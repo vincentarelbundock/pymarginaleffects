@@ -11,7 +11,6 @@ def datagrid(
     grid_type="mean_or_mode",
     FUN_numeric=lambda x: x.mean(),
     FUN_other=lambda x: x.mode()[0],  # mode can return multiple values
-    FUN_categorical=lambda x: x.unique(),
     **kwargs,
 ):
     """
@@ -128,8 +127,6 @@ def datagrid(
 
             if coltype in ["numeric", "integer"]:
                 out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
-            elif coltype == "cagegorical":
-                out[col] = pl.DataFrame({col: FUN_categorical(newdata[col])})
             else:
                 out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
 
