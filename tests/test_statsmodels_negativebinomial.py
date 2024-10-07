@@ -1,10 +1,10 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from pytest import approx
-
+from .conftest import quine
 from marginaleffects import *
 
-dat = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/MASS/quine.csv")
+dat = quine
 mod = smf.negativebinomial("Days ~ Sex/(Age + Eth*Lrn)", data=dat.to_pandas()).fit()
 
 

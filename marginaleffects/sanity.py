@@ -54,6 +54,13 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         args['newdata'] = modeldata
         out = datagrid(**args, )
 
+    elif isinstance(newdata, str) and newdata == "balanced":
+        args['FUN_other'] = lambda x: np.unique(x)
+        args['grid_type'] = "balanced"
+        newdata_columns = model.get_variables_names() + [model.get_response_name()]
+        args['newdata'] = modeldata.select(newdata_columns)
+        out = datagrid(**args, )
+
     else:
         try:
             import pandas as pd

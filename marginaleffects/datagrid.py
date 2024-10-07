@@ -87,26 +87,13 @@ def datagrid(
         return datagridcf(model=model, newdata=newdata, **kwargs)
 
     elif grid_type == "mean_or_mode":
-        if FUN_numeric is None:
-
-            def FUN_numeric(x):
-                x.mean()
-
-        if FUN_other is None:
-            # mode can return multiple values
-            def FUN_other(x):
-                x.mode()[0]
+        pass
 
     elif grid_type == "balanced":
-        if FUN_numeric is None:
-
-            def FUN_numeric(x):
-                x.mean()
-
         if FUN_other is None:
             # mode can return multiple values
             def FUN_other(x):
-                x.unique()[0]
+                x.unique()
 
     out = {}
     for key, value in kwargs.items():
@@ -137,7 +124,7 @@ def datagrid(
                 else:
                     coltype = "other"
 
-            if coltype == "numeric":
+            if coltype in ["numeric", "integer"]:
                 out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
             else:
                 out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
