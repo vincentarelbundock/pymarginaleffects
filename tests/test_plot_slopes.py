@@ -12,31 +12,31 @@ FIGURES_FOLDER = "plot_slopes"
 class TestPlotPredictions:
 
 
-    def test_by(self, mod):
-        fig = plot_slopes(mod, variables="species", by="island")
+    def test_by(self, penguins_mod_add):
+        fig = plot_slopes(penguins_mod_add, variables="species", by="island")
         assert assert_image(fig, "by_01", FIGURES_FOLDER) is None
 
         # fig = plot_slopes(mod, variables="bill_length_mm", by=["species", "island"])
         # assert assert_image(fig, "by_02", FIGURES_FOLDER) is None
 
 
-    def test_condition(self, mod):
+    def test_condition(self, penguins_mod_add):
         fig = plot_slopes(
-            mod,
+            penguins_mod_add,
             variables="bill_length_mm",
             condition=["flipper_length_mm", "species"],
             eps_vcov=1e-2,
         )
         assert assert_image(fig, "condition_01", FIGURES_FOLDER) is None
 
-        fig = plot_slopes(mod, variables="species", condition="bill_length_mm")
+        fig = plot_slopes(penguins_mod_add, variables="species", condition="bill_length_mm")
         assert assert_image(fig, "condition_02", FIGURES_FOLDER) is None
 
-        fig = plot_slopes(mod, variables="island", condition="bill_length_mm", eps=1e-2)
+        fig = plot_slopes(penguins_mod_add, variables="island", condition="bill_length_mm", eps=1e-2)
         assert assert_image(fig, "condition_03", FIGURES_FOLDER) is None
 
         fig = plot_slopes(
-            mod, variables="species", condition=["bill_length_mm", "species", "island"]
+            penguins_mod_add, variables="species", condition=["bill_length_mm", "species", "island"]
         )
         assert assert_image(fig, "condition_04", FIGURES_FOLDER) is None
 
@@ -111,6 +111,6 @@ class TestPlotPredictions:
             ),
         ],
     )
-    def test_issue_114(self, input_condition, input_variables, expected_figure_filename, mod):
-        fig = plot_slopes(mod, variables=input_variables, condition=input_condition)
+    def test_issue_114(self, input_condition, input_variables, expected_figure_filename, penguins_mod_add):
+        fig = plot_slopes(penguins_mod_add, variables=input_variables, condition=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None

@@ -10,14 +10,10 @@ import pytest
 import marginaleffects
 from marginaleffects import *
 from marginaleffects.comparisons import estimands
-from .conftest import mtcars_df
+from .conftest import mtcars_df, guerry
 
 dat = (
-    pl.read_csv(
-        "https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv",
-        null_values="NA",
-    )
-    .drop_nulls()
+    guerry
     .with_columns(
         (pl.col("Area") > pl.col("Area").median()).alias("Boolea"),
         (pl.col("Distance") > pl.col("Distance").median()).alias("Bin"),

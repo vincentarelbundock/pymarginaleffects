@@ -12,33 +12,33 @@ FIGURES_FOLDER = "plot_comparisons"
 class TestPlotComparisons:
 
 
-    def test_continuous(self, mod):
+    def test_continuous(self, penguins_mod_add):
         fig = plot_comparisons(
-            mod,
+            penguins_mod_add,
             variables="bill_length_mm",
             by="island",
         )
         assert assert_image(fig, "continuous_01", FIGURES_FOLDER) is None
 
         fig = plot_comparisons(
-            mod, variables="bill_length_mm", condition=["flipper_length_mm", "species"]
+            penguins_mod_add, variables="bill_length_mm", condition=["flipper_length_mm", "species"]
         )
         assert assert_image(fig, "continuous_02", FIGURES_FOLDER) is None
 
-        fig = plot_comparisons(mod, variables="bill_length_mm", condition="species")
+        fig = plot_comparisons(penguins_mod_add, variables="bill_length_mm", condition="species")
         assert assert_image(fig, "continuous_03", FIGURES_FOLDER) is None
 
 
-    def test_discrete(self, mod):
+    def test_discrete(self, penguins_mod_add):
         fig = plot_comparisons(
-            mod, variables="species", condition=["bill_length_mm", "island"]
+            penguins_mod_add, variables="species", condition=["bill_length_mm", "island"]
         )
         assert assert_image(fig, "discrete_01", FIGURES_FOLDER) is None
 
-        fig = plot_comparisons(mod, variables="species", by="island")
+        fig = plot_comparisons(penguins_mod_add, variables="species", by="island")
         assert assert_image(fig, "discrete_02", FIGURES_FOLDER) is None
 
-        fig = plot_comparisons(mod, variables="species", condition="bill_length_mm")
+        fig = plot_comparisons(penguins_mod_add, variables="species", condition="bill_length_mm")
         assert assert_image(fig, "discrete_03", FIGURES_FOLDER) is None
 
 
@@ -57,6 +57,6 @@ class TestPlotComparisons:
             ),
         ],
     )
-    def test_threenum(self, variables, condition, expected_file, mod):
-        fig = plot_comparisons(mod, variables=variables, condition=condition)
+    def test_threenum(self, variables, condition, expected_file, penguins_mod_add):
+        fig = plot_comparisons(penguins_mod_add, variables=variables, condition=condition)
         assert assert_image(fig, expected_file, FIGURES_FOLDER) is None

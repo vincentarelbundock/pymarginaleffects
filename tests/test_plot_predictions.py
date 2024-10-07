@@ -20,8 +20,8 @@ class TestPlotPredictions:
             (["species", "island"], "by_02"),
         ],
     )
-    def test_by(self, input_condition, expected_figure_filename, model):
-        fig = plot_predictions(model, by=input_condition)
+    def test_by(self, input_condition, expected_figure_filename, penguins_model):
+        fig = plot_predictions(penguins_model, by=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
 
@@ -32,9 +32,9 @@ class TestPlotPredictions:
             (["bill_length_mm", "species", "island"], "condition_02"),
         ],
     )
-    def test_condition(self, input_condition, expected_figure_filename, model):
+    def test_condition(self, input_condition, expected_figure_filename, penguins_model):
 
-        fig = plot_predictions(model, condition=input_condition)
+        fig = plot_predictions(penguins_model, condition=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
 
@@ -117,6 +117,6 @@ class TestPlotPredictions:
             "issue_114_08",
         ],
     )
-    def test_issue_114(self, input_condition, expected_figure_filename, model):
-        fig = plot_predictions(model, condition=input_condition)
+    def test_issue_114(self, input_condition, expected_figure_filename, penguins_model):
+        fig = plot_predictions(penguins_model, condition=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None

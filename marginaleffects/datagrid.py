@@ -27,7 +27,6 @@ def datagrid(
         * "balanced": Each unique level of character, factor, logical, and binary variables are preserved. Numeric, integer, and other variables are set to their means. Warning: When there are many variables and many levels per variable, a balanced grid can be very large. In those cases, it is better to use `grid_type="mean_or_mode"` and to specify the unique levels of a subset of named variables explicitly.
         * "counterfactual": the entire dataset is duplicated for each combination of the variable values specified in `...`. Variables not explicitly supplied to `datagrid()` are set to their observed values in the original dataset.
     - `FUN_numeric`: The function to be applied to numeric variables.
-    - `FUN_categorical`: The function to be applied to categorical variable types.
     - `FUN_other`: The function to be applied to other variable types.
 
     Returns:
