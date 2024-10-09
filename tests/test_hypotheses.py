@@ -10,7 +10,8 @@ dat = pl.read_csv(
 )
 
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
-
+mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+mtcars_mod = smf.ols("mpg ~ hp + cyl", data = mtcars).fit()
 
 def test_coefs():
     hyp_py = hypotheses(mod, hypothesis=np.array([1, -1, 0, 0]))
@@ -18,9 +19,15 @@ def test_coefs():
     assert_series_equal(hyp_r["estimate"], hyp_py["estimate"])
     assert_series_equal(hyp_r["std.error"], hyp_py["std_error"], check_names=False)
 
+def test_hypothesis_2d_array():
+    hyp_py = predictions(mtcars_mod, by="cyl", hypothesis=np.array([[1,1,2],[2,2,3]]).T)
+    hyp_r = pl.read_csv("tests/r/test_hypotheses_2d_array.csv")
+    assert_series_equal(hyp_r["estimate"], hyp_py["estimate"])
+    assert_series_equal(hyp_r["std.error"], hyp_py["std_error"], check_names=False)
+
 
 def test_comparisons():
-    hyp_py = comparisons(mod, by=True, hypothesis="b1 = b2")
+    hyp_py = comparisons(mod, by=True, hypothesis="b0 = b1")
     hyp_r = pl.read_csv("tests/r/test_hypotheses_comparisons.csv")
     # absolute because the order of rows is different in R and Python `comparisons()` output
     assert_series_equal(hyp_r["estimate"].abs(), hyp_py["estimate"].abs())

@@ -52,12 +52,12 @@ def test_hypotheses():
 
     avg_predictions(m, by="democracy", hypothesis="revpairwise")
 
-    p = predictions(m, by="democracy", hypothesis="b2 = b1 * 2")
+    p = predictions(m, by="democracy", hypothesis="b1 = b0 * 2")
     assert isinstance(p, pl.DataFrame)
     assert p.shape[0] == 1
 
     p = predictions(
-        m, by="democracy", hypothesis="b2 = b1 * 2", equivalence=[-0.2, 0.2]
+        m, by="democracy", hypothesis="b1 = b0 * 2", equivalence=[-0.2, 0.2]
     )
     assert isinstance(p, pl.DataFrame)
     assert p.shape[0] == 1
@@ -205,7 +205,7 @@ def test_titanic():
     assert c.shape[0] == 3
 
     c = avg_comparisons(
-        mod_tit, variables="Woman", by="Passenger_Class", hypothesis="b1 - b3 = 0"
+        mod_tit, variables="Woman", by="Passenger_Class", hypothesis="b0 - b2 = 0"
     )
     assert isinstance(c, pl.DataFrame)
     assert c.shape[0] == 1
