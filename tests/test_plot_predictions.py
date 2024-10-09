@@ -1,3 +1,4 @@
+import sys
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
@@ -6,6 +7,7 @@ from .utilities import *
 import pytest
 from .conftest import mtcars_df
 
+pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
 
 FIGURES_FOLDER = "plot_predictions"
 
