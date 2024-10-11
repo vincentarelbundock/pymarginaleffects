@@ -39,7 +39,7 @@ class ModelAbstract(ABC):
 
         if "scale(" in formula or "center(" in formula:
             raise ValueError(
-                "The formula cannot include scale( or center(. Please transform your variables before fitting the model."
+                "The formula cannot include scale( or center(. Please center your variables before fitting the model."
             )
         self.formula = formula
 

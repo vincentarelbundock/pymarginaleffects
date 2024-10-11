@@ -1,3 +1,7 @@
+# Development
+
+* Formulas should not include scale() or center(). Thanks to @alexjonesphd for reporting Issue #113.
+
 # 0.0.12
 
 * Bug in datagrid() prevented "balanced" grid type. Thanks to @danielkberry for the fix (PR #104).
