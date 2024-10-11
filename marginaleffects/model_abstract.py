@@ -33,8 +33,14 @@ class ModelAbstract(ABC):
 
     def validate_formula(self):
         formula = self.get_formula()
+
         if not isinstance(formula, str):
             raise ValueError("formula must be a string")
+
+        if "scale(" in formula or "center(" in formula:
+            raise ValueError(
+                "The formula cannot include scale( or center(. Please transform your variables before fitting the model."
+            )
         self.formula = formula
 
     @abstractmethod
