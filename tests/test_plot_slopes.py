@@ -1,3 +1,4 @@
+import sys
 import polars as pl
 import pytest
 import statsmodels.formula.api as smf
@@ -5,6 +6,7 @@ from marginaleffects import *
 from marginaleffects.plot_slopes import *
 from .utilities import *
 
+pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
 
 FIGURES_FOLDER = "plot_slopes"
 

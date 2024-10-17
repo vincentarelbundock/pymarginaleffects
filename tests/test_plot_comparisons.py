@@ -1,9 +1,12 @@
+import sys
 import polars as pl
 import statsmodels.formula.api as smf
 import pytest
 from marginaleffects import *
 from marginaleffects.plot_comparisons import *
 from .utilities import *
+
+pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
 
 
 FIGURES_FOLDER = "plot_comparisons"
