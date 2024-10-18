@@ -67,6 +67,11 @@ Make sure there are no linting errors before submitting your changes.
 
 We appreciate your contributions and look forward to reviewing your pull requests!
 
+
+## Documentaion Guidelines
+
+* Follow the Numpydoc docstring style for the documentation, see [link](https://numpydoc.readthedocs.io/en/latest/format.html)
+
 ## Makefile
 
 The `marginaleffects` repository includes a `Makefile` to facilitate some common tasks.
