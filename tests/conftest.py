@@ -2,25 +2,47 @@ import pytest
 import statsmodels.formula.api as smf
 import polars as pl
 
-mtcars_df = pl.read_csv(
-    "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-)
 
-penguins = pl.read_csv(
-    "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
+diamonds = pl.read_csv("tests/data/diamonds.csv")
+
+dietox = pl.read_csv("tests/data/dietox.csv")
+
+guerry = pl.read_csv(
+    "tests/data/Guerry.csv",
     null_values="NA",
 ).drop_nulls()
+
+guerry_with_nulls = pl.read_csv("tests/data/Guerry.csv")
+
+impartiality_df = pl.read_csv("tests/data/impartiality.csv").with_columns(
+    pl.col("impartial").cast(pl.Int8)
+)
+
+iris = pl.read_csv("tests/data/iris.csv")
+
+mtcars_df = pl.read_csv("tests/data/mtcars.csv")
+
+penguins = pl.read_csv(
+    "tests/data/penguins.csv",
+    null_values="NA",
+).drop_nulls()
+
+quine = pl.read_csv("tests/data/quine.csv")
 
 
 @pytest.fixture(scope="session")
 def mtcars():
-    mtcars = pl.read_csv(
-        "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv"
-    )
+    return pl.read_csv("tests/data/mtcars.csv")
+    return mtcars
 
 
 @pytest.fixture(scope="session")
-def model():
+def guerry_mod():
+    return smf.ols("Literacy ~ Pop1831 * Desertion", guerry).fit()
+
+
+@pytest.fixture(scope="session")
+def penguins_model():
     mod = smf.ols(
         "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island",
         data=penguins.to_pandas(),
@@ -29,7 +51,7 @@ def model():
 
 
 @pytest.fixture(scope="session")
-def mod():
+def penguins_mod_add():
     mod = smf.ols(
         "body_mass_g ~ flipper_length_mm * species * bill_length_mm * island",
         penguins.to_pandas(),

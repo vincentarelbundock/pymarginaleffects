@@ -4,10 +4,7 @@ import statsmodels.formula.api as smf
 from marginaleffects import *
 from tests.utilities import *
 import pytest
-
-dat = pl.read_csv("tests/data/impartiality.csv").with_columns(
-    pl.col("impartial").cast(pl.Int8)
-)
+from .conftest import impartiality_df as dat
 
 m = smf.logit("impartial ~ equal * democracy + continent", data=dat.to_pandas()).fit()
 
