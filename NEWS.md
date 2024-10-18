@@ -1,8 +1,10 @@
 # 0.0.13
 
+* Formulas should not include scale() or center(). Thanks to @alexjonesphd for reporting Issue #113.
+
 Breaking change:
 
-* `hypothesis` and `hypothesis` now index in a Python-like style by counting from 0 instead of counting from as in R. Example code before the change  `predictions(mod, hypothesis = "b1 - b2 = 0")`; example correct code after change `predictions(mod, hypothesis = "b0 - b1 = 0")`
+* `hypothesis` and `hypothesis` now index in a Python-like style by counting from 0 instead of counting from 1 as in R. Example code before the change  `predictions(mod, hypothesis = "b1 - b2 = 0")`; example correct code after change `predictions(mod, hypothesis = "b0 - b1 = 0")`
  
 # 0.0.12
 

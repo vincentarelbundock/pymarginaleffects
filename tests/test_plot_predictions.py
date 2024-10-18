@@ -1,3 +1,4 @@
+import sys
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
@@ -6,10 +7,9 @@ from .utilities import *
 import pytest
 from .conftest import mtcars_df
 
+pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
 
 FIGURES_FOLDER = "plot_predictions"
-
-
 
 
 @pytest.mark.parametrize(
@@ -32,7 +32,6 @@ def test_by(input_condition, expected_figure_filename, model):
     ],
 )
 def test_condition(input_condition, expected_figure_filename, model):
-
     fig = plot_predictions(model, condition=input_condition)
     assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 

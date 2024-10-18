@@ -31,7 +31,6 @@ dat = dat.with_columns(
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
 
 
-
 def test_difference():
     cmp_py = comparisons(mod, comparison="differenceavg").sort("term")
     cmp_r = pl.read_csv("tests/r/test_comparisons_01.csv").sort("term")
