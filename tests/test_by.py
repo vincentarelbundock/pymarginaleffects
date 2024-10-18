@@ -5,12 +5,6 @@ from .conftest import guerry
 
 from .utilities import *
 
-# Guerry = pl.read_csv(
-#     "https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv",
-#     null_values="NA",
-# ).drop_nulls()
-# guerry_mod = smf.ols("Literacy ~ Pop1831 * Desertion", Guerry).fit()
-
 
 def test_predictions_by_string(guerry_mod):
     cmp_py = predictions(guerry_mod, by="Region")
@@ -37,8 +31,10 @@ def test_predictions_by_wts(guerry_mod):
 
 
 def test_median_by(guerry_mod):
-    mod = smf.ols(formula='Lottery ~ Literacy + Wealth + C(Region)', data=guerry.to_pandas()).fit()
-    s = avg_slopes(mod, variables = "Literacy", by = "Region", newdata = "median")
+    mod = smf.ols(
+        formula="Lottery ~ Literacy + Wealth + C(Region)", data=guerry.to_pandas()
+    ).fit()
+    s = avg_slopes(mod, variables="Literacy", by="Region", newdata="median")
     assert s.shape[0] == 5, "by variable not treated as unique in datagrid"
 
 

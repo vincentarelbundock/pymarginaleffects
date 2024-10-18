@@ -5,10 +5,6 @@ from .conftest import guerry
 
 from marginaleffects import *
 
-# Guerry = pl.read_csv(
-#     "https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv",
-#     null_values="NA",
-# ).drop_nulls()
 mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", guerry.to_pandas()).fit()
 
 

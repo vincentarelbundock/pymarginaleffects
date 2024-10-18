@@ -2,51 +2,44 @@ import pytest
 import statsmodels.formula.api as smf
 import polars as pl
 
-mtcars_df = pl.read_csv(
-    "tests\\data\\mtcars.csv"
-)
 
-diamonds = pl.read_csv(
-    "tests\\data\\diamonds.csv"
-)
+diamonds = pl.read_csv("tests/data/diamonds.csv")
 
-dietox = pl.read_csv(
-    "tests\\data\\dietox.csv"
-)
-
-iris = pl.read_csv(
-    "tests\\data\\iris.csv"
-)
-
-quine = pl.read_csv(
-    "tests\\data\\quine.csv"
-)
-
-penguins = pl.read_csv(
-    "tests\\data\\penguins.csv",
-    null_values="NA",
-).drop_nulls()
+dietox = pl.read_csv("tests/data/dietox.csv")
 
 guerry = pl.read_csv(
-    "tests\\data\\Guerry.csv",
+    "tests/data/Guerry.csv",
     null_values="NA",
 ).drop_nulls()
 
-guerry_with_nulls = pl.read_csv(
-    "tests\\data\\Guerry.csv"
+guerry_with_nulls = pl.read_csv("tests/data/Guerry.csv")
+
+impartiality_df = pl.read_csv("tests/data/impartiality.csv").with_columns(
+    pl.col("impartial").cast(pl.Int8)
 )
+
+iris = pl.read_csv("tests/data/iris.csv")
+
+mtcars_df = pl.read_csv("tests/data/mtcars.csv")
+
+penguins = pl.read_csv(
+    "tests/data/penguins.csv",
+    null_values="NA",
+).drop_nulls()
+
+quine = pl.read_csv("tests/data/quine.csv")
+
 
 @pytest.fixture(scope="session")
 def mtcars():
-    return pl.read_csv(
-        "tests\\data\\mtcars.csv"
-    )
+    return pl.read_csv("tests/data/mtcars.csv")
     return mtcars
 
 
 @pytest.fixture(scope="session")
 def guerry_mod():
     return smf.ols("Literacy ~ Pop1831 * Desertion", guerry).fit()
+
 
 @pytest.fixture(scope="session")
 def penguins_model():

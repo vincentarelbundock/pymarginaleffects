@@ -5,9 +5,6 @@ from polars.testing import assert_series_equal
 from .conftest import guerry_with_nulls
 from marginaleffects import *
 
-# dat = pl.read_csv(
-#     "https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv"
-# )
 
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", guerry_with_nulls).fit()
 

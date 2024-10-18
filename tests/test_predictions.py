@@ -7,18 +7,11 @@ from marginaleffects import *
 
 from .utilities import *
 
-# df = pl.read_csv(
-#     "https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv",
-#     null_values="NA",
-# ).drop_nulls()
 df = guerry.with_columns(pl.Series(range(guerry.shape[0])).alias("row_id")).sort(
     "Region", "row_id"
 )
 mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
 
-# diamonds = pl.read_csv(
-#     "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/ggplot2/diamonds.csv"
-# )
 
 def test_newdata_balanced():
     mod = smf.ols(
@@ -27,7 +20,7 @@ def test_newdata_balanced():
     ).fit()
     p = predictions(mod, newdata="balanced")
     assert p.shape[0] == 9
-    
+
 
 def test_predictions():
     pre_py = predictions(mod_py)

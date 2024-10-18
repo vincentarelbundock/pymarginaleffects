@@ -4,9 +4,7 @@ from polars.testing import assert_series_equal
 from .conftest import iris
 from marginaleffects import *
 
-# dat = pl.read_csv(
-#     "https://vincentarelbundock.github.io/Rdatasets/csv/datasets/iris.csv"
-# )
+
 dat = iris.rename(
     {
         "Sepal.Length": "Sepal_Length",

@@ -11,10 +11,9 @@ pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on mac
 
 FIGURES_FOLDER = "plot_predictions"
 
+
 @pytest.mark.plot
 class TestPlotPredictions:
-
-
     @pytest.mark.parametrize(
         "input_condition, expected_figure_filename",
         [
@@ -26,19 +25,19 @@ class TestPlotPredictions:
         fig = plot_predictions(penguins_model, by=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
-
     @pytest.mark.parametrize(
         "input_condition, expected_figure_filename",
         [
-            ({"flipper_length_mm": list(range(180, 220)), "species": None}, "condition_01"),
+            (
+                {"flipper_length_mm": list(range(180, 220)), "species": None},
+                "condition_01",
+            ),
             (["bill_length_mm", "species", "island"], "condition_02"),
         ],
     )
     def test_condition(self, input_condition, expected_figure_filename, penguins_model):
-
         fig = plot_predictions(penguins_model, condition=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
-
 
     @pytest.mark.parametrize(
         "input_condition, expected_figure_filename",
@@ -60,7 +59,6 @@ class TestPlotPredictions:
         fig = plot_predictions(mod, condition=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
-
     def issue_62(self):
         import types
 
@@ -76,7 +74,6 @@ class TestPlotPredictions:
         }
         p = plot_predictions(mod, condition=cond)
         assert isinstance(p, types.ModuleType)
-
 
     @pytest.mark.parametrize(
         "input_condition, expected_figure_filename",

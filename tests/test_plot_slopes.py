@@ -10,17 +10,15 @@ pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on mac
 
 FIGURES_FOLDER = "plot_slopes"
 
+
 @pytest.mark.plot
 class TestPlotPredictions:
-
-
     def test_by(self, penguins_mod_add):
         fig = plot_slopes(penguins_mod_add, variables="species", by="island")
         assert assert_image(fig, "by_01", FIGURES_FOLDER) is None
 
         # fig = plot_slopes(mod, variables="bill_length_mm", by=["species", "island"])
         # assert assert_image(fig, "by_02", FIGURES_FOLDER) is None
-
 
     def test_condition(self, penguins_mod_add):
         fig = plot_slopes(
@@ -31,17 +29,22 @@ class TestPlotPredictions:
         )
         assert assert_image(fig, "condition_01", FIGURES_FOLDER) is None
 
-        fig = plot_slopes(penguins_mod_add, variables="species", condition="bill_length_mm")
+        fig = plot_slopes(
+            penguins_mod_add, variables="species", condition="bill_length_mm"
+        )
         assert assert_image(fig, "condition_02", FIGURES_FOLDER) is None
 
-        fig = plot_slopes(penguins_mod_add, variables="island", condition="bill_length_mm", eps=1e-2)
+        fig = plot_slopes(
+            penguins_mod_add, variables="island", condition="bill_length_mm", eps=1e-2
+        )
         assert assert_image(fig, "condition_03", FIGURES_FOLDER) is None
 
         fig = plot_slopes(
-            penguins_mod_add, variables="species", condition=["bill_length_mm", "species", "island"]
+            penguins_mod_add,
+            variables="species",
+            condition=["bill_length_mm", "species", "island"],
         )
         assert assert_image(fig, "condition_04", FIGURES_FOLDER) is None
-
 
     @pytest.mark.parametrize(
         "input_condition, input_variables, expected_figure_filename",
@@ -66,9 +69,10 @@ class TestPlotPredictions:
     def test_issue114_slopes(
         self, input_condition, input_variables, expected_figure_filename, mtcars_mod
     ):
-        fig = plot_slopes(mtcars_mod, variables=input_variables, condition=input_condition)
+        fig = plot_slopes(
+            mtcars_mod, variables=input_variables, condition=input_condition
+        )
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
-
 
     @pytest.mark.parametrize(
         "input_condition, input_variables, expected_figure_filename",
@@ -113,6 +117,14 @@ class TestPlotPredictions:
             ),
         ],
     )
-    def test_issue_114(self, input_condition, input_variables, expected_figure_filename, penguins_mod_add):
-        fig = plot_slopes(penguins_mod_add, variables=input_variables, condition=input_condition)
+    def test_issue_114(
+        self,
+        input_condition,
+        input_variables,
+        expected_figure_filename,
+        penguins_mod_add,
+    ):
+        fig = plot_slopes(
+            penguins_mod_add, variables=input_variables, condition=input_condition
+        )
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
