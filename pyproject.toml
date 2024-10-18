@@ -28,3 +28,9 @@ dev-dependencies = [
   "pytest-xdist >=3.6.1",
   "ruff>=0.6.4",
 ]
+
+
+[tool.pytest.ini_options]
+markers =[
+    "plot: marks plot tests (slow)",
+]

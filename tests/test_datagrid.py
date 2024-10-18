@@ -4,7 +4,6 @@ from marginaleffects import *
 from .conftest import mtcars_df
 
 
-
 def test_FUN_numeric():
     d = datagrid(newdata=mtcars_df, FUN_numeric=lambda x: x.median())
     assert d["cyl"][0] == mtcars_df["cyl"].median()

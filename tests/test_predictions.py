@@ -1,24 +1,25 @@
 import polars as pl
 from polars.testing import assert_series_equal
 import statsmodels.formula.api as smf
-
+from .conftest import guerry, penguins, diamonds
 import marginaleffects
 from marginaleffects import *
 
 from .utilities import *
 
-df = pl.read_csv(
-    "https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv",
-    null_values="NA",
-).drop_nulls()
-df = df.with_columns(pl.Series(range(df.shape[0])).alias("row_id")).sort(
+df = guerry.with_columns(pl.Series(range(guerry.shape[0])).alias("row_id")).sort(
     "Region", "row_id"
 )
 mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
 
-diamonds = pl.read_csv(
-    "https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/ggplot2/diamonds.csv"
-)
+
+def test_newdata_balanced():
+    mod = smf.ols(
+        "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island",
+        penguins.to_pandas(),
+    ).fit()
+    p = predictions(mod, newdata="balanced")
+    assert p.shape[0] == 9
 
 
 def test_predictions():

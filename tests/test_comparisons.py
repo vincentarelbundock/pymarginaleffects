@@ -10,18 +10,11 @@ import pytest
 import marginaleffects
 from marginaleffects import *
 from marginaleffects.comparisons import estimands
-from .conftest import mtcars_df
+from .conftest import mtcars_df, guerry
 
-dat = (
-    pl.read_csv(
-        "https://vincentarelbundock.github.io/Rdatasets/csv/HistData/Guerry.csv",
-        null_values="NA",
-    )
-    .drop_nulls()
-    .with_columns(
-        (pl.col("Area") > pl.col("Area").median()).alias("Boolea"),
-        (pl.col("Distance") > pl.col("Distance").median()).alias("Bin"),
-    )
+dat = guerry.with_columns(
+    (pl.col("Area") > pl.col("Area").median()).alias("Boolea"),
+    (pl.col("Distance") > pl.col("Distance").median()).alias("Bin"),
 )
 dat = dat.with_columns(
     pl.col("Bin").cast(pl.Int32),
@@ -29,7 +22,6 @@ dat = dat.with_columns(
 ).to_pandas()
 
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
-
 
 
 def test_difference():
