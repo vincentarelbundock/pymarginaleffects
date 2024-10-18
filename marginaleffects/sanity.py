@@ -1,5 +1,6 @@
 from collections import namedtuple
 from warnings import warn
+import narwhals as nw
 
 import numpy as np
 import polars as pl
@@ -31,6 +32,7 @@ def sanitize_by(by):
     return by
 
 
+@nw.narwhalify
 def sanitize_newdata(model, newdata, wts, by=[]):
     modeldata = model.modeldata
 
@@ -65,16 +67,16 @@ def sanitize_newdata(model, newdata, wts, by=[]):
             **args,
         )
 
-    else:
-        try:
-            import pandas as pd
+    # else:
+    #     try:
+    #         import pandas as pd
 
-            if isinstance(newdata, pd.DataFrame):
-                out = pl.from_pandas(newdata)
-            else:
-                out = newdata
-        except ImportError:
-            out = newdata
+    #         if isinstance(newdata, pd.DataFrame):
+    #             out = nw.from_pandas(newdata)
+    #         else:
+    #             out = newdata
+    #     except ImportError:
+    #         out = newdata
 
     reserved_names = {
         "rowid",
@@ -95,7 +97,7 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     ), f"Input data contain reserved column name(s) : {set(out.columns).intersection(reserved_names)}"
 
     datagrid_explicit = None
-    if isinstance(out, pl.DataFrame) and hasattr(out, "datagrid_explicit"):
+    if isinstance(out, nw.DataFrame) and hasattr(out, "datagrid_explicit"):
         datagrid_explicit = out.datagrid_explicit
 
     if isinstance(by, list) and len(by) > 0:
@@ -103,13 +105,14 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         if len(by) > 0:
             out = out.sort(by)
 
-    out = out.with_columns(pl.Series(range(out.height), dtype=pl.Int32).alias("rowid"))
+    # out = out.with_columns(pl.Series(range(out.height), dtype=pl.Int32).alias("rowid"))
+    out = out.with_row_index('rowid')
 
     if wts is not None:
         if (isinstance(wts, str) is False) or (wts not in out.columns):
             raise ValueError(f"`newdata` does not have a column named '{wts}'.")
 
-    if any([isinstance(out[x], pl.Categorical) for x in out.columns]):
+    if any([isinstance(out[x], nw.Categorical) for x in out.columns]):
         raise ValueError("Categorical type columns are not supported in `newdata`.")
 
     if datagrid_explicit is not None:
@@ -171,14 +174,14 @@ HiLo = namedtuple("HiLo", ["variable", "hi", "lo", "lab", "pad", "comparison"])
 def clean_global(k, n):
     if (
         not isinstance(k, list)
-        and not isinstance(k, pl.Series)
+        and not isinstance(k, nw.Series)
         and not isinstance(k, np.ndarray)
     ):
         out = [k]
     if not isinstance(k, list) or len(k) == 1:
-        out = pl.Series(np.repeat(k, n))
+        out = nw.Series(np.repeat(k, n))
     else:
-        out = pl.Series(k)
+        out = nw.Series(k)
     return out
 
 

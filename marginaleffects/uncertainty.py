@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 import polars as pl
+import narwhals as nw
 import scipy.stats as stats
 
 
@@ -47,7 +48,7 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
     if "std_error" not in df.columns:
         return df
     df = df.with_columns(
-        ((pl.col("estimate") - float(hypothesis_null)) / pl.col("std_error")).alias(
+        ((nw.col("estimate") - float(hypothesis_null)) / nw.col("std_error")).alias(
             "statistic"
         )
     )
@@ -58,16 +59,16 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
     critical_value = stats.t.ppf((1 + conf_level) / 2, dof)
 
     df = df.with_columns(
-        (pl.col("estimate") - critical_value * pl.col("std_error")).alias("conf_low")
+        (nw.col("estimate") - critical_value * nw.col("std_error")).alias("conf_low")
     )
     df = df.with_columns(
-        (pl.col("estimate") + critical_value * pl.col("std_error")).alias("conf_high")
+        (nw.col("estimate") + critical_value * nw.col("std_error")).alias("conf_high")
     )
 
     df = df.with_columns(
-        pl.col("statistic")
+        nw.col("statistic")
         .map_elements(
-            lambda x: (2 * (1 - stats.t.cdf(np.abs(x), dof))), return_dtype=pl.Float64
+            lambda x: (2 * (1 - stats.t.cdf(np.abs(x), dof))), return_dtype=nw.Float64
         )
         .alias("p_value")
     )
@@ -75,8 +76,8 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
         warnings.simplefilter("ignore")
         try:
             df = df.with_columns(
-                pl.col("p_value")
-                .map_elements(lambda x: -np.log2(x), return_dtype=pl.Float64)
+                nw.col("p_value")
+                .map_elements(lambda x: -np.log2(x), return_dtype=nw.Float64)
                 .alias("s_value")
             )
         except Exception as e:
