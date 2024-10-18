@@ -1,6 +1,8 @@
 import numpy as np
 import patsy
+
 import polars as pl
+import narwhals as nw
 
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
@@ -19,6 +21,7 @@ from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 
 
+@nw.narwhalify(eager_only=True)
 def predictions(
     model,
     variables=None,
@@ -120,7 +123,7 @@ def predictions(
                 val = value
 
             newdata = newdata.drop(variable)
-            newdata = newdata.join(pl.DataFrame({variable: val}), how="cross")
+            newdata = newdata.join(nw.DataFrame({variable: val}), how="cross")
             newdata = newdata.sort(variable)
 
         newdata.datagrid_explicit = list(variables.keys())
@@ -141,7 +144,7 @@ def predictions(
 
         if out.shape[0] == newdata.shape[0]:
             cols = [x for x in newdata.columns if x not in out.columns]
-            out = pl.concat([out, newdata.select(cols)], how="horizontal")
+            out = nw.concat([nw.from_native(out), nw.from_native(newdata.select(cols))], how="horizontal")
 
         # group
         elif "group" in out.columns:
@@ -162,7 +165,7 @@ def predictions(
     if V is not None:
         J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
         se = get_se(J, V)
-        out = out.with_columns(pl.Series(se).alias("std_error"))
+        out = out.with_columns(nw.from_native(pl.Series(se).alias("std_error"), series_only=True))
         out = get_z_p_ci(
             out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
         )
