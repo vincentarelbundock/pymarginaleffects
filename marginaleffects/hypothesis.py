@@ -19,10 +19,10 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
             raise ValueError(msg)
 
         for i in range(x.shape[0]):
-            tmp = f"marginaleffects__{i + 1}"
-            hypothesis = re.sub(f"b{i + 1}", tmp, hypothesis)
+            tmp = f"marginaleffects__{i}"
+            hypothesis = re.sub(f"b{i}", tmp, hypothesis)
 
-        rowlabels = [f"marginaleffects__{i + 1}" for i in range(x.shape[0])]
+        rowlabels = [f"marginaleffects__{i}" for i in range(x.shape[0])]
     else:
         if "term" not in x.columns or len(x["term"]) != len(set(x["term"])):
             msg = 'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b1`, `b2`, etc. indices instead of term names in the `hypotheses` string Ex: "b1 + b2 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
@@ -53,7 +53,7 @@ def get_hypothesis(x, hypothesis):
         return x
     if isinstance(hypothesis, np.ndarray):
         out = lincom_multiply(x, hypothesis)
-        lab = [f"H{i + 1}" for i in range(out.shape[1])]
+        lab = [f"H{i + 1}" for i in range(out.shape[0])]
         out = out.with_columns(pl.Series(lab).alias("term"))
     elif isinstance(hypothesis, str) and re.search("=", hypothesis) is not None:
         out = eval_string_hypothesis(x, hypothesis, lab=hypothesis)

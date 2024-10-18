@@ -2,11 +2,12 @@ import numpy as np
 import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-from .conftest import guerry_with_nulls
+from .conftest import guerry_with_nulls, mtcars_df
 from marginaleffects import *
 
 
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", guerry_with_nulls).fit()
+mtcars_mod = smf.ols("mpg ~ hp + cyl", data=mtcars_df).fit()
 
 
 def test_coefs():
@@ -16,8 +17,17 @@ def test_coefs():
     assert_series_equal(hyp_r["std.error"], hyp_py["std_error"], check_names=False)
 
 
+def test_hypothesis_2d_array():
+    hyp_py = predictions(
+        mtcars_mod, by="cyl", hypothesis=np.array([[1, 1, 2], [2, 2, 3]]).T
+    )
+    hyp_r = pl.read_csv("tests/r/test_hypotheses_2d_array.csv")
+    assert_series_equal(hyp_r["estimate"], hyp_py["estimate"])
+    assert_series_equal(hyp_r["std.error"], hyp_py["std_error"], check_names=False)
+
+
 def test_comparisons():
-    hyp_py = comparisons(mod, by=True, hypothesis="b1 = b2")
+    hyp_py = comparisons(mod, by=True, hypothesis="b0 = b1")
     hyp_r = pl.read_csv("tests/r/test_hypotheses_comparisons.csv")
     # absolute because the order of rows is different in R and Python `comparisons()` output
     assert_series_equal(hyp_r["estimate"].abs(), hyp_py["estimate"].abs())

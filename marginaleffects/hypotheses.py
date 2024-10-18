@@ -46,7 +46,7 @@ def hypotheses(
     Parameters:
     model : object
         Model object estimated by `statsmodels`
-    hypothesis : str formula, int, float, or optional
+    hypothesis : str formula, int, float, numpy array or optional
         The null hypothesis value. Default is None.
     conf_level : float, optional
         Confidence level for the hypothesis test. Default is 0.95.
