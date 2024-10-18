@@ -36,8 +36,10 @@ def test_predictions_by_wts():
 
 
 def test_median_by():
-    mod = smf.ols(formula='Lottery ~ Literacy + Wealth + C(Region)', data=Guerry.to_pandas()).fit()
-    s = avg_slopes(mod, variables = "Literacy", by = "Region", newdata = "median")
+    mod = smf.ols(
+        formula="Lottery ~ Literacy + Wealth + C(Region)", data=Guerry.to_pandas()
+    ).fit()
+    s = avg_slopes(mod, variables="Literacy", by="Region", newdata="median")
     assert s.shape[0] == 5, "by variable not treated as unique in datagrid"
 
 
