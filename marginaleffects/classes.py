@@ -80,9 +80,8 @@ class MarginaleffectsDataFrame(pl.DataFrame):
         tmp = self.select(valid).rename(self.mapping)
         for col in tmp.columns:
             if tmp[col].dtype.is_numeric():
-                tmp = tmp.with_columns(
-                    pl.col(col).map_elements(lambda x: f"{x:.3g}", return_dtype=pl.Utf8)
-                )
+                fmt = lambda x: pl.Series([f"{i:.3g}" for i in x])
+                tmp.with_columns(pl.col(col).map_batches(fmt, return_dtype=pl.Utf8).alias(col))
         out += tmp.__str__()
         out = out + f"\n\nColumns: {', '.join(self.columns)}\n"
         return out
