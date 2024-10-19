@@ -2,9 +2,14 @@ import itertools
 
 import numpy as np
 import polars as pl
+import narwhals as nw
 
 
 def sort_columns(df, by=None, newdata=None):
+    df = nw.from_native(df)
+    # if not isinstance(df, pl.DataFrame):
+    #     df = pl.from_pandas(df)
+
     cols = [
         "rowid",
         "group",

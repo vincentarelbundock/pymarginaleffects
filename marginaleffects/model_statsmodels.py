@@ -94,7 +94,7 @@ class ModelStatsmodels(ModelAbstract):
                 pl.DataFrame(p)
                 .rename(colnames)
                 .with_columns(
-                    pl.Series(range(p.shape[0]), dtype=pl.Int32).alias("rowid")
+                    pl.Series(range(p.shape[0]), dtype=pl.UInt32).alias("rowid")
                 )
                 .melt(id_vars="rowid", variable_name="group", value_name="estimate")
             )

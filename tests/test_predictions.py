@@ -1,11 +1,11 @@
 import polars as pl
 from polars.testing import assert_series_equal
 import statsmodels.formula.api as smf
-from .conftest import guerry, penguins, diamonds
+from tests.conftest import guerry, penguins, diamonds
 import marginaleffects
 from marginaleffects import *
 
-from .utilities import *
+from tests.utilities import *
 
 df = guerry.with_columns(pl.Series(range(guerry.shape[0])).alias("row_id")).sort(
     "Region", "row_id"

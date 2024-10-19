@@ -1,7 +1,5 @@
 import numpy as np
 import patsy
-
-import polars as pl
 import narwhals as nw
 
 from .by import get_by
@@ -21,7 +19,7 @@ from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 
 
-@nw.narwhalify(eager_only=True)
+# @nw.narwhalify(eager_only=True)
 def predictions(
     model,
     variables=None,
@@ -79,13 +77,14 @@ def predictions(
     """
 
     if callable(newdata):
-        newdata = newdata(model)
+        newdata = nw.from_native(newdata(model))
 
     # sanity checks
     model = sanitize_model(model)
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
-    newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
+    newdata = sanitize_newdata(model, newdata, wts=wts, by=by)  # nw.from_native(
+    # )
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     modeldata = model.get_modeldata()
@@ -136,7 +135,7 @@ def predictions(
         exog = newdata.to_pandas()
     else:
         design_info = model.model.model.data.design_info
-        exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
+        exog = patsy.dmatrix(design_info, newdata, NA_action="raise")
 
     # estimands
     def inner(x):
@@ -144,7 +143,10 @@ def predictions(
 
         if out.shape[0] == newdata.shape[0]:
             cols = [x for x in newdata.columns if x not in out.columns]
-            out = nw.concat([nw.from_native(out), nw.from_native(newdata.select(cols))], how="horizontal")
+            out = nw.concat(
+                [nw.from_native(out), nw.from_native(newdata).select(cols)],
+                how="horizontal",
+            )  # oandas does not have .select, use .[cols] instead
 
         # group
         elif "group" in out.columns:
@@ -165,7 +167,14 @@ def predictions(
     if V is not None:
         J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
         se = get_se(J, V)
-        out = out.with_columns(nw.from_native(pl.Series(se).alias("std_error"), series_only=True))
+        out = out.with_columns(
+            nw.new_series(
+                "std_error",
+                se,
+                dtype=None,
+                native_namespace=nw.get_native_namespace(out),
+            )
+        )
         out = get_z_p_ci(
             out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
         )

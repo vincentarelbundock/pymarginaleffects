@@ -1,7 +1,5 @@
 import warnings
-
 import numpy as np
-import polars as pl
 import narwhals as nw
 import scipy.stats as stats
 
@@ -44,6 +42,7 @@ def get_se(J, V):
     return se
 
 
+@nw.narwhalify(eager_only=True)
 def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
     if "std_error" not in df.columns:
         return df
@@ -66,19 +65,26 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
     )
 
     df = df.with_columns(
-        nw.col("statistic")
-        .map_elements(
-            lambda x: (2 * (1 - stats.t.cdf(np.abs(x), dof))), return_dtype=nw.Float64
+        nw.new_series(
+            "p_value",
+            (2 * (1 - stats.t.cdf(np.abs(df["statistic"]), dof))),
+            dtype=nw.Float64,
+            native_namespace=nw.get_native_namespace(df),
         )
-        .alias("p_value")
     )
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         try:
             df = df.with_columns(
-                nw.col("p_value")
-                .map_elements(lambda x: -np.log2(x), return_dtype=nw.Float64)
-                .alias("s_value")
+                nw.new_series(
+                    "s_value",
+                    (-np.log2(df["p_value"])),
+                    dtype=nw.Float64,
+                    native_namespace=nw.get_native_namespace(df),
+                )
+                # nw.col("p_value")
+                # .map_elements(lambda x: -np.log2(x), return_dtype=nw.Float64)
+                # .alias("s_value")
             )
         except Exception as e:
             print(f"An exception occurred: {e}")

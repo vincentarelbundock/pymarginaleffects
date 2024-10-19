@@ -71,10 +71,10 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     #     try:
     #         import pandas as pd
 
-    #         if isinstance(newdata, pd.DataFrame):
-    #             out = nw.from_pandas(newdata)
-    #         else:
-    #             out = newdata
+    # if isinstance(newdata, nw.typing.):
+    # out = nw.from_pandas(newdata)
+    else:
+        out = nw.from_native(newdata)
     #     except ImportError:
     #         out = newdata
 
@@ -106,7 +106,7 @@ def sanitize_newdata(model, newdata, wts, by=[]):
             out = out.sort(by)
 
     # out = out.with_columns(pl.Series(range(out.height), dtype=pl.Int32).alias("rowid"))
-    out = out.with_row_index('rowid')
+    out = out.with_row_index("rowid")
 
     if wts is not None:
         if (isinstance(wts, str) is False) or (wts not in out.columns):
@@ -179,9 +179,9 @@ def clean_global(k, n):
     ):
         out = [k]
     if not isinstance(k, list) or len(k) == 1:
-        out = nw.Series(np.repeat(k, n))
+        out = nw.from_native(pl.Series(np.repeat(k, n)), allow_series=True)
     else:
-        out = nw.Series(k)
+        out = nw.from_native(pl.Series(k), allow_series=True)
     return out
 
 
