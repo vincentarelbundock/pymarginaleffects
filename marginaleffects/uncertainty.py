@@ -66,7 +66,7 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
 
     df = df.with_columns(
         pl.col("statistic")
-        .map_elements(
+        .map_batches(
             lambda x: (2 * (1 - stats.t.cdf(np.abs(x), dof))), return_dtype=pl.Float64
         )
         .alias("p_value")
@@ -76,7 +76,7 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
         try:
             df = df.with_columns(
                 pl.col("p_value")
-                .map_elements(lambda x: -np.log2(x), return_dtype=pl.Float64)
+                .map_batches(lambda x: -np.log2(x), return_dtype=pl.Float64)
                 .alias("s_value")
             )
         except Exception as e:
