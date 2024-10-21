@@ -2,7 +2,7 @@ import numpy as np
 import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-from .conftest import guerry_with_nulls, mtcars_df
+from tests.conftest import guerry_with_nulls, mtcars_df
 from marginaleffects import *
 
 

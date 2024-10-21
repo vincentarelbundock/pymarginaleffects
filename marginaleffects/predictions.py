@@ -1,7 +1,9 @@
 import numpy as np
 import patsy
-import polars as pl
+import narwhals as nw
 
+import pandas as pd
+import polars as pl
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
@@ -17,8 +19,10 @@ from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
+from .narwhals_utils import is_nw
 
 
+# @nw.narwhalify(eager_only=True)
 def predictions(
     model,
     variables=None,
@@ -76,13 +80,14 @@ def predictions(
     """
 
     if callable(newdata):
-        newdata = newdata(model)
+        newdata = nw.from_native(newdata(model))
 
     # sanity checks
     model = sanitize_model(model)
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
-    newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
+    newdata = sanitize_newdata(model, newdata, wts=wts, by=by)  # nw.from_native(
+    # )
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     modeldata = model.get_modeldata()
@@ -120,7 +125,7 @@ def predictions(
                 val = value
 
             newdata = newdata.drop(variable)
-            newdata = newdata.join(pl.DataFrame({variable: val}), how="cross")
+            newdata = newdata.join(nw.DataFrame({variable: val}), how="cross")
             newdata = newdata.sort(variable)
 
         newdata.datagrid_explicit = list(variables.keys())
@@ -133,7 +138,7 @@ def predictions(
         exog = newdata.to_pandas()
     else:
         design_info = model.model.model.data.design_info
-        exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
+        exog = patsy.dmatrix(design_info, newdata if isinstance(newdata, pd.DataFrame) else newdata.to_pandas(), NA_action="raise")
 
     # estimands
     def inner(x):
@@ -141,7 +146,13 @@ def predictions(
 
         if out.shape[0] == newdata.shape[0]:
             cols = [x for x in newdata.columns if x not in out.columns]
-            out = pl.concat([out, newdata.select(cols)], how="horizontal")
+            out = nw.concat(
+                [
+                    nw.from_native(out), 
+                    nw.from_native(pl.from_pandas(newdata) if isinstance(newdata, pd.DataFrame) else newdata).select(cols)
+                ],
+                how="horizontal",
+            )
 
         # group
         elif "group" in out.columns:
@@ -155,14 +166,21 @@ def predictions(
 
         out = get_by(model, out, newdata=newdata, by=by, wts=wts)
         out = get_hypothesis(out, hypothesis=hypothesis)
-        return out
+        return out if is_nw(out) else nw.from_native(out)
 
-    out = inner(model.get_coef())
+    out = inner(model.get_coef()) #test_hypothesis2darray failing when out is not nw make this not nw?
 
     if V is not None:
         J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
         se = get_se(J, V)
-        out = out.with_columns(pl.Series(se).alias("std_error"))
+        out = out.with_columns( # in comparisons this is not nw, this will be made narwhals then the same in comparisons
+            nw.new_series(
+                "std_error",
+                se,
+                dtype=None,
+                native_namespace=nw.get_native_namespace(out), # this is not nw, test_hypothesis2darray
+            )
+        )
         out = get_z_p_ci(
             out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
         )

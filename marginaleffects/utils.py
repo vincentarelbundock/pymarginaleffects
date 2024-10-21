@@ -2,9 +2,14 @@ import itertools
 
 import numpy as np
 import polars as pl
+import narwhals as nw
 
 
 def sort_columns(df, by=None, newdata=None):
+    df = nw.from_native(df)
+    # if not isinstance(df, pl.DataFrame):
+    #     df = pl.from_pandas(df)
+
     cols = [
         "rowid",
         "group",
@@ -52,8 +57,8 @@ def pad_array(arr, n):
 def get_pad(df, colname, uniqs):
     if uniqs is None:
         return None
-    first = [df.slice(0, 1)] * len(uniqs)
-    first = pl.concat(first)
+    first = [df[0:1]] * len(uniqs)
+    first = nw.concat(first)
     first = first.with_columns(uniqs.alias(colname))
     return first
 

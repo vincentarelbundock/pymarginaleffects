@@ -3,9 +3,9 @@ import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
 from marginaleffects.plot_predictions import *
-from .utilities import *
+from tests.utilities import *
 import pytest
-from .conftest import mtcars_df
+from tests.conftest import mtcars_df
 
 pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
 

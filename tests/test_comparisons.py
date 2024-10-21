@@ -10,7 +10,7 @@ import pytest
 import marginaleffects
 from marginaleffects import *
 from marginaleffects.comparisons import estimands
-from .conftest import mtcars_df, guerry
+from tests.conftest import mtcars_df, guerry
 
 dat = guerry.with_columns(
     (pl.col("Area") > pl.col("Area").median()).alias("Boolea"),

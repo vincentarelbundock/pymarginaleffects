@@ -1,7 +1,7 @@
 import polars as pl
 
 from marginaleffects import *
-from .conftest import mtcars_df
+from tests.conftest import mtcars_df
 
 
 def test_FUN_numeric():

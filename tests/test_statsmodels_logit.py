@@ -1,7 +1,7 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-from .conftest import iris
+from tests.conftest import iris
 from marginaleffects import *
 
 

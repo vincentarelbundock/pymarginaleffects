@@ -1,9 +1,9 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
-from .conftest import guerry
+from tests.conftest import guerry
 
-from .utilities import *
+from tests.utilities import *
 
 
 def test_predictions_by_string(guerry_mod):
