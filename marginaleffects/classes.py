@@ -1,5 +1,6 @@
 import polars as pl
 import narwhals as nw
+from .narwhals_utils import is_nw
 
 class MarginaleffectsDataFrame(pl.DataFrame):
     def __init__(
@@ -12,7 +13,7 @@ class MarginaleffectsDataFrame(pl.DataFrame):
         mapping=None,
         print_head="",
     ):
-        if isinstance(data, nw.DataFrame):
+        if is_nw(data):
             data = data.to_native()
         if isinstance(data, pl.DataFrame):
             self._df = data._df

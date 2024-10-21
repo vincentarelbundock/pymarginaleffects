@@ -19,6 +19,7 @@ from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
+from .narwhals_utils import is_nw
 
 
 # @nw.narwhalify(eager_only=True)
@@ -137,7 +138,7 @@ def predictions(
         exog = newdata.to_pandas()
     else:
         design_info = model.model.model.data.design_info
-        exog = patsy.dmatrix(design_info, newdata, NA_action="raise")
+        exog = patsy.dmatrix(design_info, newdata if isinstance(newdata, pd.DataFrame) else newdata.to_pandas(), NA_action="raise")
 
     # estimands
     def inner(x):
@@ -145,15 +146,13 @@ def predictions(
 
         if out.shape[0] == newdata.shape[0]:
             cols = [x for x in newdata.columns if x not in out.columns]
-            # if isinstance(newdata, pd.DataFrame):
-            #     newdata = pl.from_pandas(newdata)
             out = nw.concat(
                 [
                     nw.from_native(out), 
                     nw.from_native(pl.from_pandas(newdata) if isinstance(newdata, pd.DataFrame) else newdata).select(cols)
                 ],
                 how="horizontal",
-            )  # oandas does not have .select, use .[cols] instead
+            )
 
         # group
         elif "group" in out.columns:
@@ -167,14 +166,14 @@ def predictions(
 
         out = get_by(model, out, newdata=newdata, by=by, wts=wts)
         out = get_hypothesis(out, hypothesis=hypothesis)
-        return out
+        return out if is_nw(out) else nw.from_native(out)
 
-    out = inner(model.get_coef()) #test_hypothesis2darray failing when out is not nw
+    out = inner(model.get_coef()) #test_hypothesis2darray failing when out is not nw make this not nw?
 
     if V is not None:
         J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
         se = get_se(J, V)
-        out = out.with_columns(
+        out = out.with_columns( # in comparisons this is not nw, this will be made narwhals then the same in comparisons
             nw.new_series(
                 "std_error",
                 se,

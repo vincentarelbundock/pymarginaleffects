@@ -21,6 +21,7 @@ from .sanity import (
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
+from .narwhals_utils import is_nw
 from .model_pyfixest import ModelPyfixest
 import narwhals as nw
 
@@ -174,7 +175,7 @@ def comparisons(
         )
         hi.append(
             newdata.with_columns(
-                nw.lit(v.hi.to_native() if (isinstance(v.hi, nw.dataframe.BaseFrame) or isinstance(v.hi, nw.Series)) else v.hi).alias(v.variable), #first v.hi is polars.Series. why it is not a nw?
+                nw.lit(v.hi.to_native() if is_nw(v.hi) else v.hi).alias(v.variable), #first v.hi is polars.Series. why it is not a nw?
                 nw.lit(v.variable).alias("term"),
                 nw.lit(v.lab).alias("contrast"),
                 nw.lit(v.comparison).alias("marginaleffects_comparison"),
@@ -182,7 +183,7 @@ def comparisons(
         )
         lo.append(
             newdata.with_columns(
-                nw.lit(v.lo.to_native() if (isinstance(v.lo, nw.dataframe.BaseFrame) or isinstance(v.lo, nw.Series)) else v.lo).alias(v.variable),
+                nw.lit(v.lo.to_native() if is_nw(v.lo) else v.lo).alias(v.variable),
                 nw.lit(v.variable).alias("term"),
                 nw.lit(v.lab).alias("contrast"),
                 nw.lit(v.comparison).alias("marginaleffects_comparison"),
@@ -327,7 +328,7 @@ def comparisons(
         #     nd = nd.to_native()
         return inner(
             x, by=by, hypothesis=hypothesis, wts=wts, 
-            nd=nd.to_native() if isinstance(nd, nw.DataFrame) else nd) #nd.to_native
+            nd=nd.to_native() if is_nw(nd) else nd) #nd.to_native
 
     out = outer(model.coef)
 

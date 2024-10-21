@@ -1,5 +1,6 @@
 import polars as pl
 import narwhals as nw
+from .narwhals_utils import is_nw
 
 
 def get_by(model, estimand, newdata, by=None, wts=None):
@@ -15,7 +16,7 @@ def get_by(model, estimand, newdata, by=None, wts=None):
         by = True
 
     if by is True:
-        return estimand.select(["estimate"]).mean()
+        return estimand.select(nw.col("estimate").mean()) if is_nw(estimand) else estimand.select(["estimate"]).mean()
     elif by is False:
         return estimand
 
