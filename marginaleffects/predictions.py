@@ -2,6 +2,8 @@ import numpy as np
 import patsy
 import narwhals as nw
 
+import pandas as pd
+import polars as pl
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
@@ -143,8 +145,13 @@ def predictions(
 
         if out.shape[0] == newdata.shape[0]:
             cols = [x for x in newdata.columns if x not in out.columns]
+            # if isinstance(newdata, pd.DataFrame):
+            #     newdata = pl.from_pandas(newdata)
             out = nw.concat(
-                [nw.from_native(out), nw.from_native(newdata).select(cols)],
+                [
+                    nw.from_native(out), 
+                    nw.from_native(pl.from_pandas(newdata) if isinstance(newdata, pd.DataFrame) else newdata).select(cols)
+                ],
                 how="horizontal",
             )  # oandas does not have .select, use .[cols] instead
 
@@ -162,7 +169,7 @@ def predictions(
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
 
-    out = inner(model.get_coef())
+    out = inner(model.get_coef()) #test_hypothesis2darray failing when out is not nw
 
     if V is not None:
         J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
@@ -172,7 +179,7 @@ def predictions(
                 "std_error",
                 se,
                 dtype=None,
-                native_namespace=nw.get_native_namespace(out),
+                native_namespace=nw.get_native_namespace(out), # this is not nw, test_hypothesis2darray
             )
         )
         out = get_z_p_ci(

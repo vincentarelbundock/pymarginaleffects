@@ -57,8 +57,8 @@ def pad_array(arr, n):
 def get_pad(df, colname, uniqs):
     if uniqs is None:
         return None
-    first = [df.slice(0, 1)] * len(uniqs)
-    first = pl.concat(first)
+    first = [df[0:1]] * len(uniqs)
+    first = nw.concat(first)
     first = first.with_columns(uniqs.alias(colname))
     return first
 

@@ -1,5 +1,5 @@
 import polars as pl
-
+import narwhals as nw
 
 class MarginaleffectsDataFrame(pl.DataFrame):
     def __init__(
@@ -12,6 +12,8 @@ class MarginaleffectsDataFrame(pl.DataFrame):
         mapping=None,
         print_head="",
     ):
+        if isinstance(data, nw.DataFrame):
+            data = data.to_native()
         if isinstance(data, pl.DataFrame):
             self._df = data._df
             self.by = by
@@ -42,6 +44,8 @@ class MarginaleffectsDataFrame(pl.DataFrame):
                 self.mapping = mapping
 
             return
+        else:
+            raise RuntimeError("data must be a polars DataFrame")
         super().__init__(data)
 
     def __str__(self):

@@ -1,5 +1,6 @@
 import re
 from functools import reduce
+from typing import Callable
 
 import numpy as np
 import patsy
@@ -21,7 +22,13 @@ from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
 from .model_pyfixest import ModelPyfixest
+import narwhals as nw
 
+def to_from_native(fun: Callable, arg: nw.DataFrame, **kwargs) -> nw.DataFrame:
+    if isinstance(arg, list):
+        return [nw.from_native(fun(el.to_native(), **kwargs)) for el in arg]
+    else:
+        return nw.from_native(fun(arg.to_native(), **kwargs))
 
 def comparisons(
     model,
@@ -132,13 +139,13 @@ def comparisons(
     """
 
     if callable(newdata):
-        newdata = newdata(model)
+        newdata = nw.from_native(newdata(model))
 
     model = sanitize_model(model)
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
-    newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)
-    modeldata = model.modeldata
+    newdata = nw.from_native(sanitize_newdata(model, newdata=newdata, wts=wts, by=by))
+    modeldata = nw.from_native(model.modeldata)
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     # after sanitize_newdata()
@@ -160,25 +167,25 @@ def comparisons(
     for v in variables:
         nd.append(
             newdata.with_columns(
-                pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias("contrast"),
-                pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                nw.lit(v.variable).alias("term"),
+                nw.lit(v.lab).alias("contrast"),
+                nw.lit(v.comparison).alias("marginaleffects_comparison"),
             )
         )
         hi.append(
             newdata.with_columns(
-                pl.lit(v.hi).alias(v.variable),
-                pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias("contrast"),
-                pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                nw.lit(v.hi.to_native() if (isinstance(v.hi, nw.dataframe.BaseFrame) or isinstance(v.hi, nw.Series)) else v.hi).alias(v.variable), #first v.hi is polars.Series. why it is not a nw?
+                nw.lit(v.variable).alias("term"),
+                nw.lit(v.lab).alias("contrast"),
+                nw.lit(v.comparison).alias("marginaleffects_comparison"),
             )
         )
         lo.append(
             newdata.with_columns(
-                pl.lit(v.lo).alias(v.variable),
-                pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias("contrast"),
-                pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                nw.lit(v.lo.to_native() if (isinstance(v.lo, nw.dataframe.BaseFrame) or isinstance(v.lo, nw.Series)) else v.lo).alias(v.variable),
+                nw.lit(v.variable).alias("term"),
+                nw.lit(v.lab).alias("contrast"),
+                nw.lit(v.comparison).alias("marginaleffects_comparison"),
             )
         )
 
@@ -192,21 +199,30 @@ def comparisons(
                 pad.append(get_pad(newdata, v, modeldata[v].unique()))
 
     # ugly hack, but polars is very strict and `value / 2`` is float
-    nd = upcast(nd)
-    hi = upcast(hi)
-    lo = upcast(lo)
-    pad = upcast(pad)
-    nd = pl.concat(nd, how="vertical_relaxed")
-    hi = pl.concat(hi, how="vertical_relaxed")
-    lo = pl.concat(lo, how="vertical_relaxed")
+    nd, hi, lo, pad = [ to_from_native(upcast, df) for df in [nd, hi, lo, pad] ]
+    nd, hi, lo = map(
+        lambda l: nw.from_native(pl.concat([df.to_native() for df in l], how="vertical_relaxed")), 
+        [nd, hi, lo]
+        )
+    # hi = pl.concat(hi, how="vertical_relaxed")
+    # lo = pl.concat(lo, how="vertical_relaxed")
+    
+    # nd = pl.concat([n.to_native() for n in nd], how="vertical_relaxed")
+    # nd, hi, lo = [to_from_native(pl.concat, df, how="vertical_relaxed") for df in [nd, hi, lo] ]
+    # nd, hi, lo, pad = [ to_from_native(upcast, df) for dfl in [nd, hi, lo, pad] ]
+    # nd = pl.concat([n.to_native() for n in nd], how="vertical_relaxed")
+    # nd, hi, lo = [to_from_native(pl.concat, df, how="vertical_relaxed") for df in [nd, hi, lo] ]
     pad = [x for x in pad if x is not None]
     if len(pad) == 0:
-        pad = pl.DataFrame()
+        pad = nw.from_native(pl.DataFrame())
     else:
-        pad = pl.concat(pad).unique()
-        nd = pl.concat(upcast([pad, nd]), how="diagonal")
-        hi = pl.concat(upcast([pad, hi]), how="diagonal")
-        lo = pl.concat(upcast([pad, lo]), how="diagonal")
+        pad = nw.concat(pad).unique()
+        # nd, hi, lo = [ to_from_native(pl.concat, upcast([pad, df]), how="diagonal") for df in [nd, hi, lo] ]
+        nd, hi, lo = map(
+            lambda l: nw.from_native(pl.concat(upcast([nw.to_native(pad), nw.to_native(l)]), how="diagonal")), 
+            [nd, hi, lo])
+        # hi = pl.concat(upcast([pad, hi]), how="diagonal")
+        # lo = pl.concat(upcast([pad, lo]), how="diagonal")
 
     # predictors
     # we want this to be a model matrix to avoid converting data frames to
@@ -307,7 +323,11 @@ def comparisons(
         return tmp
 
     def outer(x):
-        return inner(x, by=by, hypothesis=hypothesis, wts=wts, nd=nd)
+        # if isinstance(nd, nw.DataFrame):
+        #     nd = nd.to_native()
+        return inner(
+            x, by=by, hypothesis=hypothesis, wts=wts, 
+            nd=nd.to_native() if isinstance(nd, nw.DataFrame) else nd) #nd.to_native
 
     out = outer(model.coef)
 
@@ -326,8 +346,8 @@ def comparisons(
     out = sort_columns(out, by=by, newdata=newdata)
 
     out = MarginaleffectsDataFrame(
-        out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
-    )
+        out.to_native(), by=by, conf_level=conf_level, jacobian=J, newdata=newdata
+    ) 
     return out
 
 
