@@ -202,7 +202,7 @@ def comparisons(
     # ugly hack, but polars is very strict and `value / 2`` is float
     nd, hi, lo, pad = [ to_from_native(upcast, df) for df in [nd, hi, lo, pad] ]
     nd, hi, lo = map(
-        lambda l: nw.from_native(pl.concat([df.to_native() for df in l], how="vertical_relaxed")), 
+        lambda el: nw.from_native(pl.concat([df.to_native() for df in el], how="vertical_relaxed")), 
         [nd, hi, lo]
         )
     # hi = pl.concat(hi, how="vertical_relaxed")
@@ -220,7 +220,7 @@ def comparisons(
         pad = nw.concat(pad).unique()
         # nd, hi, lo = [ to_from_native(pl.concat, upcast([pad, df]), how="diagonal") for df in [nd, hi, lo] ]
         nd, hi, lo = map(
-            lambda l: nw.from_native(pl.concat(upcast([nw.to_native(pad), nw.to_native(l)]), how="diagonal")), 
+            lambda el: nw.from_native(pl.concat(upcast([nw.to_native(pad), nw.to_native(el)]), how="diagonal")), 
             [nd, hi, lo])
         # hi = pl.concat(upcast([pad, hi]), how="diagonal")
         # lo = pl.concat(upcast([pad, lo]), how="diagonal")
