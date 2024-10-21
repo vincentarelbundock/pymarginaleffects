@@ -82,9 +82,6 @@ def get_z_p_ci(df, model, conf_level, hypothesis_null=0):
                     dtype=nw.Float64,
                     native_namespace=nw.get_native_namespace(df),
                 )
-                # nw.col("p_value")
-                # .map_elements(lambda x: -np.log2(x), return_dtype=nw.Float64)
-                # .alias("s_value")
             )
         except Exception as e:
             print(f"An exception occurred: {e}")

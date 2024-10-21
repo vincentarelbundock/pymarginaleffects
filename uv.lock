@@ -371,7 +371,7 @@ wheels = [
 
 [[package]]
 name = "marginaleffects"
-version = "0.0.13"
+version = "0.0.13.1"
 source = { virtual = "." }
 dependencies = [
     { name = "numpy" },
