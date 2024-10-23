@@ -2,8 +2,8 @@ import polars as pl
 import statsmodels.formula.api as smf
 
 from marginaleffects import *
-from .conftest import mtcars_df
-from .utilities import *
+from tests.conftest import mtcars_df
+from tests.utilities import *
 
 
 mod_py = smf.ols("mpg ~ wt * hp", mtcars_df).fit()

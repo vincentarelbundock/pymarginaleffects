@@ -3,7 +3,7 @@ import statsmodels.formula.api as smf
 from polars.testing import assert_frame_equal
 
 from marginaleffects import *
-from .conftest import mtcars_df
+from tests.conftest import mtcars_df
 
 
 mod = smf.ols("am ~ hp + wt + disp", data=mtcars_df).fit()
