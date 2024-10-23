@@ -5,6 +5,8 @@ description = "Predictions, counterfactual comparisons, slopes, and hypothesis t
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "duckdb >=1.1.2",
+    "narwhals >=1.10.0",
     "numpy >=2.0.0",
     "patsy >=0.5.6",
     "polars >=1.7.0",

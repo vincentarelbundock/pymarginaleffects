@@ -79,7 +79,7 @@ def comparisons(
     - Examples:
         + `variables = {"gear" = "pairwise", "hp" = 10}`
         + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
-    - newdata (polars or pandas DataFrame, or str): a data frame or a string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
+    - newdata (polars, pandas or any other ArrowstreamExportable DataFrame, or str): a data frame or a string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
     - comparison (str): a string specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
     - transform (function): a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
         - `transform = numpy.exp`
