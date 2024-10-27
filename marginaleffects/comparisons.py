@@ -40,8 +40,69 @@ def comparisons(
 ):
     """
     `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
-
-    # Usage:
+    
+    Parameters
+    ----------
+    model : object
+        Model object fitted using the `statsmodels` formula API.
+    variables : str, list, dictionary
+        - a string, list of strings, or dictionary of variables to compute comparisons for. If `None`, comparisons are computed for all regressors in the model object. Acceptable values depend on the variable type. See the examples below.
+        - Dictionary: keys identify the subset of variables of interest, and values define the type of contrast to compute. Acceptable values depend on the variable type:
+            - Categorical variables:
+                * "reference": Each factor level is compared to the factor reference (base) level
+                * "all": All combinations of observed levels
+                * "sequential": Each factor level is compared to the previous factor level
+                * "pairwise": Each factor level is compared to all other levels
+                * "minmax": The highest and lowest levels of a factor.
+                * "revpairwise", "revreference", "revsequential": inverse of the corresponding hypotheses.
+                * Vector of length 2 with the two values to compare.
+            - Boolean variables:
+                * `None`: contrast between True and False
+            - Numeric variables:
+                * Numeric of length 1: Contrast for a gap of `x`, computed at the observed value plus and minus `x / 2`. For example, estimating a `+1` contrast compares adjusted predictions when the regressor is equal to its observed value minus 0.5 and its observed value plus 0.5.
+                * Numeric of length equal to the number of rows in `newdata`: Same as above, but the contrast can be customized for each row of `newdata`.
+                * Numeric vector of length 2: Contrast between the 2nd element and the 1st element of the `x` vector.
+                * Data frame with the same number of rows as `newdata`, with two columns of "low" and "high" values to compare.
+                * Function which accepts a numeric vector and returns a data frame with two columns of "low" and "high" values to compare. See examples below.
+                * "iqr": Contrast across the interquartile range of the regressor.
+                * "sd": Contrast across one standard deviation around the regressor mean.
+                * "2sd": Contrast across two standard deviations around the regressor mean.
+                * "minmax": Contrast between the maximum and the minimum values of the regressor.
+        - Examples:
+            + `variables = {"gear" = "pairwise", "hp" = 10}`
+            + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
+    newdata : polars or pandas DataFrame, or str
+        Data frame or string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
+    comparison : str
+        String specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
+    transform : function
+        Function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
+            - `transform = numpy.exp`
+            - `transform = lambda x: x.exp()`
+            - `transform = lambda x: x.map_elements()`
+    equivalence : list
+        List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
+    by : bool, str
+        Logical value, list of column names in `newdata`. If `True`, estimates are aggregated for each term.
+    hypothesis : str, numpy array
+        String specifying a numeric value specifying the null hypothesis used for computing p-values.
+    conf_level : float
+        Numeric value specifying the confidence level for the confidence intervals. Default is 0.95.
+    Returns
+    -------
+    out : DataFrame
+        The functions return a data.frame with the following columns:
+        - term: the name of the variable.
+        - contrast: the comparison method used.
+        - estimate: the estimated contrast, difference, ratio, or other transformation between pairs of predictions.
+        - std_error: the standard error of the estimate.
+        - statistic: the test statistic (estimate / std.error).
+        - p_value: the p-value of the test.
+        - s_value: Shannon transform of the p value.
+        - conf_low: the lower confidence interval bound.
+        - conf_high: the upper confidence interval bound.
+    Examples
+    --------
 
         comparisons(model, variables = NULL, newdata = NULL, comparison = "difference",
                     transform = NULL, equivalence = NULL, by = FALSE, cross = FALSE,
@@ -51,60 +112,8 @@ def comparisons(
                         transform = NULL, equivalence = NULL, by = FALSE, cross = FALSE,
                         type = "response", hypothesis = 0, conf.level = 0.95, ...)
 
-    # Args:
-
-    - model (object): a model object fitted using the `statsmodels` formula API.
-    - variables (str, list, or dictionary): a string, list of strings, or dictionary of variables to compute comparisons for. If `None`, comparisons are computed for all regressors in the model object. Acceptable values depend on the variable type. See the examples below.
-    * Dictionary: keys identify the subset of variables of interest, and values define the type of contrast to compute. Acceptable values depend on the variable type:
-    - Categorical variables:
-        * "reference": Each factor level is compared to the factor reference (base) level
-        * "all": All combinations of observed levels
-        * "sequential": Each factor level is compared to the previous factor level
-        * "pairwise": Each factor level is compared to all other levels
-        * "minmax": The highest and lowest levels of a factor.
-        * "revpairwise", "revreference", "revsequential": inverse of the corresponding hypotheses.
-        * Vector of length 2 with the two values to compare.
-    - Boolean variables:
-        * `None`: contrast between True and False
-    - Numeric variables:
-        * Numeric of length 1: Contrast for a gap of `x`, computed at the observed value plus and minus `x / 2`. For example, estimating a `+1` contrast compares adjusted predictions when the regressor is equal to its observed value minus 0.5 and its observed value plus 0.5.
-        * Numeric of length equal to the number of rows in `newdata`: Same as above, but the contrast can be customized for each row of `newdata`.
-        * Numeric vector of length 2: Contrast between the 2nd element and the 1st element of the `x` vector.
-        * Data frame with the same number of rows as `newdata`, with two columns of "low" and "high" values to compare.
-        * Function which accepts a numeric vector and returns a data frame with two columns of "low" and "high" values to compare. See examples below.
-        * "iqr": Contrast across the interquartile range of the regressor.
-        * "sd": Contrast across one standard deviation around the regressor mean.
-        * "2sd": Contrast across two standard deviations around the regressor mean.
-        * "minmax": Contrast between the maximum and the minimum values of the regressor.
-    - Examples:
-        + `variables = {"gear" = "pairwise", "hp" = 10}`
-        + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
-    - newdata (polars or pandas DataFrame, or str): a data frame or a string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
-    - comparison (str): a string specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
-    - transform (function): a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
-        - `transform = numpy.exp`
-        - `transform = lambda x: x.exp()`
-        - `transform = lambda x: x.map_elements()`
-    - equivalence (list): a list of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
-    - by (bool, str): a logical value, a list of column names in `newdata`. If `True`, estimates are aggregated for each term.
-    - hypothesis (str, numpy array): a string specifying a numeric value specifying the null hypothesis used for computing p-values.
-    - conf.level (float): a numeric value specifying the confidence level for the confidence intervals. Default is 0.95.
-
-    # Returns:
-
-    The functions return a data.frame with the following columns:
-
-    - term: the name of the variable.
-    - contrast: the comparison method used.
-    - estimate: the estimated contrast, difference, ratio, or other transformation between pairs of predictions.
-    - std_error: the standard error of the estimate.
-    - statistic: the test statistic (estimate / std.error).
-    - p_value: the p-value of the test.
-    - s_value: Shannon transform of the p value.
-    - conf_low: the lower confidence interval bound.
-    - conf_high: the upper confidence interval bound.
-
-    # Details:
+    Details
+    -------
 
     The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
     """

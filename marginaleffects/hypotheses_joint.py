@@ -1,7 +1,6 @@
 import numpy as np
 import scipy.stats as stats
 import polars as pl
-import pandas as pd
 
 from .sanity import sanitize_hypothesis_null
 from .classes import MarginaleffectsDataFrame
@@ -9,9 +8,6 @@ from .classes import MarginaleffectsDataFrame
 
 def joint_hypotheses(obj, joint_index=None, joint_test="f", hypothesis=0):
     assert joint_test in ["f", "chisq"], "`joint_test` must be `f` or `chisq`"
-
-    if isinstance(obj, pd.DataFrame):
-        obj = pl.DataFrame(obj)
 
     # theta_hat: P x 1 vector of estimated parameters
     theta_hat = obj.get_coef()

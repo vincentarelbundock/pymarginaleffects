@@ -1,7 +1,17 @@
 import itertools
-
+import narwhals as nw
 import numpy as np
 import polars as pl
+from typing import Protocol, runtime_checkable
+
+
+@runtime_checkable
+class ArrowStreamExportable(Protocol):
+    def __arrow_c_stream__(self, requested_schema: object | None = None) -> object: ...
+
+
+def ingest(df: ArrowStreamExportable):
+    return nw.from_arrow(df, native_namespace=pl).to_native()
 
 
 def sort_columns(df, by=None, newdata=None):

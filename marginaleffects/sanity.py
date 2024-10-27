@@ -6,6 +6,7 @@ import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
+from .utils import ingest, ArrowStreamExportable
 
 
 def sanitize_vcov(vcov, model):
@@ -67,14 +68,14 @@ def sanitize_newdata(model, newdata, wts, by=[]):
 
     else:
         try:
-            import pandas as pd
-
-            if isinstance(newdata, pd.DataFrame):
-                out = pl.from_pandas(newdata)
+            if isinstance(newdata, ArrowStreamExportable):
+                out = ingest(newdata)
             else:
-                out = newdata
-        except ImportError:
-            out = newdata
+                raise RuntimeError(
+                    "Unable to ingest newdata data provided. If it is a DataFrame, make sure it implements the ArrowStreamExportable interface."
+                )
+        except Exception as e:
+            raise e
 
     reserved_names = {
         "rowid",
