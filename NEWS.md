@@ -1,3 +1,7 @@
+# 0.0.14
+
+* Thanks to Narwhals, marginaleffects can now ingest data frames in multiple formats and convert them to the Polars representation that we need internally. This no longer requires external dependencies like Pandas or DuckDB. Thanks to @artiom-matvei.
+
 # 0.0.13
 
 * Formulas should not include scale() or center(). Thanks to @alexjonesphd for reporting Issue #113.
