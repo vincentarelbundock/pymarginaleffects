@@ -1,13 +1,14 @@
 from plotnine import (
-    ggplot,
     aes,
+    facet_wrap,
+    facet_grid,
     geom_pointrange,
-    position_dodge,
     geom_ribbon,
     geom_line,
     geom_point,
-    facet_wrap,
-    facet_grid,
+    ggplot,
+    labs,
+    position_dodge,
 )
 import polars as pl
 
@@ -60,5 +61,7 @@ def plot_common(model, dt, y_label, var_list):
 
     elif len(var_list) == 4:
         p = p + facet_grid(f"{var_list[3]} ~ {var_list[2]}", scales="free")
+
+    p = p + labs(y=y_label)
 
     return p
