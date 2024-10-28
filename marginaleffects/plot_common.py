@@ -68,6 +68,7 @@ def dt_on_condition(model, condition):
 
 
 def condition_numeric(modeldata, key, value, first):
+    # upgrade this to use match-case when python 3.9 reaches end-of-life
     if value is None:
         if first:
             out = np.linspace(modeldata[key].min(), modeldata[key].max(), 100).tolist()
@@ -97,6 +98,7 @@ def plot_labels(model, dt, condition):
 
     for k, v in condition.items():
         if model.variables_type[k] in ["numeric", "integer"]:
+            # upgrade this to use match-case when python 3.9 reaches end-of-life
             if condition[k] == "threenum":
                 lab = ["-SD", "Mean", "+SD"]
                 dt = ordered_cat(dt, k, lab)
@@ -106,6 +108,8 @@ def plot_labels(model, dt, condition):
             elif condition[k] == "minmax":
                 lab = ["Min", "Max"]
                 dt = ordered_cat(dt, k, lab)
+            elif condition[k] is None:
+                dt = dt.with_columns(pl.col(k).round_sig_figs(3).alias(k))
     return dt
 
 
