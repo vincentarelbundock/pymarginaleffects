@@ -12,7 +12,7 @@ FIGURES_FOLDER = "plot_slopes"
 
 
 @pytest.mark.plot
-class TestPlotPredictions:
+class TestPlotSlopes:
     def test_by(self, penguins_mod_add):
         fig = plot_slopes(penguins_mod_add, variables="species", by="island")
         assert assert_image(fig, "by_01", FIGURES_FOLDER) is None
