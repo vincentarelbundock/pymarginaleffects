@@ -1,5 +1,5 @@
 import re
-
+from itertools import compress
 import numpy as np
 import polars as pl
 
@@ -97,9 +97,7 @@ def get_hypothesis_row_labels(x, by=None):
     if by is not None:
         if isinstance(by, str):
             by = [by]
-        lab = [
-            e for e in list(set(lab) | set(by)) if e != "group"
-        ]
+        lab = [e for e in list(set(lab) | set(by)) if e != "group"]
 
     # Step 4: If no columns left, return default
     if len(lab) == 0:
@@ -111,24 +109,10 @@ def get_hypothesis_row_labels(x, by=None):
 
     # Step 6: Create row labels by concatenating values
     if any(idx):
-        lab_df_filtered = lab_df.select(
-            [col for col, keep in zip(lab_df.columns, idx) if keep]
-        )
-        lab = (
-            lab_df_filtered.select(
-                pl.concat_list(lab_df_filtered.columns).alias("concatenated")
-            )
-            .to_series()
-            .map_elements(lambda row: ", ".join(map(str, row)), return_dtype=pl.Utf8)
-            .to_list()
-        )
-    else:
-        lab = (
-            lab_df.select(pl.concat_list(lab_df.columns).alias("concatenated"))
-            .to_series()
-            .apply(lambda row: ", ".join(map(str, row)))
-            .to_list()
-        )
+        lab_df = lab_df.select(list(compress(lab_df.columns, idx)))
+    lab = lab_df.select(
+        pl.concat_str(lab_df.columns, separator=", ").alias("concatenated")
+    )["concatenated"].to_list()
 
     # Step 7: Wrap labels containing "-" in parentheses
     lab = [f"({label})" if "-" in label else label for label in lab]
