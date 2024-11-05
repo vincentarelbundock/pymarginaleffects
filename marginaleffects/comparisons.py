@@ -289,7 +289,7 @@ def comparisons(
             function=lambda x: applyfun(x, by=by, wts=wts)
         )
 
-        tmp = get_hypothesis(tmp, hypothesis=hypothesis)
+        tmp = get_hypothesis(tmp, hypothesis=hypothesis, by=by)
 
         return tmp
 

@@ -154,7 +154,7 @@ def predictions(
             raise ValueError("Something went wrong")
 
         out = get_by(model, out, newdata=newdata, by=by, wts=wts)
-        out = get_hypothesis(out, hypothesis=hypothesis)
+        out = get_hypothesis(out, hypothesis=hypothesis, by=by)
         return out
 
     out = inner(model.get_coef())
