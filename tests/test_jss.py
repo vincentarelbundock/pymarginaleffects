@@ -91,10 +91,12 @@ def test_hypotheses(impartiality_model):
     assert c.shape[0] == 1
 
     c = avg_comparisons(impartiality_model, variables="democracy", comparison="ratio")
+
     assert c["contrast"][0] == "Democracy / Autocracy"
 
     c = avg_comparisons(impartiality_model, variables="democracy", comparison="differenceavg")
     assert c["contrast"][0] == "Democracy - Autocracy"
+
 
 
 @pytest.mark.parametrize(
