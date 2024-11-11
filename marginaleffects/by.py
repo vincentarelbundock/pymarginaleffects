@@ -16,7 +16,7 @@ def get_by(model, estimand, newdata, by=None, wts=None):
     elif by is False:
         return estimand
 
-    if "group" in estimand.columns:
+    if "group" in estimand.columns and "group" not in by:
         by = ["group"] + by
 
     if "rowid" in estimand.columns and "rowid" in newdata.columns:

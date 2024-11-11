@@ -41,7 +41,8 @@ class ModelStatsmodels(ModelAbstract):
 
         if V is not None:
             V = np.array(V)
-            expected_dim = len(self.coef.flatten()) # flatten in case coef are for multi-index dataframes
+            # flatten in case coef are for multi-index dataframes
+            expected_dim = len(self.coef.flatten())
             if V.shape != (expected_dim, expected_dim):
                 raise ValueError(
                     "vcov must be a square numpy array with dimensions equal to the length of self.coef"
