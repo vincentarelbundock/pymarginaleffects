@@ -2,7 +2,7 @@ import polars as pl
 import pytest
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-from tests.conftest import penguins
+from tests.conftest import penguins, penguins_with_nulls
 from marginaleffects import *
 
 
@@ -21,8 +21,49 @@ r = {"0": "Torgersen", "1": "Biscoe", "2": "Dream"}
 
 # @pytest.mark.skip(reason="statsmodels vcov is weird")
 def test_predictions_01():
-    unknown = predictions(mod) #.with_columns(pl.col("group").replace_strict(r, default=None)) #todo: maybe the array does not look square because it is a multi-index? see vcov.csv
-    known = pl.read_csv("tests/r/test_statsmodels_mnlogit_predictions_01.csv")
+    """
+    R code to generate the csv file data
+    # Load necessary packages
+    library(nnet)
+    library(dplyr)
+    library(marginaleffects)
+
+    # Load and prepare the data
+    penguins <- read.csv("https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv")
+    penguins_clean <- penguins %>%
+    select(island, bill_length_mm, flipper_length_mm) %>%
+    na.omit()
+    penguins_clean$island <- relevel(factor(penguins_clean$island), ref = "Biscoe")
+
+    # Fit the model using nnet!
+    model_r <- multinom(island ~ bill_length_mm  + flipper_length_mm, data = penguins_clean)
+
+    # Extract and display coefficients in case the models do not match
+    # coef_r <- coef(model_r)
+    # print("Coefficients from R model:")
+    # print(coef_r)
+
+    predictions(model_r)
+
+    """
+    penguins_clean = penguins_with_nulls.select(['island', 'bill_length_mm', 'flipper_length_mm']).drop_nulls()
+
+    # Define island categories and create a mapping
+    island_categories = ["Biscoe", "Dream", "Torgersen"]
+    island_mapping = {island: code for code, island in enumerate(island_categories)}
+
+    # Map 'island' to integer codes
+    penguins_clean = penguins_clean.with_columns(
+        pl.col('island').replace_strict(island_mapping)
+    )
+
+    model_py = smf.mnlogit("island ~ bill_length_mm + flipper_length_mm", data=penguins_clean).fit()
+    unknown = predictions(model_py).sort(by=["rowid", "group"])
+
+    known = pl.read_csv("tests/r/test_statsmodels_mnlogit_predictions_03.csv")
+    known = known.with_columns(pl.col("group").replace(island_mapping, return_dtype=pl.Int8).alias("group"))
+    known = known.sort(by=["rowid", "group"])
+
     assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
 
 

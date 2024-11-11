@@ -27,6 +27,8 @@ penguins = pl.read_csv(
     null_values="NA",
 ).drop_nulls()
 
+penguins_with_nulls = pl.read_csv("tests/data/penguins.csv")
+
 quine = pl.read_csv("tests/data/quine.csv")
 
 
