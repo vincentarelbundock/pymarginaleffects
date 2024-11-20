@@ -112,16 +112,12 @@ def test_comparisons_01():
         .sort(["rowid", "term", "group"])
         .filter(pl.col("term") != "flipper_length_mm")
     )
-    new_column_names = {col: col.replace('.', '_') for col in known.columns}
-    known = known.rename(new_column_names)
-    # print(known.head())
-    # print(unknown.head())
-    # print(compare_polars_tables(known, unknown, index=0))
+    # new_column_names = {col: col.replace('.', '_') for col in known.columns}
+    # known = known.rename(new_column_names)
+
     assert_series_equal(known["estimate"].head(), unknown["estimate"].head(), rtol=3e-1)
 
-    # unknown = comparisons(mod)
-    # known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_01.csv")
-    # assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-1)
+    assert_series_equal(known["estimate"], unknown["estimate"], atol=1e-1)
 
 # Function to print visual comparison
 def compare_polars_tables(known, unknown, index=0):
