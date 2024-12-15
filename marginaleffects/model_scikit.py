@@ -12,12 +12,6 @@ class ModelScikitLogisticRegression(ModelAbstract):
         self.formula = model.formula
         self.data = model.data
 
-    def get_modeldata(self):
-        df = self.model.data
-        if not isinstance(df, pl.DataFrame):
-            raise ValueError("The data attribute must be a polars DataFrame")
-        return df
-
     def get_variables_names(self, variables=None, newdata=None):
         if variables is None:
             formula = self.model.formula
@@ -67,14 +61,8 @@ class ModelScikitLogisticRegression(ModelAbstract):
         p = p.with_columns(pl.col("rowid").cast(pl.Int32))
         return p
 
-    def get_formula(self):
-        return self.model.formula
-
     def get_coef(self):
         return np.array([])
-    
-    def get_vcov(self, vcov=False):
-        return None
     
     def get_coef_names(self):
         return None

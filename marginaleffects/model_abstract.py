@@ -42,14 +42,21 @@ class ModelAbstract(ABC):
                 "The formula cannot include scale( or center(. Please center your variables before fitting the model."
             )
         self.formula = formula
+    
+    def get_vcov(self, vcov=False):
+        return None
 
-    @abstractmethod
-    def get_vcov(self):
-        pass
+    def get_formula(self):
+        if hasattr(self.model, "formula"):
+            return self.model.formula
+        else:
+            return None
 
-    @abstractmethod
     def get_modeldata(self):
-        pass
+        if hasattr(self.model, "data"):
+            if not isinstance(self.model.data, pl.DataFrame):
+                raise ValueError("The data attribute of the model must be a polars DataFrame")
+        return self.model.data
 
     @abstractmethod
     def get_response_name(self):
@@ -67,8 +74,4 @@ class ModelAbstract(ABC):
 
     @abstractmethod
     def get_predict(self):
-        pass
-
-    @abstractmethod
-    def get_formula(self):
         pass
