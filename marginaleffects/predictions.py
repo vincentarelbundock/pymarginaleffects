@@ -1,6 +1,7 @@
 import numpy as np
 import patsy
 import polars as pl
+import formulaic
 
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
@@ -15,7 +16,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import sort_columns
+from .utils import sort_columns, ingest
 from .model_pyfixest import ModelPyfixest
 
 
@@ -132,12 +133,15 @@ def predictions(
     if isinstance(model, ModelPyfixest):
         exog = newdata.to_pandas()
     else:
-        design_info = model.model.model.data.design_info
-        exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
+        if hasattr(model, "formula") and hasattr(model, "data"):
+            endog, exog = formulaic.model_matrix(model.formula, model.data.to_pandas())
+        else:
+            design_info = model.model.model.data.design_info
+            exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
 
     # estimands
     def inner(x):
-        out = model.get_predict(np.array(x), exog)
+        out = model.get_predict(params=np.array(x), newdata=exog)
 
         if out.shape[0] == newdata.shape[0]:
             cols = [x for x in newdata.columns if x not in out.columns]
