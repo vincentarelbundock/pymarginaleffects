@@ -17,6 +17,7 @@ from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
+from .model_linearmodels import ModelLinearmodels
 
 
 def predictions(
@@ -131,6 +132,9 @@ def predictions(
     # case of PyFixest, the predict method only accepts a data frame.
     if isinstance(model, ModelPyfixest):
         exog = newdata.to_pandas()
+    # Linearmodels accepts polars dataframes and converts them to Pandas internally
+    elif isinstance(model, ModelLinearmodels):
+        exog = newdata
     else:
         design_info = model.model.model.data.design_info
         exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
