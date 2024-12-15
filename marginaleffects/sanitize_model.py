@@ -20,11 +20,11 @@ def sanitize_model(model):
         pass
 
     # scikit-learn
-    from sklearn.linear_model import LogisticRegression
     try:
+        from sklearn.linear_model import LogisticRegression
         if isinstance(model, LogisticRegression):
             return ModelScikitLogisticRegression(model)
-    except:
+    except ImportError:
         pass
 
     # pyfixest

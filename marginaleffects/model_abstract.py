@@ -15,7 +15,7 @@ class ModelAbstract(ABC):
 
     def validate_coef(self):
         coef = self.get_coef()
-        if not isinstance(coef, np.ndarray):
+        if not isinstance(coef, np.ndarray) and coef is not None:
             raise ValueError("coef must be a numpy array")
         self.coef = coef
 
@@ -37,20 +37,20 @@ class ModelAbstract(ABC):
         if not isinstance(formula, str):
             raise ValueError("formula must be a string")
 
+        if "~" not in self.model.formula:
+            raise ValueError("Model formula must contain '~' to separate dependent and independent variables")
+
         if "scale(" in formula or "center(" in formula:
             raise ValueError(
                 "The formula cannot include scale( or center(. Please center your variables before fitting the model."
             )
         self.formula = formula
     
-    def get_vcov(self, vcov=False):
-        return None
-
     def get_formula(self):
         if hasattr(self.model, "formula"):
             return self.model.formula
         else:
-            return None
+            raise ValueError("Model must have a 'formula' attribute")
 
     def get_modeldata(self):
         if hasattr(self.model, "data"):
@@ -58,18 +58,21 @@ class ModelAbstract(ABC):
                 raise ValueError("The data attribute of the model must be a polars DataFrame")
         return self.model.data
 
-    @abstractmethod
+    def get_vcov(self, vcov=False):
+        return None
+
+    def get_coef(self):
+        return None
+
+    def get_coef_names(self):
+        return None
+
     def get_response_name(self):
-        pass
+        return ""
 
     # names of the variables in the original dataset, excluding interactions, intercept, etc.
     @abstractmethod
     def get_variables_names(self):
-        pass
-
-    # names of the parameters
-    @abstractmethod
-    def get_coef_names(self):
         pass
 
     @abstractmethod
