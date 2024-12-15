@@ -328,7 +328,7 @@ def comparisons(
     out = outer(model.coef)
 
     # Compute standard errors and confidence intervals
-    if vcov is not None and vcov is not False:
+    if vcov is not None and vcov is not False and V is not None:
         J = get_jacobian(func=outer, coefs=model.coef, eps_vcov=eps_vcov)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
