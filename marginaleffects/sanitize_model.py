@@ -14,6 +14,7 @@ def sanitize_model(model):
     # statsmodels
     try:
         import statsmodels.base.wrapper as smw
+
         if isinstance(model, smw.ResultsWrapper):
             return ModelStatsmodels(model)
     except ImportError:
@@ -29,6 +30,7 @@ def sanitize_model(model):
     # pyfixest
     try:
         import pyfixest  #  noqa
+
         return ModelPyfixest(model)
     except ImportError:
         pass

@@ -4,10 +4,14 @@ import polars as pl
 from .utils import formula_to_variables
 from .model_abstract import ModelAbstract
 
+
 def is_sklearn_model(model):
     try:
         from sklearn.base import BaseEstimator
-        return (isinstance(model, BaseEstimator) or model.__module__.startswith('sklearn'))
+
+        return isinstance(model, BaseEstimator) or model.__module__.startswith(
+            "sklearn"
+        )
     except (AttributeError, ImportError):
         return False
 
@@ -18,7 +22,7 @@ class ModelScikit(ModelAbstract):
         self.formula = model.formula
 
         # Validate data attribute
-        if not hasattr(model, 'data'):
+        if not hasattr(model, "data"):
             raise ValueError("Model must have a 'data' attribute")
         if not isinstance(model.data, pl.DataFrame):
             raise TypeError("Model data must be a polars DataFrame")
@@ -34,6 +38,7 @@ class ModelScikit(ModelAbstract):
         else:
             try:
                 import formulaic
+
                 if isinstance(newdata, formulaic.ModelMatrix):
                     exog = newdata.to_numpy()
                 else:
@@ -44,7 +49,9 @@ class ModelScikit(ModelAbstract):
                     y, exog = formulaic.model_matrix(self.model.formula, nd)
                     exog = exog.to_numpy()
             except ImportError:
-                raise ImportError("The formulaic package is required to use this feature.")
+                raise ImportError(
+                    "The formulaic package is required to use this feature."
+                )
 
         try:
             with warnings.catch_warnings():
@@ -58,7 +65,7 @@ class ModelScikit(ModelAbstract):
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
         elif p.ndim == 2:
-            colnames = {f"column_{i}": v for i,v in enumerate(self.model.classes_)}
+            colnames = {f"column_{i}": v for i, v in enumerate(self.model.classes_)}
             p = (
                 pl.DataFrame(p)
                 .rename(colnames)

@@ -142,13 +142,9 @@ def formula_to_variables(formula, newdata):
 
     if isinstance(variables, (str, dict)):
         variables = [variables] if isinstance(variables, str) else variables
-    elif isinstance(variables, list) and all(
-        isinstance(var, str) for var in variables
-    ):
+    elif isinstance(variables, list) and all(isinstance(var, str) for var in variables):
         pass
     else:
-        raise ValueError(
-            "`variables` must be None, a dict, string, or list of strings"
-        )
+        raise ValueError("`variables` must be None, a dict, string, or list of strings")
 
     return variables

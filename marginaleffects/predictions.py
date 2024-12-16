@@ -135,9 +135,14 @@ def predictions(
         if hasattr(model, "formula") and hasattr(model, "data"):
             try:
                 import formulaic
-                endog, exog = formulaic.model_matrix(model.formula, model.data.to_pandas())
+
+                endog, exog = formulaic.model_matrix(
+                    model.formula, model.data.to_pandas()
+                )
             except ImportError:
-                raise ImportError("The formulaic package is required to use this feature.")
+                raise ImportError(
+                    "The formulaic package is required to use this feature."
+                )
         else:
             design_info = model.model.model.data.design_info
             exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")

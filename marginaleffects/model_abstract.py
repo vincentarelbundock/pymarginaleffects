@@ -38,14 +38,16 @@ class ModelAbstract(ABC):
             raise ValueError("formula must be a string")
 
         if "~" not in formula:
-            raise ValueError("Model formula must contain '~' to separate dependent and independent variables")
+            raise ValueError(
+                "Model formula must contain '~' to separate dependent and independent variables"
+            )
 
         if "scale(" in formula or "center(" in formula:
             raise ValueError(
                 "The formula cannot include scale( or center(. Please center your variables before fitting the model."
             )
         self.formula = formula
-    
+
     def get_formula(self):
         if hasattr(self.model, "formula"):
             return self.model.formula
@@ -55,7 +57,9 @@ class ModelAbstract(ABC):
     def get_modeldata(self):
         if hasattr(self.model, "data"):
             if not isinstance(self.model.data, pl.DataFrame):
-                raise ValueError("The data attribute of the model must be a polars DataFrame")
+                raise ValueError(
+                    "The data attribute of the model must be a polars DataFrame"
+                )
         return self.model.data
 
     def get_vcov(self, vcov=False):
