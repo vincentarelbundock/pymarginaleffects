@@ -6,6 +6,7 @@ from .plot_predictions import plot_predictions
 from .plot_slopes import plot_slopes
 from .predictions import avg_predictions, predictions
 from .slopes import avg_slopes, slopes
+from . import formulaic
 
 __all__ = [
     "avg_comparisons",

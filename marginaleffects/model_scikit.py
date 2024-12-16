@@ -1,23 +1,79 @@
 import numpy as np
 import warnings
 import polars as pl
-from .formulaic import get_variables
+from . import formulaic as fml
 from .model_abstract import ModelAbstract
 
 
 def is_sklearn_model(model):
+    """Check if an object is a scikit-learn model.
+
+    Parameters
+    ----------
+    model : object
+        The model object to check.
+
+    Returns
+    -------
+    bool
+        True if the object is a scikit-learn model, False otherwise.
+
+    Notes
+    -----
+    Checks both isinstance(BaseEstimator) and module name starting with 'sklearn'.
+    Returns False if scikit-learn is not installed.
+    """
     try:
         from sklearn.base import BaseEstimator
-
-        return isinstance(model, BaseEstimator) or model.__module__.startswith(
-            "sklearn"
-        )
+        return isinstance(model, BaseEstimator) or model.__module__.startswith("sklearn")
     except (AttributeError, ImportError):
         return False
 
 
 class ModelScikit(ModelAbstract):
+    """Wrapper class for scikit-learn models.
+    
+    Parameters
+    ----------
+    model : object
+        A fitted scikit-learn model object with formula and data attributes.
+
+    Attributes
+    ----------
+    formula : str
+        Model formula with response ~ predictors format.
+    data : pl.DataFrame
+        Training data used to fit the model.
+
+    Raises
+    ------
+    ValueError
+        If model lacks a data attribute.
+    TypeError
+        If model.data is not a polars DataFrame.
+    """
     def __init__(self, model):
+        """Initialize a scikit-learn model wrapper.
+
+        Parameters
+        ----------
+        model : object
+            A fitted scikit-learn model that must have:
+                - formula attribute (str): Model formula with response ~ predictors format
+                - data attribute (pl.DataFrame): Training data used to fit the model
+
+        Raises
+        ------
+        ValueError
+            If model lacks a data attribute
+        TypeError
+            If model.data is not a polars DataFrame
+
+        Notes
+        -----
+        The model must be already fitted and contain both formula and data attributes.
+        The data must be a polars DataFrame for compatibility with the package.
+        """
         super().__init__(model)
         self.formula = model.formula
 
@@ -29,11 +85,54 @@ class ModelScikit(ModelAbstract):
         self.data = model.data
 
     def get_variables_names(self, variables=None, newdata=None):
-        out = get_variables(self.formula)[1:]
+        """Get names of predictor variables from the model formula.
+
+        Parameters
+        ----------
+        variables : None
+            Not used, kept for interface consistency.
+        newdata : None
+            Not used, kept for interface consistency.
+
+        Returns
+        -------
+        list
+            Names of predictor variables, excluding the response variable.
+        """
+        out = fml.variables(self.formula)[1:]
         return out
 
-    # ignore `params` because we don't compute standard errors in scikit-learn models
     def get_predict(self, params, newdata: pl.DataFrame):
+        """Get model predictions for new data.
+
+        Parameters
+        ----------
+        params : object
+            Not used for scikit-learn models.
+        newdata : pl.DataFrame
+            New data to generate predictions for.
+
+        Returns
+        -------
+        pl.DataFrame
+            DataFrame containing:
+                - rowid: Row identifier
+                - estimate: Predicted values
+                - group: (For multiclass) Class labels
+            
+        Raises
+        ------
+        ImportError
+            If formulaic package is not installed.
+        ValueError
+            If predict() returns array with more than 2 dimensions.
+
+        Notes
+        -----
+        - Tries predict_proba() first, falls back to predict()
+        - For binary classification, returns probabilities for positive class only
+        - For multiclass, returns probabilities for all classes
+        """
         if isinstance(newdata, np.ndarray):
             exog = newdata
         else:
