@@ -32,6 +32,7 @@ class ModelScikit(ModelAbstract):
         out = formula_to_variables(self.formula, self.data)
         return out
 
+    # ignore `params` because we don't compute standard errors in scikit-learn models
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):
             exog = newdata
