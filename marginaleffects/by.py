@@ -1,4 +1,5 @@
 import polars as pl
+import numpy as np
 
 
 def get_by(model, estimand, newdata, by=None, wts=None):
@@ -25,6 +26,8 @@ def get_by(model, estimand, newdata, by=None, wts=None):
         out = pl.DataFrame({"estimate": estimand["estimate"]})
 
     by = [x for x in by if x in out.columns]
+    by = np.unique(by)
+
     if isinstance(by, list) and len(by) == 0:
         return out
 

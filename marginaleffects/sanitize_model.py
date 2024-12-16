@@ -1,7 +1,7 @@
 from .model_abstract import ModelAbstract
 from .model_pyfixest import ModelPyfixest
 from .model_statsmodels import ModelStatsmodels
-from .model_scikit import ModelScikitLogisticRegression
+from .model_scikit import ModelScikit, is_sklearn_model
 
 
 def sanitize_model(model):
@@ -21,9 +21,8 @@ def sanitize_model(model):
 
     # scikit-learn
     try:
-        from sklearn.linear_model import LogisticRegression
-        if isinstance(model, LogisticRegression):
-            return ModelScikitLogisticRegression(model)
+        if is_sklearn_model(model):
+            return ModelScikit(model)
     except ImportError:
         pass
 
