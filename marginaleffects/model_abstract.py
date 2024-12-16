@@ -37,7 +37,7 @@ class ModelAbstract(ABC):
         if not isinstance(formula, str):
             raise ValueError("formula must be a string")
 
-        if "~" not in self.model.formula:
+        if "~" not in formula:
             raise ValueError("Model formula must contain '~' to separate dependent and independent variables")
 
         if "scale(" in formula or "center(" in formula:
