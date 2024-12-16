@@ -50,7 +50,7 @@ class ModelScikit(ModelAbstract):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*valid feature names.*")
                 p = self.model.predict_proba(exog)
-        except:
+        except (AttributeError, NotImplementedError):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*valid feature names.*")
                 p = self.model.predict(exog)
