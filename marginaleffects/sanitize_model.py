@@ -1,7 +1,7 @@
 from .model_abstract import ModelAbstract
 from .model_pyfixest import ModelPyfixest
 from .model_statsmodels import ModelStatsmodels
-from .model_scikit import ModelScikit, is_sklearn_model
+from .model_sklearn import ModelSklearn, is_sklearn_model
 
 
 def sanitize_model(model):
@@ -23,7 +23,7 @@ def sanitize_model(model):
     # scikit-learn
     try:
         if is_sklearn_model(model):
-            return ModelScikit(model)
+            return ModelSklearn(model)
     except ImportError:
         pass
 

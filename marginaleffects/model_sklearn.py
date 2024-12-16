@@ -30,7 +30,7 @@ def is_sklearn_model(model):
         return False
 
 
-class ModelScikit(ModelAbstract):
+class ModelSklearn(ModelAbstract):
     """Wrapper class for scikit-learn models.
     
     Parameters
