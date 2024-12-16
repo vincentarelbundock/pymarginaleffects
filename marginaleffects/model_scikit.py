@@ -1,7 +1,7 @@
 import numpy as np
 import warnings
 import polars as pl
-from .utils import formula_to_variables
+from .formulaic import get_variables
 from .model_abstract import ModelAbstract
 
 
@@ -29,7 +29,7 @@ class ModelScikit(ModelAbstract):
         self.data = model.data
 
     def get_variables_names(self, variables=None, newdata=None):
-        out = formula_to_variables(self.formula, self.data)
+        out = get_variables(self.formula)[1:]
         return out
 
     # ignore `params` because we don't compute standard errors in scikit-learn models
@@ -58,6 +58,9 @@ class ModelScikit(ModelAbstract):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*valid feature names.*")
                 p = self.model.predict_proba(exog)
+                # only keep the second column for binary classification since it is redundant info
+                if p.shape[1] == 2:
+                    p = p[:, 1]
         except (AttributeError, NotImplementedError):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*valid feature names.*")

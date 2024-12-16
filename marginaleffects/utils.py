@@ -131,20 +131,3 @@ def get_type_dictionary(modeldata):
     return out
 
 
-def formula_to_variables(formula, newdata):
-    columns = newdata.columns
-    order = {}
-    for var in columns:
-        match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
-        if match:
-            order[var] = match.start()
-    variables = sorted(order, key=lambda i: order[i])
-
-    if isinstance(variables, (str, dict)):
-        variables = [variables] if isinstance(variables, str) else variables
-    elif isinstance(variables, list) and all(isinstance(var, str) for var in variables):
-        pass
-    else:
-        raise ValueError("`variables` must be None, a dict, string, or list of strings")
-
-    return variables
