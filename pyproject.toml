@@ -17,6 +17,7 @@ dependencies = [
 test = [
     "duckdb >=1.1.2",
     "formulaic >=1.0.2",
+    "pydantic >=2.10.3",
     "matplotlib >=3.7.1",
     "pandas >=2.2.2",
     "pyarrow >=17.0.0",
