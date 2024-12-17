@@ -77,10 +77,8 @@ class ModelAbstract(ABC):
         return None
 
     def find_variables(self, variables=None, newdata=None):
-        if hasattr(self.model, "formula"):
-            out = fml.variables(self.formula)[1:]
-        else:
-            out = None
+        f = self.get_formula()
+        out = fml.variables(self.formula)[1:]
         return out
 
     def find_response(self):

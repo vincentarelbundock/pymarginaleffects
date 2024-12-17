@@ -4,9 +4,15 @@ import polars as pl
 import warnings
 import patsy
 from .model_abstract import ModelAbstract
+from .utils import ingest, ArrowStreamExportable
 
 
 class ModelStatsmodels(ModelAbstract):
+    def __init__(self, model):
+        if not hasattr(model, "formula"):
+            model.formula = model.model.formula
+        super().__init__(model)
+
     def get_coef(self):
         return np.array(self.model.params)
 

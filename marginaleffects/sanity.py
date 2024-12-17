@@ -61,6 +61,7 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         args["FUN_other"] = lambda x: np.unique(x)
         args["grid_type"] = "balanced"
         newdata_columns = model.find_variables() + [model.find_response()]
+        newdata_columns = np.unique(newdata_columns)
         args["newdata"] = modeldata.select(newdata_columns)
         out = datagrid(
             **args,
