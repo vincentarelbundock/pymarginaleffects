@@ -4,15 +4,6 @@ import polars as pl
 from .model_abstract import ModelAbstract
 
 
-def is_sklearn_model(model):
-    try:
-        from sklearn.base import BaseEstimator
-
-        return isinstance(model, BaseEstimator) or model.__module__.startswith(
-            "sklearn"
-        )
-    except (AttributeError, ImportError):
-        return False
 
 
 class ModelSklearn(ModelAbstract):

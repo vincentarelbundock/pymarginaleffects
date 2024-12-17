@@ -1,7 +1,28 @@
 from .model_abstract import ModelAbstract
 from .model_pyfixest import ModelPyfixest
 from .model_statsmodels import ModelStatsmodels
-from .model_sklearn import ModelSklearn, is_sklearn_model
+from .model_sklearn import ModelSklearn
+
+
+def is_sklearn(model):
+    try:
+        from sklearn.base import BaseEstimator
+        return isinstance(model, BaseEstimator) or model.__module__.startswith(
+            "sklearn"
+        )
+    except (AttributeError, ImportError):
+        return False
+
+
+def is_statsmodels(model):
+    try:
+        import statsmodels.base.wrapper as smw
+        if isinstance(model, smw.ResultsWrapper):
+            return True
+        else:
+            return False
+    except ImportError:
+        return False
 
 
 def sanitize_model(model):
@@ -11,26 +32,15 @@ def sanitize_model(model):
     if isinstance(model, ModelAbstract):
         return model
 
-    # statsmodels
-    try:
-        import statsmodels.base.wrapper as smw
+    if is_statsmodels(model):
+        return ModelStatsmodels(model)
 
-        if isinstance(model, smw.ResultsWrapper):
-            return ModelStatsmodels(model)
-    except ImportError:
-        pass
-
-    # scikit-learn
-    try:
-        if is_sklearn_model(model):
-            return ModelSklearn(model)
-    except ImportError:
-        pass
+    elif is_sklearn(model):
+        return ModelSklearn(model)
 
     # pyfixest
     try:
         import pyfixest  #  noqa
-
         return ModelPyfixest(model)
     except ImportError:
         pass
