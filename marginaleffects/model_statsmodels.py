@@ -25,8 +25,6 @@ class ModelStatsmodels(ModelAbstract):
             df = pl.from_pandas(df)
         return df
 
-    def find_response(self):
-        return self.model.model.endog_names
 
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
@@ -111,8 +109,6 @@ class ModelStatsmodels(ModelAbstract):
         p = p.with_columns(pl.col("rowid").cast(pl.Int32))
         return p
 
-    def get_formula(self):
-        return self.model.model.formula
 
     def get_df(self):
         return self.model.df_resid
