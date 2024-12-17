@@ -4,7 +4,6 @@ import polars as pl
 import warnings
 import patsy
 from .model_abstract import ModelAbstract
-from .utils import ingest, ArrowStreamExportable
 
 
 class ModelStatsmodels(ModelAbstract):
@@ -24,7 +23,6 @@ class ModelStatsmodels(ModelAbstract):
         if not isinstance(df, pl.DataFrame):
             df = pl.from_pandas(df)
         return df
-
 
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
@@ -108,7 +106,6 @@ class ModelStatsmodels(ModelAbstract):
             )
         p = p.with_columns(pl.col("rowid").cast(pl.Int32))
         return p
-
 
     def get_df(self):
         return self.model.df_resid

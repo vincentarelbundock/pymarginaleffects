@@ -7,6 +7,7 @@ from .model_sklearn import ModelSklearn
 def is_sklearn(model):
     try:
         from sklearn.base import BaseEstimator
+
         return isinstance(model, BaseEstimator) or model.__module__.startswith(
             "sklearn"
         )
@@ -17,6 +18,7 @@ def is_sklearn(model):
 def is_statsmodels(model):
     try:
         import statsmodels.base.wrapper as smw
+
         if isinstance(model, smw.ResultsWrapper):
             return True
         else:
@@ -41,6 +43,7 @@ def sanitize_model(model):
     # pyfixest
     try:
         import pyfixest  #  noqa
+
         return ModelPyfixest(model)
     except ImportError:
         pass

@@ -4,8 +4,6 @@ import polars as pl
 from .model_abstract import ModelAbstract
 
 
-
-
 class ModelSklearn(ModelAbstract):
     def __init__(self, model):
         if not hasattr(model, "data"):
