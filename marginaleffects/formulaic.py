@@ -18,7 +18,7 @@ def variables(formula: str):
     Returns
     -------
     list
-        List of variable names in order of appearance, including both dependent and 
+        List of variable names in order of appearance, including both dependent and
         independent variables.
 
     Raises
@@ -50,7 +50,9 @@ def variables(formula: str):
 
 
 @validate_types
-def lwd(formula: str | None = None, vars: list[str] | None = None, data: pl.DataFrame = None):
+def lwd(
+    formula: str | None = None, vars: list[str] | None = None, data: pl.DataFrame = None
+):
     """List-wise delete rows with missing values for specified variables.
 
     Parameters
@@ -178,9 +180,4 @@ def fit(formula: str, data: pl.DataFrame, engine):
     return out
 
 
-__all__ = [
-    'variables',
-    'lwd',
-    'design',
-    'fit'
-]
+__all__ = ["variables", "lwd", "design", "fit"]

@@ -17,7 +17,7 @@ class ModelPyfixest(ModelAbstract):
     def get_coef(self):
         return np.array(self.model._beta_hat)
 
-    def get_coef_names(self):
+    def find_coef(self):
         return np.array(self.model._coefnames)
 
     def get_modeldata(self):
@@ -26,7 +26,7 @@ class ModelPyfixest(ModelAbstract):
             df = pl.from_pandas(df)
         return df
 
-    def get_response_name(self):
+    def find_response(self):
         return self.model._fml.split("~")[0]  # the response variable
 
     def get_vcov(self, vcov=True):
@@ -39,7 +39,7 @@ class ModelPyfixest(ModelAbstract):
     def get_formula(self):
         return self.model._fml
 
-    def get_variables_names(self, variables=None, newdata=None):
+    def find_variables(self, variables=None, newdata=None):
         if variables is None:
             variables = self.model._coefnames
             variables = [re.sub(r"\[.*\]", "", x) for x in variables]

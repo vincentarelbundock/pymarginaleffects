@@ -60,7 +60,7 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     elif isinstance(newdata, str) and newdata == "balanced":
         args["FUN_other"] = lambda x: np.unique(x)
         args["grid_type"] = "balanced"
-        newdata_columns = model.get_variables_names() + [model.get_response_name()]
+        newdata_columns = model.find_variables() + [model.find_response()]
         args["newdata"] = modeldata.select(newdata_columns)
         out = datagrid(
             **args,
@@ -429,7 +429,7 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
     modeldata = model.modeldata
 
     if variables is None:
-        vlist = model.get_variables_names(variables, modeldata)
+        vlist = model.find_variables(variables, modeldata)
         vlist.sort()
         for v in vlist:
             out.append(

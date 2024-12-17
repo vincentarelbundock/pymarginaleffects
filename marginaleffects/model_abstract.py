@@ -2,10 +2,15 @@ import numpy as np
 import polars as pl
 from abc import ABC, abstractmethod
 from .utils import get_type_dictionary
+from . import formulaic as fml
 
 
 class ModelAbstract(ABC):
     def __init__(self, model):
+        if hasattr(model, "formula"):
+            self.formula = model.formula
+        if hasattr(model, "data"):
+            self.data = model.data
         self.model = model
         self.validate_coef()
         self.validate_modeldata()
@@ -26,7 +31,7 @@ class ModelAbstract(ABC):
         self.modeldata = modeldata
 
     def validate_response_name(self):
-        response_name = self.get_response_name()
+        response_name = self.find_response()
         if not isinstance(response_name, str):
             raise ValueError("response_name must be a string")
         self.response_name = response_name
@@ -68,16 +73,29 @@ class ModelAbstract(ABC):
     def get_coef(self):
         return None
 
-    def get_coef_names(self):
+    def find_coef(self):
         return None
 
-    def get_response_name(self):
-        return ""
+    def find_variables(self, variables=None, newdata=None):
+        if hasattr(self.model, "formula"):
+            out = fml.variables(self.formula)[1:]
+        else:
+            out = None
+        return out
 
-    # names of the variables in the original dataset, excluding interactions, intercept, etc.
-    @abstractmethod
-    def get_variables_names(self):
-        pass
+    def find_response(self):
+        vars = self.find_variables()
+        if vars is None:
+            return None
+        else:
+            return vars[0]
+
+    def find_predictors(self):
+        vars = self.find_variables()
+        if vars is None:
+            return None
+        else:
+            return vars[1:]
 
     @abstractmethod
     def get_predict(self):

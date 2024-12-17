@@ -10,7 +10,7 @@ class ModelStatsmodels(ModelAbstract):
     def get_coef(self):
         return np.array(self.model.params)
 
-    def get_coef_names(self):
+    def find_coef(self):
         return np.array(self.model.params.index.to_numpy())
 
     def get_modeldata(self):
@@ -19,7 +19,7 @@ class ModelStatsmodels(ModelAbstract):
             df = pl.from_pandas(df)
         return df
 
-    def get_response_name(self):
+    def find_response(self):
         return self.model.model.endog_names
 
     def get_vcov(self, vcov=True):
@@ -48,7 +48,7 @@ class ModelStatsmodels(ModelAbstract):
 
         return V
 
-    def get_variables_names(self, variables=None, newdata=None):
+    def find_variables(self, variables=None, newdata=None):
         if variables is None:
             formula = self.formula
             columns = self.modeldata.columns

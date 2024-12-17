@@ -6,6 +6,7 @@ from typing import Protocol, runtime_checkable
 from pydantic import ConfigDict, validate_call
 from functools import wraps
 
+
 @runtime_checkable
 class ArrowStreamExportable(Protocol):
     def __arrow_c_stream__(self, requested_schema: object | None = None) -> object: ...
@@ -131,12 +132,12 @@ def get_type_dictionary(modeldata):
     return out
 
 
-
 def validate_types(func):
     """Decorator that validates types with arbitrary types allowed"""
     validator = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(func)
-    
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         return validator(*args, **kwargs)
+
     return wrapper
