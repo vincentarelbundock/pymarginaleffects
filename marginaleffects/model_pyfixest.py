@@ -2,6 +2,7 @@ import re
 import numpy as np
 import polars as pl
 import warnings
+from .utils import ingest
 from .model_abstract import ModelAbstract
 
 
@@ -73,7 +74,7 @@ class ModelPyfixest(ModelAbstract):
 
         # pyfixest does not support polars
         try:
-            newdata = newdata.to_pandas()
+            newdata = ingest(newdata).to_pandas()
         except:  #  noqa
             pass
 

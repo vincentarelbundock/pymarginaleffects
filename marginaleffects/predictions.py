@@ -15,7 +15,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import sort_columns
+from .utils import sort_columns, ingest
 from .model_pyfixest import ModelPyfixest
 
 
@@ -130,14 +130,14 @@ def predictions(
     # matrices many times, which would be computationally wasteful. But in the
     # case of PyFixest, the predict method only accepts a data frame.
     if isinstance(model, ModelPyfixest):
-        exog = newdata.to_pandas()
+        exog = ingest(newdata).to_pandas()
     else:
         if hasattr(model, "formula") and hasattr(model, "data"):
             try:
                 import formulaic
 
                 endog, exog = formulaic.model_matrix(
-                    model.formula, model.data.to_pandas()
+                    model.formula, ingest(model.data).to_pandas()
                 )
             except ImportError:
                 raise ImportError(
@@ -145,7 +145,7 @@ def predictions(
                 )
         else:
             design_info = model.model.model.data.design_info
-            exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
+            exog = patsy.dmatrix(design_info, ingest(newdata).to_pandas(), NA_action="raise")
 
     # estimands
     def inner(x):

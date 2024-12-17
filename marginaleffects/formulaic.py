@@ -2,7 +2,7 @@ import formulaic
 import inspect
 import polars as pl
 import numpy as np
-from .utils import validate_types
+from .utils import validate_types, ingest
 
 
 @validate_types
@@ -114,7 +114,7 @@ def design(formula: str, data: pl.DataFrame):
     """
     vars = variables(formula)
     data = data.drop_nulls(subset=vars)
-    y, X = formulaic.model_matrix(formula, data.to_pandas())
+    y, X = formulaic.model_matrix(formula, ingest(data).to_pandas())
     y = np.ravel(data[vars[0]])  # avoid matrix if LHS is a character
     return y, X, data
 

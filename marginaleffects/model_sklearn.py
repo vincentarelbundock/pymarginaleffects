@@ -1,6 +1,7 @@
 import numpy as np
 import warnings
 import polars as pl
+from .utils import ingest
 from .model_abstract import ModelAbstract
 
 
@@ -23,7 +24,7 @@ class ModelSklearn(ModelAbstract):
                     exog = newdata.to_numpy()
                 else:
                     if isinstance(newdata, pl.DataFrame):
-                        nd = newdata.to_pandas()
+                        nd = ingest(newdata).to_pandas()
                     else:
                         nd = newdata
                     y, exog = formulaic.model_matrix(self.model.formula, nd)

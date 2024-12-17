@@ -86,8 +86,7 @@ class ModelStatsmodels(ModelAbstract):
         if isinstance(newdata, np.ndarray):
             exog = newdata
         else:
-            if isinstance(newdata, pl.DataFrame):
-                newdata = newdata.to_pandas()
+            newdata = ingest(newdata).to_pandas()
             y, exog = patsy.dmatrices(self.formula, newdata)
         p = self.model.model.predict(params, exog)
         if p.ndim == 1:
