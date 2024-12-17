@@ -11,8 +11,6 @@ class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
         if not hasattr(model, "formula"):
             model.formula = model.model.formula
-        # if not hasattr(model, "data"):
-        #     model.data = model.model.data.frame
         super().__init__(model)
 
     def get_coef(self):
@@ -86,7 +84,7 @@ class ModelStatsmodels(ModelAbstract):
         if isinstance(newdata, np.ndarray):
             exog = newdata
         else:
-            newdata = ingest(newdata).to_pandas()
+            newdata = newdata.to_pandas()
             y, exog = patsy.dmatrices(self.formula, newdata)
         p = self.model.model.predict(params, exog)
         if p.ndim == 1:

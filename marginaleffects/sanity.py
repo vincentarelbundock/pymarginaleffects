@@ -33,7 +33,7 @@ def sanitize_by(by):
 
 
 def sanitize_newdata(model, newdata, wts, by=[]):
-    modeldata = model.modeldata
+    modeldata = ingest(model.modeldata)
 
     if newdata is None:
         out = modeldata
@@ -53,9 +53,7 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     elif isinstance(newdata, str) and newdata == "median":
         args["FUN_numeric"] = lambda x: x.median()
         args["newdata"] = modeldata
-        out = datagrid(
-            **args,
-        )
+        out = datagrid(**args)
 
     elif isinstance(newdata, str) and newdata == "balanced":
         args["FUN_other"] = lambda x: np.unique(x)
@@ -63,18 +61,11 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         newdata_columns = model.find_variables() + [model.find_response()]
         newdata_columns = np.unique(newdata_columns)
         args["newdata"] = modeldata.select(newdata_columns)
-        out = datagrid(
-            **args,
-        )
+        out = datagrid(**args)
 
     else:
         try:
-            if isinstance(newdata, ArrowStreamExportable):
-                out = ingest(newdata)
-            else:
-                raise RuntimeError(
-                    "Unable to ingest newdata data provided. If it is a DataFrame, make sure it implements the ArrowStreamExportable interface."
-                )
+            out = ingest(newdata)
         except Exception as e:
             raise e
 

@@ -74,7 +74,7 @@ class ModelPyfixest(ModelAbstract):
 
         # pyfixest does not support polars
         try:
-            newdata = ingest(newdata).to_pandas()
+            newdata = newdata.to_pandas()
         except:  #  noqa
             pass
 

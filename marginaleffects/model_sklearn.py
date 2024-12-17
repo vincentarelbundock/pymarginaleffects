@@ -24,7 +24,7 @@ class ModelSklearn(ModelAbstract):
                     exog = newdata.to_numpy()
                 else:
                     if isinstance(newdata, pl.DataFrame):
-                        nd = ingest(newdata).to_pandas()
+                        nd = newdata.to_pandas()
                     else:
                         nd = newdata
                     y, exog = formulaic.model_matrix(self.model.formula, nd)

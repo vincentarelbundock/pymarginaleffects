@@ -130,7 +130,7 @@ def predictions(
     # matrices many times, which would be computationally wasteful. But in the
     # case of PyFixest, the predict method only accepts a data frame.
     if isinstance(model, ModelPyfixest):
-        exog = ingest(newdata).to_pandas()
+        exog = newdata.to_pandas()
     else:
         if hasattr(model, "formula") and hasattr(model, "data"):
             try:
@@ -145,7 +145,7 @@ def predictions(
                 )
         else:
             design_info = model.model.model.data.design_info
-            exog = patsy.dmatrix(design_info, ingest(newdata).to_pandas(), NA_action="raise")
+            exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
 
     # estimands
     def inner(x):
