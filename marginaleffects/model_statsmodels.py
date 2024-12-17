@@ -4,12 +4,15 @@ import polars as pl
 import warnings
 import patsy
 from .model_abstract import ModelAbstract
+from .utils import ingest
 
 
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
         if not hasattr(model, "formula"):
             model.formula = model.model.formula
+        # if not hasattr(model, "data"):
+        #     model.data = model.model.data.frame
         super().__init__(model)
 
     def get_coef(self):
@@ -19,10 +22,7 @@ class ModelStatsmodels(ModelAbstract):
         return np.array(self.model.params.index.to_numpy())
 
     def get_modeldata(self):
-        df = self.model.model.data.frame
-        if not isinstance(df, pl.DataFrame):
-            df = pl.from_pandas(df)
-        return df
+        return ingest(self.model.model.data.frame)
 
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
@@ -86,7 +86,9 @@ class ModelStatsmodels(ModelAbstract):
         if isinstance(newdata, np.ndarray):
             exog = newdata
         else:
-            y, exog = patsy.dmatrices(self.formula, newdata.to_pandas())
+            if isinstance(newdata, pl.DataFrame):
+                newdata = newdata.to_pandas()
+            y, exog = patsy.dmatrices(self.formula, newdata)
         p = self.model.model.predict(params, exog)
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
