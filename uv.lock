@@ -446,6 +446,7 @@ test = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "patsy" },
     { name = "pytest" },
     { name = "pytest-xdist" },
     { name = "ruff" },
@@ -472,6 +473,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "patsy" },
     { name = "pytest", specifier = ">=8.1.1,<9" },
     { name = "pytest-xdist", specifier = ">=3.6.1" },
     { name = "ruff", specifier = ">=0.6.4" },

@@ -1,6 +1,7 @@
 import numpy as np
 import patsy
 import polars as pl
+import formulaic
 
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
@@ -15,8 +16,9 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import sort_columns, ingest
+from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
+from .formulaic import model_matrices
 
 
 def predictions(
@@ -132,20 +134,11 @@ def predictions(
     if isinstance(model, ModelPyfixest):
         exog = newdata.to_pandas()
     else:
-        if hasattr(model, "formula") and hasattr(model, "data"):
-            try:
-                import formulaic
-
-                endog, exog = formulaic.model_matrix(
-                    model.formula, ingest(model.data).to_pandas()
-                )
-            except ImportError:
-                raise ImportError(
-                    "The formulaic package is required to use this feature."
-                )
-        else:
-            design_info = model.model.model.data.design_info
-            exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
+        try:
+            f = model.model.model.data.design_info
+        except:
+            f = model.formula
+        endog, exog = model_matrices(f, newdata, formula_engine=model.formula_engine)
 
     # estimands
     def inner(x):

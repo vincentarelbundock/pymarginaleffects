@@ -7,11 +7,8 @@ from . import formulaic as fml
 
 class ModelAbstract(ABC):
     def __init__(self, model):
-        if hasattr(model, "formula"):
-            self.formula = model.formula
-        if hasattr(model, "data"):
-            self.data = model.data
         self.model = model
+        self.formula_engine = "formulaic"
         self.validate_coef()
         self.validate_modeldata()
         self.validate_response_name()
@@ -54,7 +51,9 @@ class ModelAbstract(ABC):
         self.formula = formula
 
     def get_formula(self):
-        if hasattr(self.model, "formula"):
+        if hasattr(self, "formula"):
+            return self.formula
+        elif hasattr(self.model, "formula"):
             return self.model.formula
         else:
             raise ValueError("Model must have a 'formula' attribute")

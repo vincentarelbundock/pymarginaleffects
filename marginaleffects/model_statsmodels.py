@@ -3,15 +3,17 @@ import numpy as np
 import polars as pl
 import warnings
 import patsy
+import formulaic
 from .model_abstract import ModelAbstract
 from .utils import ingest
 
 
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
-        if not hasattr(model, "formula"):
-            model.formula = model.model.formula
+        self.formula = model.model.formula
+        self.data = ingest(model.model.data.frame)
         super().__init__(model)
+        self.formula_engine = "patsy"
 
     def get_coef(self):
         return np.array(self.model.params)
@@ -83,6 +85,8 @@ class ModelStatsmodels(ModelAbstract):
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):
             exog = newdata
+        elif hasattr(newdata, "to_numpy"):
+            exog = newdata.to_numpy()
         else:
             newdata = newdata.to_pandas()
             y, exog = patsy.dmatrices(self.formula, newdata)
