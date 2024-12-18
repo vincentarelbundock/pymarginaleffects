@@ -8,6 +8,7 @@ from .utils import ingest
 class ModelPyfixest(ModelAbstract):
     def __init__(self, model):
         self.data = ingest(model._data)
+        self.formula = model._fml
         super().__init__(model)
         if hasattr(self.model, "_fixef"):
             if self.model._fixef is not None:
@@ -30,9 +31,6 @@ class ModelPyfixest(ModelAbstract):
             if vcov is True:
                 V = self.model._vcov
         return V
-
-    def get_formula(self):
-        return self.model._fml
 
     def find_variables(self):
         variables = self.model._coefnames

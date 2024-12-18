@@ -32,7 +32,7 @@ class ModelAbstract(ABC):
         self.response_name = response_name
 
     def validate_formula(self):
-        formula = self.get_formula()
+        formula = self.formula
 
         if not isinstance(formula, str):
             raise ValueError("formula must be a string")
@@ -47,14 +47,6 @@ class ModelAbstract(ABC):
                 "The formula cannot include scale( or center(. Please center your variables before fitting the model."
             )
         self.formula = formula
-
-    def get_formula(self):
-        if hasattr(self, "formula"):
-            return self.formula
-        elif hasattr(self.model, "formula"):
-            return self.model.formula
-        else:
-            raise ValueError("Model must have a 'formula' attribute")
 
     def get_vcov(self, vcov=False):
         return None
