@@ -8,12 +8,20 @@ from .utils import ingest
 
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
-        self.formula = model.model.formula
-        self.data = ingest(model.model.data.frame)
+        if hasattr(model, "formula"):
+            self.formula = model.formula
+            self.data = ingest(model.data)
+        else:
+            self.formula = model.model.formula
+            self.data = ingest(model.model.data.frame)
         super().__init__(model)
         # after super()
-        self.formula_engine = "patsy"
-        self.design_info_patsy = model.model.data.design_info
+        if hasattr(model, "formula"):
+            self.formula_engine = "formulaic"
+        else:
+            self.formula_engine = "patsy"
+            self.design_info_patsy = model.model.data.design_info
+
 
     def get_coef(self):
         return np.array(self.model.params)

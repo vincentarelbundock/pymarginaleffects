@@ -66,13 +66,22 @@ def _sanity_engine(engine):
 
 
 @validate_types
-def fit(formula: str, data: pl.DataFrame, engine):
-    _sanity_engine(engine)
+def fit_sklearn(formula: str, data: pl.DataFrame, engine):
     y, X, data = design(formula, data)
+    print(engine)
     out = engine.fit(X=X, y=y)
     out.formula = formula
     out.data = data
     return out
+
+
+@validate_types
+def fit_statsmodels(formula:str, data: pl.DataFrame, engine):
+    y, X, data = design(formula, data)
+    mod = engine(endog=y, exog=X).fit()
+    mod.data = data
+    mod.formula = formula
+    return mod
 
 
 __all__ = ["variables", "lwd", "design", "fit"]
