@@ -6,7 +6,7 @@ import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
-from .utils import ingest, ArrowStreamExportable
+from .utils import ingest
 
 
 def sanitize_vcov(vcov, model):
@@ -33,7 +33,7 @@ def sanitize_by(by):
 
 
 def sanitize_newdata(model, newdata, wts, by=[]):
-    modeldata = model.modeldata
+    modeldata = ingest(model.data)
 
     if newdata is None:
         out = modeldata
@@ -53,27 +53,19 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     elif isinstance(newdata, str) and newdata == "median":
         args["FUN_numeric"] = lambda x: x.median()
         args["newdata"] = modeldata
-        out = datagrid(
-            **args,
-        )
+        out = datagrid(**args)
 
     elif isinstance(newdata, str) and newdata == "balanced":
         args["FUN_other"] = lambda x: np.unique(x)
         args["grid_type"] = "balanced"
-        newdata_columns = model.get_variables_names() + [model.get_response_name()]
+        newdata_columns = model.find_variables()
+        newdata_columns = np.unique(newdata_columns)
         args["newdata"] = modeldata.select(newdata_columns)
-        out = datagrid(
-            **args,
-        )
+        out = datagrid(**args)
 
     else:
         try:
-            if isinstance(newdata, ArrowStreamExportable):
-                out = ingest(newdata)
-            else:
-                raise RuntimeError(
-                    "Unable to ingest newdata data provided. If it is a DataFrame, make sure it implements the ArrowStreamExportable interface."
-                )
+            out = ingest(newdata)
         except Exception as e:
             raise e
 
@@ -426,10 +418,10 @@ def get_categorical_combinations(
 def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None):
     out = []
 
-    modeldata = model.modeldata
+    modeldata = model.data
 
     if variables is None:
-        vlist = model.get_variables_names(variables, modeldata)
+        vlist = model.find_predictors()
         vlist.sort()
         for v in vlist:
             out.append(

@@ -12,7 +12,7 @@ def joint_hypotheses(obj, joint_index=None, joint_test="f", hypothesis=0):
     # theta_hat: P x 1 vector of estimated parameters
     theta_hat = obj.get_coef()
 
-    var_names = obj.get_variables_names()
+    var_names = obj.find_predictors()
 
     if len(theta_hat) == len(var_names) + 1:
         var_names = ["Intercept"] + var_names

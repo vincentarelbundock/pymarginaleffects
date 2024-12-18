@@ -8,6 +8,7 @@ __pypackages__/
 site/
 debug.py
 debug.R
+build/
 
 # Poetry files
 /dist/

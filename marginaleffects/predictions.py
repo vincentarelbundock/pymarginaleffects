@@ -1,5 +1,4 @@
 import numpy as np
-import patsy
 import polars as pl
 
 from .by import get_by
@@ -18,6 +17,7 @@ from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
+from .formulaic import model_matrices
 
 
 def predictions(
@@ -86,7 +86,7 @@ def predictions(
     newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
-    modeldata = model.get_modeldata()
+    modeldata = model.data
 
     if variables:
         if not isinstance(variables, dict):
@@ -136,12 +136,15 @@ def predictions(
     elif isinstance(model, ModelLinearmodels):
         exog = newdata
     else:
-        design_info = model.model.model.data.design_info
-        exog = patsy.dmatrix(design_info, newdata.to_pandas(), NA_action="raise")
+        if hasattr(model, "design_info_patsy"):
+            f = model.design_info_patsy
+        else:
+            f = model.formula
+        endog, exog = model_matrices(f, newdata, formula_engine=model.formula_engine)
 
     # estimands
     def inner(x):
-        out = model.get_predict(np.array(x), exog)
+        out = model.get_predict(params=np.array(x), newdata=exog)
 
         if out.shape[0] == newdata.shape[0]:
             cols = [x for x in newdata.columns if x not in out.columns]

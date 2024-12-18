@@ -3,6 +3,8 @@ import narwhals as nw
 import numpy as np
 import polars as pl
 from typing import Protocol, runtime_checkable
+from pydantic import ConfigDict, validate_call
+from functools import wraps
 
 
 @runtime_checkable
@@ -128,3 +130,14 @@ def get_type_dictionary(modeldata):
         else:
             out[v] = "unknown"
     return out
+
+
+def validate_types(func):
+    """Decorator that validates types with arbitrary types allowed"""
+    validator = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(func)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return validator(*args, **kwargs)
+
+    return wrapper

@@ -19,7 +19,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, upcast
+from .utils import get_pad, sort_columns, upcast, ingest
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 
@@ -126,7 +126,7 @@ def comparisons(
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)
-    modeldata = model.modeldata
+    modeldata = model.data
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     # For each variable in `variables`, this will return two values that we want
@@ -178,7 +178,7 @@ def comparisons(
     # Hack: We run into Patsy-related issues unless we "pad" the
     # character/categorical variables to include all unique levels. We add them
     # here but drop them after creating the design matrices.
-    vars = model.get_variables_names(variables=None, newdata=modeldata)
+    vars = model.find_variables()
     vars = [re.sub(r"\[.*", "", x) for x in vars]
     vars = list(set(vars))
     for v in vars:
@@ -220,9 +220,9 @@ def comparisons(
         lo_X = lo
         nd_X = nd
     else:
-        y, hi_X = patsy.dmatrices(model.formula, hi.to_pandas())
-        y, lo_X = patsy.dmatrices(model.formula, lo.to_pandas())
-        y, nd_X = patsy.dmatrices(model.formula, nd.to_pandas())
+        y, hi_X = patsy.dmatrices(model.formula, ingest(hi).to_pandas())
+        y, lo_X = patsy.dmatrices(model.formula, ingest(lo).to_pandas())
+        y, nd_X = patsy.dmatrices(model.formula, ingest(nd).to_pandas())
 
     # unpad
     if pad.shape[0] > 0:
@@ -329,7 +329,7 @@ def comparisons(
     out = outer(model.coef)
 
     # Compute standard errors and confidence intervals
-    if vcov is not None and vcov is not False:
+    if vcov is not None and vcov is not False and V is not None:
         J = get_jacobian(func=outer, coefs=model.coef, eps_vcov=eps_vcov)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
