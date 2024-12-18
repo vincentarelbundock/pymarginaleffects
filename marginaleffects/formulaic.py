@@ -28,7 +28,7 @@ def lwd(
     return data.drop_nulls(subset=vars)
 
 
-def model_matrices(formula: str, data: pl.DataFrame, formula_engine = "formulaic"):
+def model_matrices(formula: str, data: pl.DataFrame, formula_engine="formulaic"):
     if formula_engine == "formulaic":
         endog, exog = formulaic.model_matrix(formula, data.to_pandas())
         endog = endog.to_numpy()
@@ -37,10 +37,11 @@ def model_matrices(formula: str, data: pl.DataFrame, formula_engine = "formulaic
     elif formula_engine == "patsy":
         try:
             import patsy
-        except:
+        except ImportError:
             raise ImportError("The patsy package is required to use this feature.")
         if isinstance(formula, str):
             import re
+
             formula = re.sub(".*~", "", formula)
         exog = patsy.dmatrix(formula, data.to_pandas())
         return None, exog

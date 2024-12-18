@@ -6,7 +6,7 @@ import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
-from .utils import ingest, ArrowStreamExportable
+from .utils import ingest
 
 
 def sanitize_vcov(vcov, model):

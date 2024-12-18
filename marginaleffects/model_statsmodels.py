@@ -3,7 +3,6 @@ import numpy as np
 import polars as pl
 import warnings
 import patsy
-import formulaic
 from .model_abstract import ModelAbstract
 from .utils import ingest
 

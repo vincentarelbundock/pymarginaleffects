@@ -1,7 +1,5 @@
 import numpy as np
-import patsy
 import polars as pl
-import formulaic
 
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
@@ -134,9 +132,11 @@ def predictions(
     if isinstance(model, ModelPyfixest):
         exog = newdata.to_pandas()
     else:
-        try:
+        if hasattr(model.model.model, "data") and hasattr(
+            model.model.model.data, "design_info"
+        ):
             f = model.model.model.data.design_info
-        except:
+        else:
             f = model.formula
         endog, exog = model_matrices(f, newdata, formula_engine=model.formula_engine)
 

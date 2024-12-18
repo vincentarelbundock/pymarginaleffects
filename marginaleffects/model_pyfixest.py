@@ -2,7 +2,6 @@ import re
 import numpy as np
 import polars as pl
 import warnings
-from .utils import ingest
 from .model_abstract import ModelAbstract
 
 
