@@ -22,9 +22,6 @@ class ModelPyfixest(ModelAbstract):
     def find_coef(self):
         return np.array(self.model._coefnames)
 
-    def find_response(self):
-        return self.model._fml.split("~")[0]  # the response variable
-
     def get_vcov(self, vcov=True):
         V = None
         if isinstance(vcov, bool):
@@ -32,7 +29,7 @@ class ModelPyfixest(ModelAbstract):
                 V = self.model._vcov
         return V
 
-    def find_variables(self):
+    def find_predictors(self):
         variables = self.model._coefnames
         variables = [re.sub(r"\[.*\]", "", x) for x in variables]
         variables = [x for x in variables if x in self.data.columns]

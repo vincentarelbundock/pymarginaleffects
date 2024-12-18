@@ -55,7 +55,7 @@ class ModelStatsmodels(ModelAbstract):
 
         return V
 
-    def find_variables(self):
+    def find_predictors(self):
         formula = self.formula
         columns = self.data.columns
         order = {}
