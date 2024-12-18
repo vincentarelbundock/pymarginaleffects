@@ -11,6 +11,7 @@ class ModelStatsmodels(ModelAbstract):
         self.formula = model.model.formula
         self.data = ingest(model.model.data.frame)
         super().__init__(model)
+        # after super()
         self.formula_engine = "patsy"
         self.design_info_patsy = model.model.data.design_info
 
