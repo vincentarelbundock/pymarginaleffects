@@ -13,7 +13,7 @@ class ModelAbstract(ABC):
         self.validate_modeldata()
         self.validate_response_name()
         self.validate_formula()
-        self.variables_type = get_type_dictionary(self.modeldata)
+        self.variables_type = get_type_dictionary(self.data)
 
     def validate_coef(self):
         coef = self.get_coef()
@@ -25,7 +25,6 @@ class ModelAbstract(ABC):
         modeldata = self.get_modeldata()
         if not isinstance(modeldata, pl.DataFrame):
             raise ValueError("modeldata must be a Polars DataFrame")
-        self.modeldata = modeldata
 
     def validate_response_name(self):
         response_name = self.find_response()
@@ -59,12 +58,7 @@ class ModelAbstract(ABC):
             raise ValueError("Model must have a 'formula' attribute")
 
     def get_modeldata(self):
-        if hasattr(self.model, "data"):
-            if not isinstance(self.model.data, pl.DataFrame):
-                raise ValueError(
-                    "The data attribute of the model must be a polars DataFrame"
-                )
-        return self.model.data
+        return self.data
 
     def get_vcov(self, vcov=False):
         return None

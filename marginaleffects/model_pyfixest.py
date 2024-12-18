@@ -40,7 +40,7 @@ class ModelPyfixest(ModelAbstract):
     def find_variables(self):
         variables = self.model._coefnames
         variables = [re.sub(r"\[.*\]", "", x) for x in variables]
-        variables = [x for x in variables if x in self.modeldata.columns]
+        variables = [x for x in variables if x in self.data.columns]
         variables = pl.Series(variables).unique().to_list()
         return variables
 

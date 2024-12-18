@@ -33,7 +33,7 @@ def sanitize_by(by):
 
 
 def sanitize_newdata(model, newdata, wts, by=[]):
-    modeldata = ingest(model.modeldata)
+    modeldata = ingest(model.data)
 
     if newdata is None:
         out = modeldata
@@ -418,7 +418,7 @@ def get_categorical_combinations(
 def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None):
     out = []
 
-    modeldata = model.modeldata
+    modeldata = model.data
 
     if variables is None:
         vlist = model.find_variables()

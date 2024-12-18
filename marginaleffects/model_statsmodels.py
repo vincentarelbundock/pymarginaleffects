@@ -51,7 +51,7 @@ class ModelStatsmodels(ModelAbstract):
 
     def find_variables(self):
         formula = self.formula
-        columns = self.modeldata.columns
+        columns = self.data.columns
         order = {}
         for var in columns:
             match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])

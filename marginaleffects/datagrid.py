@@ -81,7 +81,7 @@ def datagrid(
         model = sanitize_model(model)
 
     if newdata is None:
-        newdata = model.modeldata
+        newdata = model.data
 
     if grid_type == "counterfactual":
         return datagridcf(model=model, newdata=newdata, **kwargs)
@@ -143,7 +143,7 @@ def datagridcf(model=None, newdata=None, **kwargs):
     model = sanitize_model(model)
 
     if newdata is None:
-        newdata = model.modeldata
+        newdata = model.data
 
     if "rowid" not in newdata.columns:
         newdata = newdata.with_columns(
