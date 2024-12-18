@@ -1,11 +1,9 @@
-from marginaleffects.utils import get_type_dictionary
 import re
 import numpy as np
 import pandas as pd
-import patsy
 import polars as pl
-import warnings
 from .model_abstract import ModelAbstract
+from marginaleffects.utils import get_type_dictionary
 
 
 class ModelLinearmodels(ModelAbstract):
@@ -27,7 +25,7 @@ class ModelLinearmodels(ModelAbstract):
     ----------
     model : linearmodels.model
         The fitted linearmodels model.
-    _dataframe : pandas.DataFrame
+    data : pandas.DataFrame
         The original dataframe used to fit the model.
     variables_type : dict
         A dictionary of variable types in the model.
@@ -35,12 +33,13 @@ class ModelLinearmodels(ModelAbstract):
 
     def __init__(self, model, dataframe):
         self.model = model
-        self._dataframe = dataframe
+        self.formula = model.model.formula
+        self.data = self._pd_to_pl(dataframe)
         self.validate_coef()
         self.validate_modeldata()
         self.validate_response_name()
         self.validate_formula()
-        self.variables_type = get_type_dictionary(self.modeldata)
+        self.variables_type = get_type_dictionary(self.data)
 
     @property
     def multiindex(self):
@@ -52,8 +51,8 @@ class ModelLinearmodels(ModelAbstract):
         pandas.MultiIndex or None
             The MultiIndex if the original dataframe has one, else None.
         """
-        if isinstance(self._dataframe.index, pd.MultiIndex):
-            return self._dataframe.index
+        if isinstance(self.data.index, pd.MultiIndex):
+            return self.data.index
 
     @property
     def multiindex_names(self):
@@ -111,10 +110,7 @@ class ModelLinearmodels(ModelAbstract):
         return np.array(self.model.params.index.to_numpy())
 
     def get_modeldata(self):
-        return self._pd_to_pl(self._dataframe)
-
-    def get_response_name(self):
-        return self.model.model.dependent.vars[0]
+        return self._pd_to_pl(self.data)
 
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
@@ -143,45 +139,32 @@ class ModelLinearmodels(ModelAbstract):
 
         return V
 
-    def get_variables_names(self, variables=None, newdata=None):
-        if variables is None:
-            formula = self.formula
-            columns = self.modeldata.columns
-            order = {}
-            for var in columns:
-                match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
-                if match:
-                    order[var] = match.start()
-            variables = sorted(order, key=lambda i: order[i])
+    def find_response(self):
+        return self.model.model.dependent.vars[0]
 
-        if isinstance(variables, (str, dict)):
-            variables = [variables] if isinstance(variables, str) else variables
-        elif isinstance(variables, list) and all(
-            isinstance(var, str) for var in variables
-        ):
-            pass
-        else:
-            raise ValueError(
-                "`variables` must be None, a dict, string, or list of strings"
-            )
-
-        if newdata is not None:
-            good = [x for x in variables if x in newdata.columns]
-            bad = [x for x in variables if x not in newdata.columns]
-            if len(bad) > 0:
-                bad = ", ".join(bad)
-                warnings.warn(f"Variable(s) not in newdata: {bad}")
-            if len(good) == 0:
-                raise ValueError("There is no valid column name in `variables`.")
+    def find_predictors(self):
+        formula = self.formula
+        columns = self.data.columns
+        order = {}
+        for var in columns:
+            match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
+            if match:
+                order[var] = match.start()
+        variables = sorted(order, key=lambda i: order[i])
         return variables
 
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):
             exog = newdata
         else:
-            y, exog = patsy.dmatrices(
-                self.formula, self._pl_to_pd(newdata), return_type="dataframe"
-            )
+            try:
+                import patsy
+
+                y, exog = patsy.dmatrices(
+                    self.formula, self._pl_to_pd(newdata), return_type="dataframe"
+                )
+            except ImportError:
+                raise ImportError("Please install the patsy package.")
 
         p = self.model.model.predict(params=params, exog=exog).predictions.values
         if p.ndim == 1:
@@ -202,9 +185,6 @@ class ModelLinearmodels(ModelAbstract):
             )
         p = p.with_columns(pl.col("rowid").cast(pl.Int32))
         return p
-
-    def get_formula(self):
-        return self.model.model.formula
 
     def get_df(self):
         return self.model.df_resid
