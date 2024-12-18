@@ -429,7 +429,7 @@ wheels = [
 
 [[package]]
 name = "marginaleffects"
-version = "0.0.14"
+version = "0.0.14.1"
 source = { virtual = "." }
 dependencies = [
     { name = "formulaic" },
