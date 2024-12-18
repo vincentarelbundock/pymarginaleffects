@@ -177,7 +177,7 @@ def comparisons(
     # Hack: We run into Patsy-related issues unless we "pad" the
     # character/categorical variables to include all unique levels. We add them
     # here but drop them after creating the design matrices.
-    vars = model.find_variables(variables=None, newdata=modeldata)
+    vars = model.find_variables()
     vars = [re.sub(r"\[.*", "", x) for x in vars]
     vars = list(set(vars))
     for v in vars:

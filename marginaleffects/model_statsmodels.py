@@ -1,7 +1,6 @@
 import re
 import numpy as np
 import polars as pl
-import warnings
 import patsy
 from .model_abstract import ModelAbstract
 from .utils import ingest
@@ -22,7 +21,7 @@ class ModelStatsmodels(ModelAbstract):
         return np.array(self.model.params.index.to_numpy())
 
     def get_modeldata(self):
-        return ingest(self.model.model.data.frame)
+        return self.data
 
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
@@ -50,36 +49,15 @@ class ModelStatsmodels(ModelAbstract):
 
         return V
 
-    def find_variables(self, variables=None, newdata=None):
-        if variables is None:
-            formula = self.formula
-            columns = self.modeldata.columns
-            order = {}
-            for var in columns:
-                match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
-                if match:
-                    order[var] = match.start()
-            variables = sorted(order, key=lambda i: order[i])
-
-        if isinstance(variables, (str, dict)):
-            variables = [variables] if isinstance(variables, str) else variables
-        elif isinstance(variables, list) and all(
-            isinstance(var, str) for var in variables
-        ):
-            pass
-        else:
-            raise ValueError(
-                "`variables` must be None, a dict, string, or list of strings"
-            )
-
-        if newdata is not None:
-            good = [x for x in variables if x in newdata.columns]
-            bad = [x for x in variables if x not in newdata.columns]
-            if len(bad) > 0:
-                bad = ", ".join(bad)
-                warnings.warn(f"Variable(s) not in newdata: {bad}")
-            if len(good) == 0:
-                raise ValueError("There is no valid column name in `variables`.")
+    def find_variables(self):
+        formula = self.formula
+        columns = self.modeldata.columns
+        order = {}
+        for var in columns:
+            match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
+            if match:
+                order[var] = match.start()
+        variables = sorted(order, key=lambda i: order[i])
         return variables
 
     def get_predict(self, params, newdata: pl.DataFrame):

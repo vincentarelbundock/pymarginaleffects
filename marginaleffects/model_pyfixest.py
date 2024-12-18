@@ -1,12 +1,13 @@
 import re
 import numpy as np
 import polars as pl
-import warnings
 from .model_abstract import ModelAbstract
+from .utils import ingest
 
 
 class ModelPyfixest(ModelAbstract):
     def __init__(self, model):
+        self.data = ingest(model._data)
         super().__init__(model)
         if hasattr(self.model, "_fixef"):
             if self.model._fixef is not None:
@@ -21,10 +22,7 @@ class ModelPyfixest(ModelAbstract):
         return np.array(self.model._coefnames)
 
     def get_modeldata(self):
-        df = self.model._data
-        if not isinstance(df, pl.DataFrame):
-            df = pl.from_pandas(df)
-        return df
+        return self.data
 
     def find_response(self):
         return self.model._fml.split("~")[0]  # the response variable
@@ -39,30 +37,11 @@ class ModelPyfixest(ModelAbstract):
     def get_formula(self):
         return self.model._fml
 
-    def find_variables(self, variables=None, newdata=None):
-        if variables is None:
-            variables = self.model._coefnames
-            variables = [re.sub(r"\[.*\]", "", x) for x in variables]
-            variables = [x for x in variables if x in self.modeldata.columns]
-            variables = pl.Series(variables).unique().to_list()
-        if isinstance(variables, (str, dict)):
-            variables = [variables] if isinstance(variables, str) else variables
-        elif isinstance(variables, list) and all(
-            isinstance(var, str) for var in variables
-        ):
-            pass
-        else:
-            raise ValueError(
-                "`variables` must be None, a dict, string, or list of strings"
-            )
-        if newdata is not None:
-            good = [x for x in variables if x in newdata.columns]
-            bad = [x for x in variables if x not in newdata.columns]
-            if len(bad) > 0:
-                bad = ", ".join(bad)
-                warnings.warn(f"Variable(s) not in newdata: {bad}")
-            if len(good) == 0:
-                raise ValueError("There is no valid column name in `variables`.")
+    def find_variables(self):
+        variables = self.model._coefnames
+        variables = [re.sub(r"\[.*\]", "", x) for x in variables]
+        variables = [x for x in variables if x in self.modeldata.columns]
+        variables = pl.Series(variables).unique().to_list()
         return variables
 
     def get_predict(self, params, newdata: pl.DataFrame):

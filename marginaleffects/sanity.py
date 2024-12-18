@@ -421,7 +421,7 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
     modeldata = model.modeldata
 
     if variables is None:
-        vlist = model.find_variables(variables, modeldata)
+        vlist = model.find_variables()
         vlist.sort()
         for v in vlist:
             out.append(
