@@ -13,6 +13,7 @@ class ModelStatsmodels(ModelAbstract):
         self.data = ingest(model.model.data.frame)
         super().__init__(model)
         self.formula_engine = "patsy"
+        self.design_info_patsy = model.model.data.design_info
 
     def get_coef(self):
         return np.array(self.model.params)

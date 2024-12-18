@@ -132,10 +132,8 @@ def predictions(
     if isinstance(model, ModelPyfixest):
         exog = newdata.to_pandas()
     else:
-        if hasattr(model.model.model, "data") and hasattr(
-            model.model.model.data, "design_info"
-        ):
-            f = model.model.model.data.design_info
+        if hasattr(model, "design_info_patsy"):
+            f = model.design_info_patsy
         else:
             f = model.formula
         endog, exog = model_matrices(f, newdata, formula_engine=model.formula_engine)
