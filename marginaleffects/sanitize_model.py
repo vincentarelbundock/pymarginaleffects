@@ -31,7 +31,11 @@ def sanitize_model(model):
     if model is None:
         return model
 
-    if isinstance(model, ModelAbstract):
+    if (
+        isinstance(model, ModelAbstract)
+        or isinstance(model, ModelStatsmodels)
+        or isinstance(model, ModelSklearn)
+    ):
         return model
 
     if is_statsmodels(model):

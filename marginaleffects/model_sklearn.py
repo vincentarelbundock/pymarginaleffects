@@ -1,7 +1,8 @@
 import numpy as np
 import warnings
 import polars as pl
-from .utils import ingest
+from .utils import validate_types, ingest
+from .formulaic import listwise_deletion, model_matrices, variables
 from .model_abstract import ModelAbstract
 
 
@@ -52,6 +53,10 @@ class ModelSklearn(ModelAbstract):
 
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
+        elif p.ndim == 2 and p.shape[1] == 1:
+            p = pl.DataFrame(
+                {"rowid": range(newdata.shape[0]), "estimate": np.ravel(p)}
+            )
         elif p.ndim == 2:
             colnames = {f"column_{i}": v for i, v in enumerate(self.model.classes_)}
             p = (
@@ -70,3 +75,20 @@ class ModelSklearn(ModelAbstract):
         p = p.with_columns(pl.col("rowid").cast(pl.Int32))
 
         return p
+
+
+@validate_types
+def fit_sklearn(
+    formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
+):
+    d = listwise_deletion(formula, data=data)
+    y, X = model_matrices(formula, d)
+    # formulaic returns a matrix when the response is character or categorical
+    if y.ndim == 2:
+        y = d[variables(formula)[0]]
+    y = np.ravel(y)
+    out = engine(**kwargs_engine).fit(X=X, y=y, **kwargs_fit)
+    out.data = d
+    out.formula = formula
+    out.formula_engine = "formulaic"
+    return ModelSklearn(out)

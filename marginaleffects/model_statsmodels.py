@@ -3,7 +3,8 @@ import numpy as np
 import polars as pl
 import patsy
 from .model_abstract import ModelAbstract
-from .utils import ingest
+from .formulaic import listwise_deletion, model_matrices
+from .utils import validate_types, ingest
 
 
 class ModelStatsmodels(ModelAbstract):
@@ -21,7 +22,6 @@ class ModelStatsmodels(ModelAbstract):
         else:
             self.formula_engine = "patsy"
             self.design_info_patsy = model.model.data.design_info
-
 
     def get_coef(self):
         return np.array(self.model.params)
@@ -96,3 +96,17 @@ class ModelStatsmodels(ModelAbstract):
 
     def get_df(self):
         return self.model.df_resid
+
+
+@validate_types
+def fit_statsmodels(
+    formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
+):
+    d = listwise_deletion(formula, data=data)
+    y, X = model_matrices(formula, d)
+    mod = engine(endog=y, exog=X, **kwargs_engine)
+    mod = mod.fit(**kwargs_fit)
+    mod.data = d
+    mod.formula = formula
+    mod.formula_engine = "formulaic"
+    return ModelStatsmodels(mod)
