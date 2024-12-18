@@ -21,9 +21,6 @@ class ModelPyfixest(ModelAbstract):
     def find_coef(self):
         return np.array(self.model._coefnames)
 
-    def get_modeldata(self):
-        return self.data
-
     def find_response(self):
         return self.model._fml.split("~")[0]  # the response variable
 

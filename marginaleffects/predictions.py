@@ -85,7 +85,7 @@ def predictions(
     newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
-    modeldata = model.get_modeldata()
+    modeldata = model.data
 
     if variables:
         if not isinstance(variables, dict):

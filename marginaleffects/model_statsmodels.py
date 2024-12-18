@@ -20,9 +20,6 @@ class ModelStatsmodels(ModelAbstract):
     def find_coef(self):
         return np.array(self.model.params.index.to_numpy())
 
-    def get_modeldata(self):
-        return self.data
-
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
             if vcov is True:
