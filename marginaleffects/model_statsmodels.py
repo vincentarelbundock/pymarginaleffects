@@ -3,7 +3,7 @@ import numpy as np
 import polars as pl
 import patsy
 from .model_abstract import ModelAbstract
-from .formulaic import listwise_deletion, model_matrices
+from . import formulaic as fml
 from .utils import validate_types, ingest
 
 
@@ -66,6 +66,13 @@ class ModelStatsmodels(ModelAbstract):
         variables = sorted(order, key=lambda i: order[i])
         return variables
 
+    def find_response(self):
+        try:
+            out = self.model.model.endog_names
+        except AttributeError:
+            out = fml.variables(self.formula)[0]
+        return out
+
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):
             exog = newdata
@@ -102,8 +109,8 @@ class ModelStatsmodels(ModelAbstract):
 def fit_statsmodels(
     formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
 ):
-    d = listwise_deletion(formula, data=data)
-    y, X = model_matrices(formula, d)
+    d = fml.listwise_deletion(formula, data=data)
+    y, X = fml.model_matrices(formula, d)
     mod = engine(endog=y, exog=X, **kwargs_engine)
     mod = mod.fit(**kwargs_fit)
     mod.data = d
