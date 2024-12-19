@@ -2,7 +2,6 @@ import itertools
 import narwhals as nw
 import numpy as np
 import polars as pl
-import pandas as pd
 from typing import Protocol, runtime_checkable
 from pydantic import ConfigDict, validate_call
 from functools import wraps
@@ -34,8 +33,12 @@ def ingest(df: ArrowStreamExportable):
     be reset to ensure compatibility with linearmodels.
     """
 
-    if isinstance(df, pd.DataFrame):
-        df = df.reset_index()
+    try:
+        import pandas as pd
+        if instance(df, pd.DataFrame):
+            df = df.reset_index()
+    except ImportError:
+        raise ValueError("Please install pandas to handle Pandas DataFrame as input.")
 
     return nw.from_arrow(df, native_namespace=pl).to_native()
 
