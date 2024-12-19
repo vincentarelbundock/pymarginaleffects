@@ -3,13 +3,11 @@ from marginaleffects import *
 from polars.testing import assert_series_equal
 from tests.conftest import wage_panel_pd
 from linearmodels.panel import PanelOLS
-from marginaleffects.model_linearmodels import ModelLinearmodels
+from marginaleffects import fit_linearmodels
 
-
-model = PanelOLS.from_formula(
-    "lwage ~ exper * hours * educ * married - 1", data=wage_panel_pd
-).fit()
-mod = ModelLinearmodels(model, wage_panel_pd)
+formula = "lwage ~ exper * hours * educ * married - 1"
+data = wage_panel_pd
+mod = fit_linearmodels(formula, data, engine=PanelOLS)
 
 
 def test_predictions_01():
