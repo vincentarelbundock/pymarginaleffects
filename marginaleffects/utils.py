@@ -5,6 +5,7 @@ import polars as pl
 from typing import Protocol, runtime_checkable
 from pydantic import ConfigDict, validate_call
 from functools import wraps
+# from narwhals.typing import IntoFrame
 
 
 @runtime_checkable
@@ -13,6 +14,32 @@ class ArrowStreamExportable(Protocol):
 
 
 def ingest(df: ArrowStreamExportable):
+    """
+    Convert any DataFrame to a Polars DataFrame.
+
+    Parameters
+    ----------
+    df : ArrowStreamExportable
+        The DataFrame to convert.
+
+    Returns
+    -------
+    pl.DataFrame
+
+    Notes
+    -----
+
+    If the original DataFrame was a pandas DataFrame, the index will
+    be reset to ensure compatibility with linearmodels.
+    """
+
+    try:
+        import pandas as pd
+        if instance(df, pd.DataFrame):
+            df = df.reset_index()
+    except ImportError:
+        raise ValueError("Please install pandas to handle Pandas DataFrame as input.")
+
     return nw.from_arrow(df, native_namespace=pl).to_native()
 
 

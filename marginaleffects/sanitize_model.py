@@ -1,3 +1,4 @@
+from .model_linearmodels import ModelLinearmodels
 from .model_abstract import ModelAbstract
 from .model_pyfixest import ModelPyfixest
 from .model_statsmodels import ModelStatsmodels
@@ -45,6 +46,14 @@ def sanitize_model(model):
         return ModelSklearn(model)
 
     # pyfixest
+    try:
+        from linearmodels.panel.results import PanelResults
+
+        if isinstance(model, PanelResults):
+            return ModelLinearmodels(model)
+    except ImportError:
+        pass
+
     try:
         import pyfixest  #  noqa
 
