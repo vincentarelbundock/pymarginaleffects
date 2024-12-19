@@ -8,6 +8,7 @@ from .predictions import avg_predictions, predictions
 from .slopes import avg_slopes, slopes
 from .model_statsmodels import fit_statsmodels
 from .model_sklearn import fit_sklearn
+from .model_linearmodels import fit_linearmodels
 
 __all__ = [
     "avg_comparisons",
@@ -23,4 +24,5 @@ __all__ = [
     "slopes",
     "fit_statsmodels",
     "fit_sklearn",
+    "fit_linearmodels",
 ]
