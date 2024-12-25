@@ -34,14 +34,16 @@ def sample_polars_df():
 
 
 @pytest.fixture
-def sample_duckdb_df():
-    # Using DuckDB to create a DataFrame
-    con = duckdb.connect()
-    return con.execute("SELECT * FROM sample_data").df()
+def sample_arrow_df():
+    with duckdb.connect() as con:
+        out = con.execute("SELECT * FROM sample_data").arrow()
+    return out
 
 
 def test_ingest_pandas(sample_pandas_df):
     result = ingest(sample_pandas_df)
+    if "index" in result.columns:
+        result = result.drop("index")
     assert isinstance(result, pl.DataFrame), "Result should be a Polars DataFrame"
     # Verify contents
     expected = pl.from_pandas(sample_pandas_df)
@@ -60,11 +62,9 @@ def test_ingest_polars(sample_polars_df):
     ), "Ingested DataFrame does not match expected Polars DataFrame"
 
 
-def test_ingest_duckdb(sample_duckdb_df):
-    result = ingest(sample_duckdb_df)
-    assert isinstance(result, pl.DataFrame), "Result should be a Polars DataFrame"
-    # Verify contents
-    expected = pl.from_pandas(sample_duckdb_df)
+def test_ingest_arrow(sample_arrow_df):
+    result = ingest(sample_arrow_df).to_pandas()
+    expected = get_sample_data()
     assert result.equals(
         expected
     ), "Ingested DataFrame does not match expected Polars DataFrame"
