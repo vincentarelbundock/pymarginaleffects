@@ -21,6 +21,7 @@ from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast, ingest
 from .model_pyfixest import ModelPyfixest
+from .model_linearmodels import ModelLinearmodels
 
 
 def comparisons(
@@ -214,7 +215,7 @@ def comparisons(
     # only once and re-use the design matrices. Unfortunately, this is not
     # possible for PyFixest, since the `.predict()` method it supplies does not
     # accept matrices. So we special-case PyFixest.`
-    if isinstance(model, ModelPyfixest):
+    if isinstance(model, (ModelPyfixest, ModelLinearmodels)):
         hi_X = hi
         lo_X = lo
         nd_X = nd
