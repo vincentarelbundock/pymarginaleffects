@@ -274,5 +274,6 @@ def fit_linearmodels(
     out.formula = formula
     out.formula_engine = "linearmodels"
     out.initialize_engine = initialized_engine
+    out.fit_engine = "linearmodels"
 
-    return ModelLinearmodels(out)
+    return out

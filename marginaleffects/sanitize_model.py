@@ -5,6 +5,13 @@ from .model_statsmodels import ModelStatsmodels
 from .model_sklearn import ModelSklearn
 
 
+def is_linearmodels(model):
+    if hasattr(model, "fit_engine") and model.fit_engine == "statsmodels":
+        return True
+    else:
+        return False
+
+
 def is_sklearn(model):
     if hasattr(model, "fit_engine") and model.fit_engine == "statsmodels":
         return True
@@ -43,16 +50,17 @@ def sanitize_model(model):
     ):
         return model
 
-    if is_statsmodels(model):
+    if is_linearmodels(model):
+        return ModelLinearmodels(model)
+
+    elif is_statsmodels(model):
         return ModelStatsmodels(model)
 
     elif is_sklearn(model):
         return ModelSklearn(model)
 
-    # pyfixest
     try:
         from linearmodels.panel.results import PanelResults
-
         if isinstance(model, PanelResults):
             return ModelLinearmodels(model)
     except ImportError:
