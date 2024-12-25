@@ -35,7 +35,7 @@ def ingest(df: ArrowStreamExportable):
 
     try:
         import pandas as pd
-        if instance(df, pd.DataFrame):
+        if isinstance(df, pd.DataFrame):
             df = df.reset_index()
     except ImportError:
         raise ValueError("Please install pandas to handle Pandas DataFrame as input.")
