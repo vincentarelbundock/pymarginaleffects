@@ -5,6 +5,8 @@ from .model_sklearn import ModelSklearn
 
 
 def is_sklearn(model):
+    if hasattr(model, "fit_engine") and model.fit_engine == "statsmodels":
+        return True
     try:
         from sklearn.base import BaseEstimator
 
@@ -16,6 +18,8 @@ def is_sklearn(model):
 
 
 def is_statsmodels(model):
+    if hasattr(model, "fit_engine") and model.fit_engine == "statsmodels":
+        return True
     try:
         import statsmodels.base.wrapper as smw
 

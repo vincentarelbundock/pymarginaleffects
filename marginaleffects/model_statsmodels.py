@@ -116,4 +116,5 @@ def fit_statsmodels(
     mod.data = d
     mod.formula = formula
     mod.formula_engine = "formulaic"
-    return ModelStatsmodels(mod)
+    mod.fit_engine = "statsmodels"
+    return mod

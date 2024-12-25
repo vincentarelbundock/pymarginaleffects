@@ -91,4 +91,5 @@ def fit_sklearn(
     out.data = d
     out.formula = formula
     out.formula_engine = "formulaic"
-    return ModelSklearn(out)
+    out.fit_engine = "sklearn"
+    return out
