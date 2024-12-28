@@ -1,14 +1,16 @@
 [project]
 name = "marginaleffects"
-version = "0.0.14"
+version = "0.0.14.1"
 description = "Predictions, counterfactual comparisons, slopes, and hypothesis tests for statistical models."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "formulaic >=1.0.2",
     "narwhals >=1.10.0",
     "numpy >=2.0.0",
     "patsy >=0.5.6",
     "polars >=1.7.0",
+    "pydantic >=2.10.3",
     "plotnine >=0.13.6",
     "scipy >=1.14.1",
 ]
@@ -21,11 +23,13 @@ test = [
     "pyarrow >=17.0.0",
     "pyfixest >=0.24.2",
     "statsmodels >=0.14.0",
+    "scikit-learn",
     "typing-extensions >=4.7.0",
 ]
 
 [tool.uv]
 dev-dependencies = [
+  "patsy",
   "pytest >=8.1.1,<9",
   "pytest-xdist >=3.6.1",
   "ruff>=0.6.4",

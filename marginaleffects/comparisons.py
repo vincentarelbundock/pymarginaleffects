@@ -19,7 +19,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, upcast
+from .utils import get_pad, sort_columns, upcast, ingest
 from .model_pyfixest import ModelPyfixest
 
 
@@ -125,10 +125,13 @@ def comparisons(
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)
-    modeldata = model.modeldata
+    modeldata = model.data
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
-    # after sanitize_newdata()
+    # For each variable in `variables`, this will return two values that we want
+    # to compare in the contrast. For example, if there's a variable called
+    # "treatment", `sanitize_variables()` may return two values: "lo" vs. "hi", or 0 vs. 1.
+    # Important: place after sanitize_newdata()
     variables = sanitize_variables(
         variables=variables,
         model=model,
@@ -139,7 +142,9 @@ def comparisons(
         wts=wts,
     )
 
-    # pad for character/categorical variables in patsy
+    # We create two versions of the `newdata` data frame: one where the
+    # treatment variable is set to a `hi` value, and one where the treatment is
+    # set to a `lo` value.
     pad = []
     hi = []
     lo = []
@@ -169,8 +174,10 @@ def comparisons(
             )
         )
 
-    # we must pad with *all* variables in the model, not just the ones in the `variables` argument
-    vars = model.get_variables_names(variables=None, newdata=modeldata)
+    # Hack: We run into Patsy-related issues unless we "pad" the
+    # character/categorical variables to include all unique levels. We add them
+    # here but drop them after creating the design matrices.
+    vars = model.find_variables()
     vars = [re.sub(r"\[.*", "", x) for x in vars]
     vars = list(set(vars))
     for v in vars:
@@ -178,11 +185,17 @@ def comparisons(
             if model.variables_type[v] not in ["numeric", "integer"]:
                 pad.append(get_pad(newdata, v, modeldata[v].unique()))
 
-    # ugly hack, but polars is very strict and `value / 2`` is float
+    # Hack: Polars is very strict and `value / 2`` is float, so we need to upcast.
     nd = upcast(nd)
     hi = upcast(hi)
     lo = upcast(lo)
     pad = upcast(pad)
+
+    # nd, hi, and lo are lists of data frames, since the user could have
+    # requested many contrasts at the same time using the `variables` argument.
+    # We could make predictions on each of them separately, but it's more
+    # efficient to combine the data frames and call `predict()` method only
+    # once.
     nd = pl.concat(nd, how="vertical_relaxed")
     hi = pl.concat(hi, how="vertical_relaxed")
     lo = pl.concat(lo, how="vertical_relaxed")
@@ -195,18 +208,20 @@ def comparisons(
         hi = pl.concat(upcast([pad, hi]), how="diagonal")
         lo = pl.concat(upcast([pad, lo]), how="diagonal")
 
-    # predictors
-    # we want this to be a model matrix to avoid converting data frames to
-    # matrices many times, which would be computationally wasteful. But in the
-    # case of PyFixest, the predict method only accepts a data frame.
+    # Use the `nd`, `lo`, and `hi` to make counterfactual predictions.
+    # data frame -> Patsy -> design matrix -> predict()
+    # It is expensive to convert data frames to design matrices, so we do it
+    # only once and re-use the design matrices. Unfortunately, this is not
+    # possible for PyFixest, since the `.predict()` method it supplies does not
+    # accept matrices. So we special-case PyFixest.`
     if isinstance(model, ModelPyfixest):
         hi_X = hi
         lo_X = lo
         nd_X = nd
     else:
-        y, hi_X = patsy.dmatrices(model.formula, hi.to_pandas())
-        y, lo_X = patsy.dmatrices(model.formula, lo.to_pandas())
-        y, nd_X = patsy.dmatrices(model.formula, nd.to_pandas())
+        y, hi_X = patsy.dmatrices(model.formula, ingest(hi).to_pandas())
+        y, lo_X = patsy.dmatrices(model.formula, ingest(lo).to_pandas())
+        y, nd_X = patsy.dmatrices(model.formula, ingest(nd).to_pandas())
 
     # unpad
     if pad.shape[0] > 0:
@@ -217,18 +232,28 @@ def comparisons(
         hi = hi[pad.shape[0] :]
         lo = lo[pad.shape[0] :]
 
+    # inner() takes the `hi` and `lo` matrices, computes predictions, compares
+    # them, and aggregates the results based on the `by` argument. This gives us
+    # the final quantity of interest. We wrap this in a function because it will
+    # be called multiple times with slightly different values of the `coefs`.
+    # This is necessary to compute the numerical derivatives in the Jacobian
+    # that we use to compute standard errors, where individual entries are
+    # derivatives of a contrast with respect to one of the model coefficients.
     def inner(coefs, by, hypothesis, wts, nd):
         if hasattr(coefs, "to_numpy"):
             coefs = coefs.to_numpy()
 
-        # estimates
+        # main unit-level estimates
         tmp = [
+            # fitted values
             model.get_predict(params=coefs, newdata=nd_X).rename(
                 {"estimate": "predicted"}
             ),
+            # predictions for the "lo" counterfactual
             model.get_predict(params=coefs, newdata=lo_X)
             .rename({"estimate": "predicted_lo"})
             .select("predicted_lo"),
+            # predictions for the "hi" counterfactual
             model.get_predict(params=coefs, newdata=hi_X)
             .rename({"estimate": "predicted_hi"})
             .select("predicted_hi"),
@@ -242,7 +267,7 @@ def comparisons(
             cols = [x for x in nd.columns if x not in tmp.columns]
             tmp = pl.concat([tmp, nd.select(cols)], how="horizontal")
 
-        # group
+        # group (categorical outcome models)
         elif "group" in tmp.columns:
             meta = nd.join(tmp.select("group").unique(), how="cross")
             cols = [x for x in meta.columns if x in tmp.columns]
@@ -252,6 +277,7 @@ def comparisons(
         else:
             raise ValueError("Something went wrong")
 
+        # column names on which we will aggregate results
         if isinstance(by, str):
             by = ["term", "contrast"] + [by]
         elif isinstance(by, list):
@@ -259,8 +285,8 @@ def comparisons(
         else:
             by = ["term", "contrast"]
 
-        # TODO: problem is that `cyl` is the modified hi and lo instead of the original
-        # so when we group by it, we get only rows with cyl matching the contrast.
+        # apply a function to compare the predicted_hi and predicted_lo columns
+        # ex: hi-lo, mean(hi-lo), hi/lo, mean(hi)/mean(lo), etc.
         def applyfun(x, by, wts=None):
             comp = x["marginaleffects_comparison"][0]
             xvar = x[x["term"][0]]
@@ -289,16 +315,20 @@ def comparisons(
             function=lambda x: applyfun(x, by=by, wts=wts)
         )
 
-        tmp = get_hypothesis(tmp, hypothesis=hypothesis)
+        tmp = get_hypothesis(tmp, hypothesis=hypothesis, by=by)
 
         return tmp
 
+    # outer() is a wrapper with a single argument `x`, the model coefficients.
+    # Just for convenience when taking derivatives with respect to the
+    # coefficients.
     def outer(x):
         return inner(x, by=by, hypothesis=hypothesis, wts=wts, nd=nd)
 
     out = outer(model.coef)
 
-    if vcov is not None and vcov is not False:
+    # Compute standard errors and confidence intervals
+    if vcov is not None and vcov is not False and V is not None:
         J = get_jacobian(func=outer, coefs=model.coef, eps_vcov=eps_vcov)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
@@ -308,10 +338,12 @@ def comparisons(
     else:
         J = None
 
+    # Apply a few final operations
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
     out = sort_columns(out, by=by, newdata=newdata)
 
+    # Wrap things up in a nice class
     out = MarginaleffectsDataFrame(
         out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
     )

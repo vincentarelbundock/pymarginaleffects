@@ -6,7 +6,7 @@ import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
-from .utils import ingest, ArrowStreamExportable
+from .utils import ingest
 
 
 def sanitize_vcov(vcov, model):
@@ -33,7 +33,7 @@ def sanitize_by(by):
 
 
 def sanitize_newdata(model, newdata, wts, by=[]):
-    modeldata = model.modeldata
+    modeldata = ingest(model.data)
 
     if newdata is None:
         out = modeldata
@@ -53,27 +53,19 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     elif isinstance(newdata, str) and newdata == "median":
         args["FUN_numeric"] = lambda x: x.median()
         args["newdata"] = modeldata
-        out = datagrid(
-            **args,
-        )
+        out = datagrid(**args)
 
     elif isinstance(newdata, str) and newdata == "balanced":
         args["FUN_other"] = lambda x: np.unique(x)
         args["grid_type"] = "balanced"
-        newdata_columns = model.get_variables_names() + [model.get_response_name()]
+        newdata_columns = model.find_variables()
+        newdata_columns = np.unique(newdata_columns)
         args["newdata"] = modeldata.select(newdata_columns)
-        out = datagrid(
-            **args,
-        )
+        out = datagrid(**args)
 
     else:
         try:
-            if isinstance(newdata, ArrowStreamExportable):
-                out = ingest(newdata)
-            else:
-                raise RuntimeError(
-                    "Unable to ingest newdata data provided. If it is a DataFrame, make sure it implements the ArrowStreamExportable interface."
-                )
+            out = ingest(newdata)
         except Exception as e:
             raise e
 
@@ -131,26 +123,26 @@ def sanitize_comparison(comparison, by, wts=None):
 
     lab = {
         "difference": "{hi} - {lo}",
-        "differenceavg": "mean({hi}) - mean({lo})",
-        "differenceavgwts": "mean({hi}) - mean({lo})",
+        "differenceavg": "{hi} - {lo}",
+        "differenceavgwts": "{hi} - {lo}",
         "dydx": "dY/dX",
         "eyex": "eY/eX",
         "eydx": "eY/dX",
         "dyex": "dY/eX",
-        "dydxavg": "mean(dY/dX)",
-        "eyexavg": "mean(eY/eX)",
-        "eydxavg": "mean(eY/dX)",
-        "dyexavg": "mean(dY/eX)",
-        "dydxavgwts": "mean(dY/dX)",
-        "eyexavgwts": "mean(eY/eX)",
-        "eydxavgwts": "mean(eY/dX)",
-        "dyexavgwts": "mean(dY/eX)",
+        "dydxavg": "dY/dX",
+        "eyexavg": "eY/eX",
+        "eydxavg": "eY/dX",
+        "dyexavg": "dY/eX",
+        "dydxavgwts": "dY/dX",
+        "eyexavgwts": "eY/eX",
+        "eydxavgwts": "eY/dX",
+        "dyexavgwts": "dY/eX",
         "ratio": "{hi} / {lo}",
-        "ratioavg": "mean({hi}) / mean({lo})",
-        "ratioavgwts": "mean({hi}) / mean({lo})",
+        "ratioavg": "{hi} / {lo}",
+        "ratioavgwts": "{hi} / {lo}",
         "lnratio": "ln({hi} / {lo})",
-        "lnratioavg": "ln(mean({hi}) / mean({lo}))",
-        "lnratioavgwts": "ln(mean({hi}) / mean({lo}))",
+        "lnratioavg": "ln({hi} / {lo})",
+        "lnratioavgwts": "ln({hi} / {lo})",
         "lnor": "ln(odds({hi}) / odds({lo}))",
         "lnoravg": "ln(odds({hi}) / odds({lo}))",
         "lnoravgwts": "ln(odds({hi}) / odds({lo}))",
@@ -426,10 +418,10 @@ def get_categorical_combinations(
 def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None):
     out = []
 
-    modeldata = model.modeldata
+    modeldata = model.data
 
     if variables is None:
-        vlist = model.get_variables_names(variables, modeldata)
+        vlist = model.find_predictors()
         vlist.sort()
         for v in vlist:
             out.append(

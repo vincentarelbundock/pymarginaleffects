@@ -10,7 +10,7 @@ def dt_on_condition(model, condition):
     condition_new = condition  # two pointers to the same object? this looks like a bug
 
     # not sure why newdata gets added
-    modeldata = model.modeldata
+    modeldata = model.data
 
     if isinstance(condition_new, str):
         condition_new = [condition_new]

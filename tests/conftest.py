@@ -44,6 +44,13 @@ def guerry_mod():
 
 
 @pytest.fixture(scope="session")
+def impartiality_model():
+    return smf.logit(
+        "impartial ~ equal * democracy + continent", data=impartiality_df.to_pandas()
+    ).fit()
+
+
+@pytest.fixture(scope="session")
 def penguins_model():
     mod = smf.ols(
         "body_mass_g ~ flipper_length_mm * species * bill_length_mm + island",
