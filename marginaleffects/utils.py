@@ -141,3 +141,47 @@ def validate_types(func):
         return validator(*args, **kwargs)
 
     return wrapper
+
+
+def get_dataset(dataset: str, docs: bool = False):
+    """
+    Download and read a dataset as a Polars DataFrame or return documentation link.
+
+    Parameters
+    ----------
+    dataset : str
+        The dataset to download. Must be one of "affairs", "airbnb", "immigration", "military", "thornton".
+    docs : bool, optional
+        If True, return the documentation URL instead of the dataset. Default is False.
+
+    Returns
+    -------
+    Union[str, pl.DataFrame]
+        A string representing the documentation URL if `docs` is True, or
+        a Polars DataFrame containing the dataset if `docs` is False.
+
+    Raises
+    ------
+    ValueError
+        If the dataset is not among the specified choices.
+    """
+    datasets = {
+        "affairs": "https://marginaleffects.com/data/affairs",
+        "airbnb": "https://marginaleffects.com/data/airbnb",
+        "immigration": "https://marginaleffects.com/data/immigration",
+        "military": "https://marginaleffects.com/data/military",
+        "thornton": "https://marginaleffects.com/data/thornton",
+    }
+
+    if dataset not in datasets:
+        raise ValueError(
+            f"Invalid dataset choice. Expected one of {list(datasets.keys())}."
+        )
+
+    base_url = datasets[dataset]
+
+    if docs:
+        return f"{base_url}.html"
+
+    df = pl.read_parquet(f"{base_url}.parquet")
+    return df
