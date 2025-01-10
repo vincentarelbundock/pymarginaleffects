@@ -24,5 +24,5 @@ __all__ = [
     "slopes",
     "fit_statsmodels",
     "fit_sklearn",
-    "get_datasets",
+    "get_dataset",
 ]
