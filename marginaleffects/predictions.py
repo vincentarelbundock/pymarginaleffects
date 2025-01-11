@@ -192,6 +192,9 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
+    """
+    Predict average outcomes (TO DO)
+    """
     if callable(newdata):
         newdata = newdata(model)
 

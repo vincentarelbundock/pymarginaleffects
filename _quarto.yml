@@ -1,0 +1,44 @@
+####### README #######
+#
+# To create the qmd files, run the following command in the terminal:
+# > quartodoc build
+# the result will be in ./reference
+# modify the current file to change the included functions and the layout
+# finally, run the following command to preview the website:
+# > quarto preview
+
+
+project:
+  type: website
+
+# tell quarto to read the generated sidebar
+metadata-files:
+  - _sidebar.yml
+
+
+quartodoc:
+  # the name used to import the package you want to create reference docs for
+  package: marginaleffects
+  style: "pkgdown"
+  # write sidebar data to this file
+  sidebar: _sidebar.yml
+
+  sections:
+    - title: Some functions
+      desc: Functions to inspect docstrings.
+      contents:
+        # the functions being documented in the package.
+        # you can refer to anything: class methods, modules, etc..
+        # - avg_predictions
+        - predictions
+        - avg_predictions
+        - comparisons
+        - slopes
+        - hypotheses
+        - datagrid
+        - plot_predictions
+        - plot_comparisons
+        - plot_slopes
+        - model_statsmodels
+        - model_sklearn
+        - utils
