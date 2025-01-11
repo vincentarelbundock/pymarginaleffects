@@ -48,10 +48,6 @@ def test_predictions_01():
         ["island", "bill_length_mm", "flipper_length_mm"]
     ).drop_nulls()
 
-    # Define island categories and create a mapping
-    island_categories = ["Biscoe", "Dream", "Torgersen"]
-    island_mapping = {island: code for code, island in enumerate(island_categories)}
-
     # Map 'island' to integer codes
     penguins_clean = penguins_clean.with_columns(
         pl.col("island").replace_strict(island_mapping)
@@ -87,10 +83,6 @@ def test_comparisons_01():
         ["island", "bill_length_mm", "flipper_length_mm"]
     ).drop_nulls()
 
-    # Define island categories and create a mapping
-    island_categories = ["Biscoe", "Dream", "Torgersen"]
-    island_mapping = {island: code for code, island in enumerate(island_categories)}
-
     # Map 'island' to integer codes
     penguins_clean = penguins_clean.with_columns(
         pl.col("island").replace_strict(island_mapping)
@@ -125,10 +117,6 @@ def test_comparisons_03():
         ["island", "bill_length_mm", "flipper_length_mm"]
     ).drop_nulls()
 
-    # Define island categories and create a mapping
-    island_categories = ["Biscoe", "Dream", "Torgersen"]
-    island_mapping = {island: code for code, island in enumerate(island_categories)}
-
     # Map 'island' to integer codes
     penguins_clean = penguins_clean.with_columns(
         pl.col("island").replace_strict(island_mapping)
@@ -158,10 +146,6 @@ def test_comparisons_04():
     penguins_clean = penguins_with_nulls.select(
         ["island", "bill_length_mm", "flipper_length_mm"]
     ).drop_nulls()
-
-    # Define island categories and create a mapping
-    island_categories = ["Biscoe", "Dream", "Torgersen"]
-    island_mapping = {island: code for code, island in enumerate(island_categories)}
 
     # Map 'island' to integer codes
     penguins_clean = penguins_clean.with_columns(
