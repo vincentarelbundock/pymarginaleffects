@@ -15,6 +15,9 @@ def slopes(
     eps=1e-4,
     eps_vcov=None,
 ):
+    """
+    slopes docstring (TO DO)
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -54,6 +57,9 @@ def avg_slopes(
     eps=1e-4,
     eps_vcov=None,
 ):
+    """
+    avg slopes docstring (TO DO)
+    """
     if callable(newdata):
         newdata = newdata(model)
 
