@@ -1,10 +1,13 @@
 ####### README #######
+# This is the config file to build .qmd files
+# 
+# This references the marginaleffects in .venv first, to reference the local marginaleffects, delete or rename the folder marginaleffects in .venv/lib/
 #
 # To create the qmd files, run the following command in the terminal:
 # > quartodoc build
-# the result will be in ./reference
+# the result will be in ./qmd_files or else specified in the dir field
 # modify the current file to change the included functions and the layout
-# finally, run the following command to preview the website:
+# finally, run the following command to preview the website if wanted:
 # > quarto preview
 
 
@@ -12,26 +15,30 @@ project:
   type: website
 
 # tell quarto to read the generated sidebar
-metadata-files:
-  - _sidebar.yml
+# metadata-files:
+#   - _sidebar.yml
 
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: false
 
 quartodoc:
   # the name used to import the package you want to create reference docs for
   package: marginaleffects
   style: "pkgdown"
   # write sidebar data to this file
-  sidebar: _sidebar.yml
+  # sidebar: _sidebar.yml
+  dir: qmd_files
 
   sections:
-    - title: Some functions
-      desc: Functions to inspect docstrings.
+    - title: Marginaleffects API reference guide
+      desc: Marginaleffects functions.
       contents:
         # the functions being documented in the package.
         # you can refer to anything: class methods, modules, etc..
-        # - avg_predictions
         - predictions
-        - avg_predictions
         - comparisons
         - slopes
         - hypotheses
@@ -41,4 +48,6 @@ quartodoc:
         - plot_slopes
         - model_statsmodels
         - model_sklearn
-        - utils
+        - name: utils
+          members: 
+            - get_dataset
