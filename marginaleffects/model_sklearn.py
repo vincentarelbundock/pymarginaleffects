@@ -81,6 +81,9 @@ class ModelSklearn(ModelAbstract):
 def fit_sklearn(
     formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
 ):
+    """
+    fit_sklearn docstring (TO DO)
+    """
     d = listwise_deletion(formula, data=data)
     y, X = model_matrices(formula, d)
     # formulaic returns a matrix when the response is character or categorical
