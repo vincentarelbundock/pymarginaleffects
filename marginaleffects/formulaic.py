@@ -3,6 +3,8 @@ import narwhals as nw
 import numpy as np
 import pandas as pd
 from narwhals.typing import IntoFrame
+from formulaic.parser.algos.tokenize import tokenize
+
 
 __all__ = ["listwise_deletion", "model_matrices"]
 
@@ -119,12 +121,24 @@ def parse_linearmodels_formula(formula: str):
     }
     effects_kwargs = {"entity_effects": False, "time_effects": False}
 
-    variables = extract_variables(formula)
+    # add + 0 to start of the rhs of the formula to remove intercept by default
+    # similar to linearmodels.model.panel.PanelFormulaParser
+    # adding + 1 of - 1 to the formula will add/remove intercept as expected
+    lhs, rhs = formula.split("~")
+    formula = f"{lhs.strip()} ~ 0 + {rhs.strip()}"
+    tokens = [token.token for token in tokenize(formula)]
 
     for effect in effects_tokens.keys():
-        if effect in variables:
+        try:
+            idx = tokens.index(effect)
             effects_tokens[effect] = True
-            variables.remove(effect)
+            _ = tokens.pop(idx)
+
+            # Check if previous token was a "+" and remove it
+            if idx > 0 and tokens[idx - 1] == "+":
+                _ = tokens.pop(idx - 1)
+        except ValueError:
+            pass
 
     if effects_tokens["EntityEffects"] and effects_tokens["FixedEffects"]:
         raise ValueError("Cannot use both FixedEffects and EntityEffects")
@@ -134,7 +148,7 @@ def parse_linearmodels_formula(formula: str):
     )
     effects_kwargs["time_effects"] = effects_tokens["TimeEffects"]
 
-    cleaned_formula = f"{variables[0]} ~ {' + '.join(variables[1:])}"
+    cleaned_formula = " ".join(tokens)
 
     return cleaned_formula, effects_kwargs
 
