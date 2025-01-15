@@ -1,3 +1,10 @@
+# Development
+
+New functions: 
+
+* `get_dataset()`
+* `fit_sklearn()`, `fit_statsmodels()`, `fit_linearmodels()`
+
 # 0.0.14
 
 * Thanks to Narwhals, marginaleffects can now ingest data frames in multiple formats and convert them to the Polars representation that we need internally. This no longer requires external dependencies like Pandas or DuckDB. Thanks to @artiom-matvei.

@@ -9,6 +9,7 @@ from .slopes import avg_slopes, slopes
 from .model_statsmodels import fit_statsmodels
 from .model_sklearn import fit_sklearn
 from .model_linearmodels import fit_linearmodels
+from .utils import get_dataset
 
 __all__ = [
     "avg_comparisons",
@@ -25,4 +26,5 @@ __all__ = [
     "fit_statsmodels",
     "fit_sklearn",
     "fit_linearmodels",
+    "get_dataset",
 ]
