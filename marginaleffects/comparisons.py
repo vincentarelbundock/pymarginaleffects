@@ -365,6 +365,9 @@ def avg_comparisons(
     transform=None,
     eps=1e-4,
 ):
+    """
+    docstring (TO DO)
+    """
     if callable(newdata):
         newdata = newdata(model)
 

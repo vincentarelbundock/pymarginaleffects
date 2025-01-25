@@ -18,6 +18,10 @@ run.Rout
 
 tests/images/.tmp*
 
+objects.json
+
+qmd_files/
+
 trash.Rmd
 trash.py
 trash.R
