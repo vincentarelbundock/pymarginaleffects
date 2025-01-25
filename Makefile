@@ -22,5 +22,7 @@ lint: ## run the lint checkers
 install: ## install in poetry venv
 	uv pip install .
 
-docs: readme ## build docs
-	uv run mkdocs build
+docs: ## build quartodoc
+	uv run quartodoc build
+	rm qmd_files/index.qmd
+	cp qmd_files/*qmd ~/repos/marginaleffectscom/man/python/

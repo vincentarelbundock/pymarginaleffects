@@ -50,6 +50,3 @@ quartodoc:
         - plot_slopes
         - model_statsmodels
         - model_sklearn
-        - name: utils
-          members: 
-            - get_dataset
