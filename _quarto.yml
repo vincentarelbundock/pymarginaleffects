@@ -48,5 +48,3 @@ quartodoc:
         - plot_predictions
         - plot_comparisons
         - plot_slopes
-        - model_statsmodels
-        - model_sklearn
