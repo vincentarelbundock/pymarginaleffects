@@ -75,29 +75,29 @@ def plot_slopes(
 
     assert variables, "The `variables` argument must be supplied."
 
-    assert not (
-        not by and newdata is not None
-    ), "The `newdata` argument requires a `by` argument."
+    assert not (not by and newdata is not None), (
+        "The `newdata` argument requires a `by` argument."
+    )
 
-    assert (condition is None and by) or (
-        condition is not None and not by
-    ), "One of the `condition` and `by` arguments must be supplied, but not both."
+    assert (condition is None and by) or (condition is not None and not by), (
+        "One of the `condition` and `by` arguments must be supplied, but not both."
+    )
 
-    assert not (
-        wts is not None and not by
-    ), "The `wts` argument requires a `by` argument."
+    assert not (wts is not None and not by), (
+        "The `wts` argument requires a `by` argument."
+    )
 
-    assert not (
-        not by and newdata is not None
-    ), "The `newdata` argument requires a `by` argument."
+    assert not (not by and newdata is not None), (
+        "The `newdata` argument requires a `by` argument."
+    )
 
-    assert not (
-        wts is not None and not by
-    ), "The `wts` argument requires a `by` argument."
+    assert not (wts is not None and not by), (
+        "The `wts` argument requires a `by` argument."
+    )
 
-    assert not (
-        condition is None and not by
-    ), "One of the `condition` and `by` arguments must be supplied, but not both."
+    assert not (condition is None and not by), (
+        "One of the `condition` and `by` arguments must be supplied, but not both."
+    )
 
     # before dt_on_condition, which modifies in-place
     condition_input = copy.deepcopy(condition)
@@ -139,9 +139,9 @@ def plot_slopes(
     # not sure why these get appended
     var_list = [x for x in var_list if x not in ["newdata", "model"]]
 
-    assert (
-        len(var_list) < 5
-    ), "The `condition` and `by` arguments can have a max length of 4."
+    assert len(var_list) < 5, (
+        "The `condition` and `by` arguments can have a max length of 4."
+    )
 
     if "contrast" in dt.columns and dt["contrast"].unique().len() > 1:
         var_list = var_list + ["contrast"]

@@ -4,7 +4,7 @@ import polars as pl
 import duckdb
 import pyarrow as pa
 import narwhals as nw
-from marginaleffects.utils import ingest
+from marginaleffects.utils import ingest, get_dataset
 from typing import Callable
 
 
@@ -47,9 +47,9 @@ def test_ingest_pandas(sample_pandas_df):
     assert isinstance(result, pl.DataFrame), "Result should be a Polars DataFrame"
     # Verify contents
     expected = pl.from_pandas(sample_pandas_df)
-    assert result.equals(
-        expected
-    ), "Ingested DataFrame does not match expected Polars DataFrame"
+    assert result.equals(expected), (
+        "Ingested DataFrame does not match expected Polars DataFrame"
+    )
 
 
 def test_ingest_polars(sample_polars_df):
@@ -57,14 +57,37 @@ def test_ingest_polars(sample_polars_df):
     assert isinstance(result, pl.DataFrame), "Result should be a Polars DataFrame"
     # Verify contents
     expected = sample_polars_df
-    assert result.equals(
-        expected
-    ), "Ingested DataFrame does not match expected Polars DataFrame"
+    assert result.equals(expected), (
+        "Ingested DataFrame does not match expected Polars DataFrame"
+    )
 
 
 def test_ingest_arrow(sample_arrow_df):
     result = ingest(sample_arrow_df).to_pandas()
     expected = get_sample_data()
-    assert result.equals(
-        expected
-    ), "Ingested DataFrame does not match expected Polars DataFrame"
+    assert result.equals(expected), (
+        "Ingested DataFrame does not match expected Polars DataFrame"
+    )
+
+
+@pytest.mark.parametrize(
+    "input_args, expected_output",
+    [
+        ({"search": "(?i)titanic"}, (8, 6)),
+        ({}, (80, 3)),
+    ],
+)
+def test_get_dataset_polars(input_args, expected_output):
+    output = get_dataset(**input_args)
+    assert isinstance(output, pl.DataFrame), "Result should be a Polars DataFrame"
+    assert output.shape == expected_output, "Expected shape (8,6)"
+
+
+@pytest.mark.parametrize(
+    "input_args, expected_output",
+    [({"docs": "True", "dataset": "ArgentinaCPI", "package": "AER"}, None)],
+)
+def test_get_dataset_doc(input_args, expected_output):
+    output = get_dataset(**input_args)
+    assert isinstance(output, str), "Result should be a str"
+    assert output.endswith("html"), "Expected output to be a URL"
