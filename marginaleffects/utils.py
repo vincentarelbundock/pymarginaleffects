@@ -35,6 +35,7 @@ def ingest(df: ArrowStreamExportable):
 
     try:
         import pandas as pd
+
         if isinstance(df, pd.DataFrame):
             df = df.reset_index()
     except ImportError:
@@ -170,16 +171,26 @@ def validate_types(func):
     return wrapper
 
 
-def get_dataset(dataset: str, docs: bool = False):
+def get_dataset(
+    dataset: str = "ArgentinaCPI",
+    package: str = "AER",
+    docs: bool = False,
+    search: str = None,
+):
     """
-    Download and read a dataset as a Polars DataFrame or return documentation link.
+    Download and read a dataset as a Polars DataFrame from the `marginaleffects` or from the list at https://vincentarelbundock.github.io/Rdatasets/.
+    Returns documentation link if `docs` is True.
 
     Parameters
     ----------
     dataset : str
-        The dataset to download. Must be one of "affairs", "airbnb", "immigration", "military", "thornton".
+        The dataset to download. One of "affairs", "airbnb", "immigration", "military", "thornton" or Rdatasets
+    package : str, optional
+        The package to download the dataset from. Default is "marginaleffects".
     docs : bool, optional
         If True, return the documentation URL instead of the dataset. Default is False.
+    search: str, optional
+        The string is a regular expresion. Download the dataset index from Rdatasets; search the "Package", "Item", and "Title" columns; and return the matching rows.
 
     Returns
     -------
@@ -192,6 +203,20 @@ def get_dataset(dataset: str, docs: bool = False):
     ValueError
         If the dataset is not among the specified choices.
     """
+    if search:
+        try:
+            index = pl.read_csv(
+                "https://vincentarelbundock.github.io/Rdatasets/datasets.csv"
+            )
+            index = index.filter(
+                index["Package"].str.contains(search)
+                | index["Item"].str.contains(search)
+                | index["Title"].str.contains(search)
+            )
+            return index.select(["Package", "Item", "Title", "Rows", "Cols", "CSV"])
+        except BaseException as e:
+            raise ValueError(f"Error searching dataset: {e}")
+
     datasets = {
         "affairs": "https://marginaleffects.com/data/affairs",
         "airbnb": "https://marginaleffects.com/data/airbnb",
@@ -200,15 +225,22 @@ def get_dataset(dataset: str, docs: bool = False):
         "thornton": "https://marginaleffects.com/data/thornton",
     }
 
-    if dataset not in datasets:
-        raise ValueError(
-            f"Invalid dataset choice. Expected one of {list(datasets.keys())}."
-        )
+    try:
+        if dataset in datasets:
+            base_url = datasets[dataset]
+            df = pl.read_parquet(f"{base_url}.parquet")
+            doc_url = (
+                "https://github.com/vincentarelbundock/marginaleffects/issues/1368"
+            )
+        else:
+            csv_url = f"https://vincentarelbundock.github.io/Rdatasets/csv/{package}/{dataset}.csv"
+            doc_url = f"https://vincentarelbundock.github.io/Rdatasets/doc/{package}/{dataset}.html"
+            df = pl.read_csv(csv_url)
 
-    base_url = datasets[dataset]
+        if docs:
+            return doc_url
 
-    if docs:
-        return f"{base_url}.html"
+        return df
 
-    df = pl.read_parquet(f"{base_url}.parquet")
-    return df
+    except BaseException as e:
+        raise ValueError(f"Error reading dataset: {e}")

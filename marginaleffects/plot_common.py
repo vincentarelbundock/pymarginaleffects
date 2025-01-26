@@ -19,16 +19,16 @@ def dt_on_condition(model, condition):
     first_key = ""  # special case when the first element is numeric
 
     if isinstance(condition_new, list):
-        assert all(
-            ele in modeldata.columns for ele in condition_new
-        ), "All elements of condition must be columns of the model."
+        assert all(ele in modeldata.columns for ele in condition_new), (
+            "All elements of condition must be columns of the model."
+        )
         first_key = condition_new[0]
         to_datagrid = {key: None for key in condition_new}
 
     elif isinstance(condition_new, dict):
-        assert all(
-            key in modeldata.columns for key in condition_new.keys()
-        ), "All keys of condition must be columns of the model."
+        assert all(key in modeldata.columns for key in condition_new.keys()), (
+            "All keys of condition must be columns of the model."
+        )
         first_key = next(iter(condition_new))
         to_datagrid = (
             condition_new  # third pointer to the same object? looks like a BUG
@@ -38,9 +38,9 @@ def dt_on_condition(model, condition):
     if isinstance(condition_new, dict) and "newdata" in to_datagrid.keys():
         condition_new.pop("newdata", None)
 
-    assert (
-        1 <= len(condition_new) <= 4
-    ), f"Lenght of condition must be inclusively between 1 and 4. Got : {len(condition_new)}."
+    assert 1 <= len(condition_new) <= 4, (
+        f"Lenght of condition must be inclusively between 1 and 4. Got : {len(condition_new)}."
+    )
 
     for key, value in to_datagrid.items():
         variable_type = model.variables_type[key]
@@ -58,9 +58,9 @@ def dt_on_condition(model, condition):
                 if to_datagrid[key]
                 else modeldata[key].unique().sort().to_list()
             )
-            assert (
-                len(to_datagrid[key]) <= 10
-            ), f"Character type variables of more than 10 unique values are not supported. {key} variable has {len(to_datagrid[key])} unique values."
+            assert len(to_datagrid[key]) <= 10, (
+                f"Character type variables of more than 10 unique values are not supported. {key} variable has {len(to_datagrid[key])} unique values."
+            )
 
     to_datagrid["newdata"] = modeldata
     dt = datagrid(**to_datagrid)

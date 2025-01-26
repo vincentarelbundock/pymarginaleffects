@@ -61,6 +61,7 @@ def sanitize_model(model):
 
     try:
         from linearmodels.panel.results import PanelResults
+
         if isinstance(model, PanelResults):
             return ModelLinearmodels(model)
     except ImportError:

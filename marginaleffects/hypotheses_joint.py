@@ -26,9 +26,9 @@ def joint_hypotheses(obj, joint_index=None, joint_test="f", hypothesis=0):
             joint_index = [
                 i for i in range(len(var_names)) if var_names[i] in joint_index
             ]
-        assert min(joint_index) >= 0 and max(joint_index) <= len(
-            var_names
-        ), "`joint_index` contain invalid indices"
+        assert min(joint_index) >= 0 and max(joint_index) <= len(var_names), (
+            "`joint_index` contain invalid indices"
+        )
 
     V_hat = obj.get_vcov()
 
