@@ -63,6 +63,16 @@ def predictions(
     ----------
     model : object
         Model object.
+    variables : dict, optional
+        Dictionary of variables and associated values over which to compute predictions.
+        If `None`, computes one prediction per row in `newdata`.
+        Note that the values accept the following special strings:
+            - "sd": Contrast across one standard deviation around the regressor mean.
+            - "2sd": Contrast across two standard deviations around the regressor mean.
+            - "iqr": Contrast across the interquartile range of the regressor.
+            - "minmax": Contrast between the maximum and the minimum values of the regressor.
+            - "threenum": mean and 1 standard deviation on both sides
+            - "fivenum": Tukey's five numbers
     newdata : Union[None, DataFrame], optional
         Grid of predictor values at which to evaluate predictions, by default predictions are made on the data used to fit the model.
     by : bool or str
