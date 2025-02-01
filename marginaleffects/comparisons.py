@@ -5,6 +5,8 @@ import numpy as np
 import patsy
 import polars as pl
 
+from marginaleffects.predictions import _template_returns
+
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .estimands import estimands
@@ -22,6 +24,7 @@ from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast, ingest
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
+from docstring_inheritance import inherit_numpy_docstring
 
 
 def comparisons(
@@ -40,7 +43,7 @@ def comparisons(
     eps_vcov=None,
 ):
     """
-    `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
+    `comparisons()` predicts the outcome variable at different regressor values and compares those predictions by computing a difference, ratio, or some other function. This function can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
 
     Parameters
     ----------
@@ -82,39 +85,23 @@ def comparisons(
             - `transform = lambda x: x.exp()`
             - `transform = lambda x: x.map_elements()`
     equivalence : list
-        List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
+        List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Notes section below.
     by : bool, str
         Logical value, list of column names in `newdata`. If `True`, estimates are aggregated for each term.
     hypothesis : str, numpy array
         String specifying a numeric value specifying the null hypothesis used for computing p-values.
     conf_level : float
         Numeric value specifying the confidence level for the confidence intervals. Default is 0.95.
-    Returns
-    -------
-    out : DataFrame
-        The functions return a data.frame with the following columns:
-        - term: the name of the variable.
-        - contrast: the comparison method used.
-        - estimate: the estimated contrast, difference, ratio, or other transformation between pairs of predictions.
-        - std_error: the standard error of the estimate.
-        - statistic: the test statistic (estimate / std.error).
-        - p_value: the p-value of the test.
-        - s_value: Shannon transform of the p value.
-        - conf_low: the lower confidence interval bound.
-        - conf_high: the upper confidence interval bound.
+    
+
     Examples
     --------
+    >>> comparisons(model, variables=None, newdata=None, comparison="difference", 
+    ...            transform=None, equivalence=None, by=False, cross=False, 
+    ...            type="response", hypothesis=0, conf_level=0.95)
 
-        comparisons(model, variables = NULL, newdata = NULL, comparison = "difference",
-                    transform = NULL, equivalence = NULL, by = FALSE, cross = FALSE,
-                    type = "response", hypothesis = 0, conf.level = 0.95, ...)
-
-        avg_comparisons(model, variables = NULL, newdata = NULL, comparison = "difference",
-                        transform = NULL, equivalence = NULL, by = FALSE, cross = FALSE,
-                        type = "response", hypothesis = 0, conf.level = 0.95, ...)
-
-    Details
-    -------
+    Notes
+    -----
 
     The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
     """
@@ -366,7 +353,14 @@ def avg_comparisons(
     eps=1e-4,
 ):
     """
-    docstring (TO DO)
+    `avg_comparisons()` predicts the average (marginal) outcome variable across different regressor values and compares those predictions by computing a difference, ratio, or some other function. This function can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
+
+    Examples
+    --------
+    >>> avg_comparisons(model, variables=None, newdata=None, comparison="difference",
+    ...                transform=None, equivalence=None, by=False, cross=False,
+    ...                type="response", hypothesis=0, conf_level=0.95)
+
     """
     if callable(newdata):
         newdata = newdata(model)
@@ -387,3 +381,6 @@ def avg_comparisons(
     )
 
     return out
+
+inherit_numpy_docstring(_template_returns.__doc__, comparisons)
+inherit_numpy_docstring(comparisons.__doc__, avg_comparisons)

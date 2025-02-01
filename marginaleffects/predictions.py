@@ -18,10 +18,27 @@ from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 from .formulaic import model_matrices
+from docstring_inheritance import inherit_numpy_docstring
 
+def _template_returns():
+    """
+    Returns
+    -------
+    DataFrame
+        The functions return a data.frame with the following columns:
+            - term: the name of the variable.
+            - contrast: the comparison method used.
+            - estimate: the estimated contrast, difference, ratio, or other transformation between pairs of predictions.
+            - std_error: the standard error of the estimate.
+            - statistic: the test statistic (estimate / std.error).
+            - p_value: the p-value of the test.
+            - s_value: Shannon transform of the p value.
+            - conf_low: the lower confidence interval bound.
+            - conf_high: the upper confidence interval bound.
+    """
 
 def predictions(
-    model,
+    model,  
     variables=None,
     conf_level=0.95,
     vcov=True,
@@ -46,34 +63,19 @@ def predictions(
     ----------
     model : object
         Model object.
-
     newdata : Union[None, DataFrame], optional
         Grid of predictor values at which to evaluate predictions, by default predictions are made on the data used to fit the model.
-
-    by (bool, str): a logical value, a list of column names in `newdata`. If `True`, estimates are aggregated for each term.
-
-    wts: Column name of weights to use for marginalization. Must be a column in `newdata`
-
-    transform (function): a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
-        - `transform = numpy.exp`
-        - `transform = lambda x: x.exp()`
-        - `transform = lambda x: x.map_elements()`
-
+    by : bool or str
+        a logical value, a list of column names in `newdata`. If `True`, estimates are aggregated for each term.
+    wts : str
+        Column name of weights to use for marginalization. Must be a column in `newdata`
+    transform : Callable
+        a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
+            - `transform = numpy.exp`
+            - `transform = lambda x: x.exp()`
+            - `transform = lambda x: x.map_elements()`
     hypothesis: String formula of hypothesis test or numpy array.
 
-    Returns
-    -------
-    DataFrame
-        A DataFrame with one row per observation and several columns:
-        - rowid: row number of the `newdata` data frame
-        - type: prediction type, as defined by the `type` argument
-        - group: (optional) value of the grouped outcome (e.g., categorical outcome models)
-        - estimate: predicted outcome
-        - std_error: standard errors computed using the delta method.
-        - p_value: p value associated with the `estimate` column.
-        - s_value: Shannon information transforms of p values.
-        - conf_low: lower bound of the confidence interval (or equal-tailed interval for Bayesian models)
-        - conf_high: upper bound of the confidence interval (or equal-tailed interval for Bayesian models)
     """
 
     if callable(newdata):
@@ -185,6 +187,9 @@ def predictions(
     return out
 
 
+# predictions.__doc__ = predictions.__doc__.format(MODEL_DOCSTRING=MODEL_DOCSTRING)
+
+# @docstrings.dedent
 def avg_predictions(
     model,
     conf_level=0.95,
@@ -196,9 +201,6 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
-    """
-    Predict average outcomes (TO DO)
-    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -215,3 +217,6 @@ def avg_predictions(
     )
 
     return out
+
+inherit_numpy_docstring(_template_returns.__doc__, predictions)
+inherit_numpy_docstring(predictions.__doc__, avg_predictions)

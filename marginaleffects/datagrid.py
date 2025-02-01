@@ -33,28 +33,25 @@ def datagrid(
 
     A Polars DataFrame in which each row corresponds to one combination of the named predictors supplied by the user. Variables which are not explicitly defined are held at their mean or mode.
 
-    Examples:
+    Examples
+    --------
 
-    ```python
-    import polars as pl
-    import statsmodels.formula.api as smf
-    from marginaleffects import *
-    mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+    >>> import polars as pl
+    >>> import statsmodels.formula.api as smf
+    >>> from marginaleffects import *
+    >>> mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+    >>> # The output only has 2 rows, and all the variables except `hp` are at their mean or mode.
+    >>> datagrid(newdata = mtcars, hp = [100, 110])
+    >>> # We get the same result by feeding a model instead of a DataFrame
+    >>> mod = smf.ols("mpg ~ hp * qsec", mtcars).fit()
+    >>> datagrid(model = mod, hp = [100, 110])
+    >>> # Use in `marginaleffects` to compute "Typical Marginal Effects". When used in `slopes()` or `predictions()` we do not need to specify the `model` or `newdata` arguments.
+    >>> nd = datagrid(mod, hp = [100, 110])
+    >>> slopes(mod, newdata = nd)
+    >>> # The full dataset is duplicated with each observation given counterfactual values of 100 and 110 for the `hp` variable. The original `mtcars` includes 32 rows, so the resulting dataset includes 64 rows.
+    >>> dg = datagrid(newdata = mtcars, hp = [100, 110], grid_type = "counterfactual")
+    >>> print(dg.shape)
 
-    # The output only has 2 rows, and all the variables except `hp` are at their mean or mode.
-    datagrid(newdata = mtcars, hp = [100, 110])
-
-    # We get the same result by feeding a model instead of a DataFrame
-    mod = smf.ols("mpg ~ hp * qsec", mtcars).fit()
-    datagrid(model = mod, hp = [100, 110])
-
-    # Use in `marginaleffects` to compute "Typical Marginal Effects". When used in `slopes()` or `predictions()` we do not need to specify the `model` or `newdata` arguments.
-    nd = datagrid(mod, hp = [100, 110])
-    slopes(mod, newdata = nd)
-
-    # The full dataset is duplicated with each observation given counterfactual values of 100 and 110 for the `hp` variable. The original `mtcars` includes 32 rows, so the resulting dataset includes 64 rows.
-    dg = datagrid(newdata = mtcars, hp = [100, 110], grid_type = "counterfactual")
-    print(dg.shape)
     """
 
     # allow preditions() to pass `model` argument automatically

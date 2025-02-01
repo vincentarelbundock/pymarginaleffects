@@ -57,7 +57,7 @@ def plot_predictions(
         Names of the categorical predictors to marginalize across.
 
     newdata : dataframe
-        When newdata is NULL, the grid is determined by the condition argument. When newdata is not NULL, the argument behaves in the same way as in the predictions() function.
+        When newdata is `None`, the grid is determined by the condition argument. When newdata is not `None`, the argument behaves in the same way as in the predictions() function.
 
     wts: Column name of weights to use for marginalization. Must be a column in `newdata`
 
