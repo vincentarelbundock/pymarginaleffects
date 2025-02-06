@@ -15,6 +15,10 @@ dependencies = [
     "scipy >=1.14.1",
 ]
 
+[tool.setuptools.packages.find]
+exclude = ["qmd_files/*"]
+
+
 [project.optional-dependencies]
 test = [
     "duckdb >=1.1.2",
