@@ -152,4 +152,5 @@ def plot_slopes(
 
     return plot_common(model, dt, "Slope", var_list)
 
+
 inherit_numpy_docstring(slopes.__doc__, plot_slopes)

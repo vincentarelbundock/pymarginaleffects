@@ -92,12 +92,12 @@ def comparisons(
         String specifying a numeric value specifying the null hypothesis used for computing p-values.
     conf_level : float
         Numeric value specifying the confidence level for the confidence intervals. Default is 0.95.
-    
+
 
     Examples
     --------
-    >>> comparisons(model, variables=None, newdata=None, comparison="difference", 
-    ...            transform=None, equivalence=None, by=False, cross=False, 
+    >>> comparisons(model, variables=None, newdata=None, comparison="difference",
+    ...            transform=None, equivalence=None, by=False, cross=False,
     ...            type="response", hypothesis=0, conf_level=0.95)
 
     Notes
@@ -381,6 +381,7 @@ def avg_comparisons(
     )
 
     return out
+
 
 inherit_numpy_docstring(_template_returns.__doc__, comparisons)
 inherit_numpy_docstring(comparisons.__doc__, avg_comparisons)

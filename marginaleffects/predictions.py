@@ -20,6 +20,7 @@ from .model_linearmodels import ModelLinearmodels
 from .formulaic import model_matrices
 from docstring_inheritance import inherit_numpy_docstring
 
+
 def _template_returns():
     """
     Returns
@@ -37,8 +38,9 @@ def _template_returns():
             - conf_high: the upper confidence interval bound.
     """
 
+
 def predictions(
-    model,  
+    model,
     variables=None,
     conf_level=0.95,
     vcov=True,
@@ -199,6 +201,7 @@ def predictions(
 
 # predictions.__doc__ = predictions.__doc__.format(MODEL_DOCSTRING=MODEL_DOCSTRING)
 
+
 # @docstrings.dedent
 def avg_predictions(
     model,
@@ -227,6 +230,7 @@ def avg_predictions(
     )
 
     return out
+
 
 inherit_numpy_docstring(_template_returns.__doc__, predictions)
 inherit_numpy_docstring(predictions.__doc__, avg_predictions)

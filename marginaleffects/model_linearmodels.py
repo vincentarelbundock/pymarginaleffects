@@ -198,7 +198,6 @@ class ModelLinearmodels(ModelAbstract):
         return self.model.df_resid
 
 
-# @validate_types
 def fit_linearmodels(
     formula: str,
     data: pd.DataFrame,

@@ -11,6 +11,7 @@
 # > quarto preview
 # 
 # NOTE: This references the marginaleffects in .venv first, to reference the local marginaleffects, delete or rename the folder marginaleffects in .venv/lib/
+# Alternatively, you can build the package with `uv build` and then install it in the .venv with `uv pip install dist/marginaleffects[...].whl`
 
 
 project:
@@ -48,3 +49,12 @@ quartodoc:
         - plot_predictions
         - plot_comparisons
         - plot_slopes
+
+plugins:
+- mkdocstrings:
+    handlers:
+      python:
+        options:
+          extensions:
+            - griffe_inherited_docstrings
+            - docstring_inheritance.griffe

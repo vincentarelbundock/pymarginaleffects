@@ -62,10 +62,10 @@ def plot_comparisons(
     by : bool, str, list
         Aggregate unit-level estimates (aka, marginalize, average over).
             Max length of list is 3, with position meanings:
-                1. x-axis. 
-                2. color. 
+                1. x-axis.
+                2. color.
                 3. facets.
-        
+
     newdata : dataframe
         When newdata is `None`, the grid is determined by the condition argument. When newdata is not `None`, the argument behaves in the same way as in the predictions() function.
 
