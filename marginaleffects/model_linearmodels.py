@@ -4,7 +4,6 @@ import pandas as pd
 import narwhals as nw
 from typing import Any, Dict
 import polars as pl
-from linearmodels.panel.model import _PanelModelBase
 from .utils import ingest
 from .model_abstract import ModelAbstract
 from .formulaic import listwise_deletion, model_matrices, parse_linearmodels_formula
@@ -201,7 +200,7 @@ class ModelLinearmodels(ModelAbstract):
 def fit_linearmodels(
     formula: str,
     data: pd.DataFrame,
-    engine: _PanelModelBase,
+    engine: None,
     kwargs_engine: Dict[str, Any] = {},
     kwargs_fit: Dict[str, Any] = {},
 ) -> ModelLinearmodels:
@@ -261,6 +260,17 @@ def fit_linearmodels(
         - formula_engine: Set to "linearmodels"
         - model: The fitted linearmodels model object (PanelEffectsResults)
     """
+    try:
+        from linearmodels.panel.model import PanelResults
+        from linearmodels.panel.model import _PanelModelBase
+
+        if isinstance(engine, PanelResults):
+            return ModelLinearmodels(engine)
+        assert isinstance(engine, _PanelModelBase), (
+            "Engine must be an instance of _PanelModelBase"
+        )
+    except ImportError:
+        pass
     linearmodels_formula, effects = parse_linearmodels_formula(formula)
 
     d = listwise_deletion(linearmodels_formula, data=data)
