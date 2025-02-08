@@ -38,6 +38,23 @@ def _template_returns():
             - conf_high: the upper confidence interval bound.
     """
 
+def _template_order_of_operations():
+    """
+    Notes
+    -----
+    Order of operations:
+
+    Behind the scenes, the arguments of `marginaleffects` functions are evaluated in this order:
+
+    1. `newdata`
+    2. `variables`
+    3. `comparison` and `slope`
+    4. `by`
+    5. `vcov`
+    6. `hypothesis`
+    7. `transform`
+    """
+
 
 def predictions(
     model,
@@ -56,7 +73,7 @@ def predictions(
     Predict outcomes using a fitted model on a specified scale for given combinations of values
     of predictor variables, such as their observed values, means, or factor levels (reference grid).
 
-    This function handles unit-level (conditional) estimates and average (marginal) estimates based
+    This function handles unit-level (conditional) estimates based
     on the `variables` and `newdata` arguments. See the package website and vignette for examples:
     - https://vincentarelbundock.github.io/marginaleffects/articles/predictions.html
     - https://vincentarelbundock.github.io/marginaleffects/
@@ -68,7 +85,7 @@ def predictions(
     variables : dict, optional
         Dictionary of variables and associated values over which to compute predictions.
         If `None`, computes one prediction per row in `newdata`.
-        Note that the values accept the following special strings:
+        Note that the `values` accept the following special strings:
             - "sd": Contrast across one standard deviation around the regressor mean.
             - "2sd": Contrast across two standard deviations around the regressor mean.
             - "iqr": Contrast across the interquartile range of the regressor.
@@ -77,8 +94,8 @@ def predictions(
             - "fivenum": Tukey's five numbers
     newdata : Union[None, DataFrame], optional
         Grid of predictor values at which to evaluate predictions, by default predictions are made on the data used to fit the model.
-    by : bool or str
-        a logical value, a list of column names in `newdata`. If `True`, estimates are aggregated for each term.
+    by : bool, List[str]
+        a logical value or a list of column names in `newdata`. If `True`, estimate is aggregated across the whole dataset. If a list is provided, estimates are aggregated for each unique combination of values in the columns.
     wts : str
         Column name of weights to use for marginalization. Must be a column in `newdata`
     transform : Callable
@@ -199,10 +216,6 @@ def predictions(
     return out
 
 
-# predictions.__doc__ = predictions.__doc__.format(MODEL_DOCSTRING=MODEL_DOCSTRING)
-
-
-# @docstrings.dedent
 def avg_predictions(
     model,
     conf_level=0.95,
@@ -214,6 +227,16 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
+    """
+    Predict outcomes using a fitted model on a specified scale for given combinations of values
+    of predictor variables, such as their observed values, means, or factor levels (reference grid).
+
+    This function handles average (marginal) estimates based
+    on the `variables` and `newdata` arguments. See the package website and vignette for examples:
+    - https://vincentarelbundock.github.io/marginaleffects/articles/predictions.html
+    - https://vincentarelbundock.github.io/marginaleffects/
+    """
+
     if callable(newdata):
         newdata = newdata(model)
 
@@ -233,4 +256,5 @@ def avg_predictions(
 
 
 inherit_numpy_docstring(_template_returns.__doc__, predictions)
+inherit_numpy_docstring(_template_order_of_operations.__doc__, predictions)
 inherit_numpy_docstring(predictions.__doc__, avg_predictions)
