@@ -47,14 +47,14 @@ def comparisons(
     eps_vcov=None,
 ):
     """
-    `comparisons()` predicts the outcome variable at different regressor values and compares those predictions by computing a difference, ratio, or some other function. This function can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
+    Predict the outcome variable at different regressor values and compares those predictions by computing a difference, ratio, or some other function. This function can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
 
     Parameters
     ----------
     model : object
         Model object fitted using the `statsmodels` formula API.
     variables : str, list, dictionary
-        - a string, list of strings, or dictionary of variables to compute comparisons for. If `None`, comparisons are computed for all regressors in the model object (can be slow). Acceptable values depend on the variable type. See the examples below.
+        A string, list of strings, or dictionary of variables to compute comparisons for. If `None`, comparisons are computed for all regressors in the model object (can be slow). Acceptable values depend on the variable type. See the examples below.
         - Dictionary: keys identify the subset of variables of interest, and values define the type of contrast to compute. Acceptable values depend on the variable type:
             - Categorical variables:
                 * "reference": Each factor level is compared to the factor reference (base) level
@@ -81,6 +81,13 @@ def comparisons(
             + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
     newdata : polars or pandas DataFrame, or str
         Data frame or string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
+        - Dataframe: should be created with datagrid() function
+        - String: 
+            * "mean": Compute comparisons at the mean of the regressor
+            * "median": Compute comparisons at the median of the regressor
+            * "balanced": Comparisons evaluated on a balanced grid with every combination of categories and numeric variables held at their means.
+            * "tukey": Probably NotImplemented
+            * "grid": Probably NotImplemented
     comparison : str
         String specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
     transform : function

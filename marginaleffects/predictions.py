@@ -91,6 +91,13 @@ def predictions(
             - "fivenum": Tukey's five numbers
     newdata : Union[None, DataFrame], optional
         Grid of predictor values at which to evaluate predictions, by default predictions are made on the data used to fit the model.
+        - Dataframe: should be created with datagrid() function
+        - String: 
+            * "mean": Compute predictions at the mean of the regressor
+            * "median": Compute predictions at the median of the regressor
+            * "balanced": Predictions evaluated on a balanced grid with every combination of categories and numeric variables held at their means.
+            * "tukey": Probably NotImplemented
+            * "grid": Probably NotImplemented
     by : bool, List[str]
         a logical value or a list of column names in `newdata`. If `True`, estimate is aggregated across the whole dataset. If a list is provided, estimates are aggregated for each unique combination of values in the columns.
     wts : str
