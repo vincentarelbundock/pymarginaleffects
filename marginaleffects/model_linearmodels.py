@@ -197,7 +197,6 @@ class ModelLinearmodels(ModelAbstract):
         return self.model.df_resid
 
 
-# @validate_types
 def fit_linearmodels(
     formula: str,
     data: pd.DataFrame,
@@ -264,9 +263,12 @@ def fit_linearmodels(
     try:
         from linearmodels.panel.model import PanelResults
         from linearmodels.panel.model import _PanelModelBase
-        if isinstance(model, PanelResults):
-            return ModelLinearmodels(model)
-        assert isinstance(engine, _PanelModelBase), "Engine must be an instance of _PanelModelBase"
+
+        if isinstance(engine, PanelResults):
+            return ModelLinearmodels(engine)
+        assert isinstance(engine, _PanelModelBase), (
+            "Engine must be an instance of _PanelModelBase"
+        )
     except ImportError:
         pass
     linearmodels_formula, effects = parse_linearmodels_formula(formula)
