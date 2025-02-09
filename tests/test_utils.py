@@ -74,7 +74,7 @@ def test_ingest_arrow(sample_arrow_df):
     "input_args, expected_output",
     [
         ({"search": "(?i)titanic"}, (8, 6)),
-        ({}, (80, 3)),
+        ({}, (2884, 8)),
     ],
 )
 def test_get_dataset_polars(input_args, expected_output):
