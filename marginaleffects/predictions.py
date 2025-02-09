@@ -16,6 +16,7 @@ from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
+from .model_linearmodels import ModelLinearmodels
 from .formulaic import model_matrices
 
 
@@ -131,6 +132,9 @@ def predictions(
     # case of PyFixest, the predict method only accepts a data frame.
     if isinstance(model, ModelPyfixest):
         exog = newdata.to_pandas()
+    # Linearmodels accepts polars dataframes and converts them to Pandas internally
+    elif isinstance(model, ModelLinearmodels):
+        exog = newdata
     else:
         if hasattr(model, "design_info_patsy"):
             f = model.design_info_patsy
@@ -192,6 +196,9 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
+    """
+    Predict average outcomes (TO DO)
+    """
     if callable(newdata):
         newdata = newdata(model)
 

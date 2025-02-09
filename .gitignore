@@ -4,6 +4,7 @@ __pycache__/
 *.pyd
 __pypackages__/
 *.ipynb
+*.DS_store
 site/
 debug.py
 debug.R
@@ -17,6 +18,11 @@ run.Rout
 
 tests/images/.tmp*
 
+objects.json
+
+qmd_files/
+
 trash.Rmd
 trash.py
 trash.R
+

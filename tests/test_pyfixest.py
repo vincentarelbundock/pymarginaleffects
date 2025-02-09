@@ -39,7 +39,7 @@ def test_bare_minimum():
     fit = feols("Y ~ X1 * X2 * Z1", data=data.to_pandas(), ssc=ssc(fixef_k="none"))
 
     p = predictions(fit)
-    assert p.shape == (1000, 15)
+    assert p.shape == (1000, 16)
 
     p = avg_predictions(fit)
     assert_series_equal(
@@ -65,7 +65,7 @@ def test_bare_minimum():
     # test 2: fixed effects
     fit2 = feols("Y ~ X1 * X2 * Z1 | f1", data=data.to_pandas())
     p2 = predictions(fit2)
-    assert p2.shape == (1000, 15)
+    assert p2.shape == (1000, 16)
 
     p2 = avg_predictions(fit2)
     assert_series_equal(
@@ -94,7 +94,7 @@ def test_bare_minimum():
         # test 3: special syntax - interacted fixed effects
         fit3 = feols("Y ~ X1 * X2 * Z1 | f1^f2", data=data.to_pandas())
         p3 = predictions(fit3)
-        assert p3.shape == (1000, 15)
+        assert p3.shape == (1000, 16)
 
         p3 = avg_predictions(fit3)
         assert_series_equal(

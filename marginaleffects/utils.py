@@ -5,6 +5,7 @@ import polars as pl
 from typing import Protocol, runtime_checkable
 from pydantic import ConfigDict, validate_call
 from functools import wraps
+# from narwhals.typing import IntoFrame
 
 
 @runtime_checkable
@@ -13,6 +14,33 @@ class ArrowStreamExportable(Protocol):
 
 
 def ingest(df: ArrowStreamExportable):
+    """
+    Convert any DataFrame to a Polars DataFrame.
+
+    Parameters
+    ----------
+    df : ArrowStreamExportable
+        The DataFrame to convert.
+
+    Returns
+    -------
+    pl.DataFrame
+
+    Notes
+    -----
+
+    If the original DataFrame was a pandas DataFrame, the index will
+    be reset to ensure compatibility with linearmodels.
+    """
+
+    try:
+        import pandas as pd
+
+        if isinstance(df, pd.DataFrame):
+            df = df.reset_index()
+    except ImportError:
+        raise ValueError("Please install pandas to handle Pandas DataFrame as input.")
+
     return nw.from_arrow(df, native_namespace=pl).to_native()
 
 
@@ -141,3 +169,94 @@ def validate_types(func):
         return validator(*args, **kwargs)
 
     return wrapper
+
+
+def get_dataset(
+    dataset: str = "thornton",
+    package: str = "marginaleffects",
+    docs: bool = False,
+    search: str = None,
+):
+    """
+    Download and read a dataset as a Polars DataFrame from the `marginaleffects` or from the list at https://vincentarelbundock.github.io/Rdatasets/.
+    Returns documentation link if `docs` is True.
+
+    Parameters
+    ----------
+    dataset : str
+        The dataset to download. One of "affairs", "airbnb", "ces_demographics", "ces_survey", "immigration", "lottery", "military", "thornton", "factorial_01", "interaction_01", "interaction_02", "interaction_03", "interaction_04", "polynomial_01", "polynomial_02" or Rdatasets
+    package : str, optional
+        The package to download the dataset from. Default is "marginaleffects".
+    docs : bool, optional
+        If True, return the documentation URL instead of the dataset. Default is False.
+    search: str, optional
+        The string is a regular expression. Download the dataset index from Rdatasets; search the "Package", "Item", and "Title" columns; and return the matching rows.
+
+    Returns
+    -------
+    Union[str, pl.DataFrame]
+        A string representing the documentation URL if `docs` is True, or
+        a Polars DataFrame containing the dataset if `docs` is False.
+
+    Raises
+    ------
+    ValueError
+        If the dataset is not among the specified choices.
+    """
+    if search:
+        try:
+            index = pl.read_csv(
+                "https://vincentarelbundock.github.io/Rdatasets/datasets.csv"
+            )
+            index = index.filter(
+                index["Package"].str.contains(search)
+                | index["Item"].str.contains(search)
+                | index["Title"].str.contains(search)
+            )
+            return index.select(["Package", "Item", "Title", "Rows", "Cols", "CSV"])
+        except BaseException as e:
+            raise ValueError(f"Error searching dataset: {e}")
+
+    datasets = {
+        "affairs": "https://marginaleffects.com/data/affairs",
+        "airbnb": "https://marginaleffects.com/data/airbnb",
+        "ces_demographics": "https://marginaleffects.com/data/ces_demographics",
+        "ces_survey": "https://marginaleffects.com/data/ces_survey",
+        "immigration": "https://marginaleffects.com/data/immigration",
+        "lottery": "https://marginaleffects.com/data/lottery",
+        "military": "https://marginaleffects.com/data/military",
+        "thornton": "https://marginaleffects.com/data/thornton",
+        "factorial_01": "https://marginaleffects.com/data/factorial_01",
+        "interaction_01": "https://marginaleffects.com/data/interaction_01",
+        "interaction_02": "https://marginaleffects.com/data/interaction_02",
+        "interaction_03": "https://marginaleffects.com/data/interaction_03",
+        "interaction_04": "https://marginaleffects.com/data/interaction_04",
+        "polynomial_01": "https://marginaleffects.com/data/polynomial_01",
+        "polynomial_02": "https://marginaleffects.com/data/polynomial_02",
+    }
+
+    if package == "marginaleffects":
+        assert dataset in datasets, f"Dataset '{dataset}' is not available in the 'marginaleffects' package."
+
+    try:
+        if dataset in datasets:
+            base_url = datasets[dataset]
+            df = pl.read_parquet(f"{base_url}.parquet")
+            if "factorial" in dataset or "interaction" in dataset or "polynomial" in dataset:
+                doc_url = "https://marginaleffects.com/data/model_to_meaning_simulated_data.html"
+            elif dataset.startswith("ces"):
+                doc_url = "https://marginaleffects.com/data/ces.html"
+            else:
+                doc_url = f"{base_url}.html"
+        else:
+            csv_url = f"https://vincentarelbundock.github.io/Rdatasets/csv/{package}/{dataset}.csv"
+            doc_url = f"https://vincentarelbundock.github.io/Rdatasets/doc/{package}/{dataset}.html"
+            df = pl.read_csv(csv_url)
+
+        if docs:
+            return doc_url
+
+        return df
+
+    except BaseException as e:
+        raise ValueError(f"Error reading dataset: {e}")

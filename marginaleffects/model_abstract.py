@@ -58,7 +58,7 @@ class ModelAbstract(ABC):
         return None
 
     def find_variables(self, variables=None, newdata=None):
-        out = fml.variables(self.formula)
+        out = fml.extract_variables(self.formula)
         return out
 
     def find_response(self):

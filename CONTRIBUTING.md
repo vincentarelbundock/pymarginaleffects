@@ -72,6 +72,8 @@ We appreciate your contributions and look forward to reviewing your pull request
 
 * Follow the Numpydoc docstring style for the documentation, see [link](https://numpydoc.readthedocs.io/en/latest/format.html)
 
+* To generate .qmd files for package documentation, see tutorial in [_quarto.yml](_quarto.yml)
+
 ## Makefile
 
 The `marginaleffects` repository includes a `Makefile` to facilitate some common tasks.

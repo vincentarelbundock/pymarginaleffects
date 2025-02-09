@@ -1,6 +1,6 @@
 [project]
 name = "marginaleffects"
-version = "0.0.14.1"
+version = "0.0.14.2"
 description = "Predictions, counterfactual comparisons, slopes, and hypothesis tests for statistical models."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -15,10 +15,15 @@ dependencies = [
     "scipy >=1.14.1",
 ]
 
+[tool.setuptools.packages.find]
+exclude = ["qmd_files/*"]
+
+
 [project.optional-dependencies]
 test = [
     "duckdb >=1.1.2",
     "matplotlib >=3.7.1",
+    "linearmodels",
     "pandas >=2.2.2",
     "pyarrow >=17.0.0",
     "pyfixest >=0.24.2",
@@ -33,6 +38,7 @@ dev-dependencies = [
   "pytest >=8.1.1,<9",
   "pytest-xdist >=3.6.1",
   "ruff>=0.6.4",
+  "quartodoc",
 ]
 
 

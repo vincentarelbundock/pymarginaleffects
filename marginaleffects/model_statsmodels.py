@@ -109,6 +109,9 @@ class ModelStatsmodels(ModelAbstract):
 def fit_statsmodels(
     formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
 ):
+    """
+    fit docstring (TO DO)
+    """
     d = fml.listwise_deletion(formula, data=data)
     y, X = fml.model_matrices(formula, d)
     mod = engine(endog=y, exog=X, **kwargs_engine)
@@ -116,4 +119,5 @@ def fit_statsmodels(
     mod.data = d
     mod.formula = formula
     mod.formula_engine = "formulaic"
-    return ModelStatsmodels(mod)
+    mod.fit_engine = "statsmodels"
+    return mod

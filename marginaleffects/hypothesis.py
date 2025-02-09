@@ -125,7 +125,7 @@ def lincom_revreference(x, by):
     lincom[0] = 1
     lab = get_hypothesis_row_labels(x, by)
     if len(lab) == 0 or len(set(lab)) != len(lab):
-        lab = [f"Row 1 - Row {i+1}" for i in range(len(lincom))]
+        lab = [f"Row 1 - Row {i + 1}" for i in range(len(lincom))]
     else:
         lab = [f"{lab[0]} - {la}" for la in lab]
     lincom = pl.DataFrame(lincom, schema=lab)
@@ -138,7 +138,7 @@ def lincom_reference(x, by):
     lincom[0, :] = -1
     lab = get_hypothesis_row_labels(x, by)
     if len(lab) == 0 or len(set(lab)) != len(lab):
-        lab = [f"Row {i+1} - Row 1" for i in range(len(lincom))]
+        lab = [f"Row {i + 1} - Row 1" for i in range(len(lincom))]
     else:
         lab = [f"{la} - {lab[0]}" for la in lab]
     if lincom.shape[1] == 1:
@@ -153,9 +153,9 @@ def lincom_revsequential(x, by):
     lincom = np.zeros((len(x), len(x) - 1))
     lab = get_hypothesis_row_labels(x, by)
     if len(lab) == 0 or len(set(lab)) != len(lab):
-        lab = [f"Row {i+1} - Row {i+2}" for i in range(lincom.shape[1])]
+        lab = [f"Row {i + 1} - Row {i + 2}" for i in range(lincom.shape[1])]
     else:
-        lab = [f"{lab[i]} - {lab[i+1]}" for i in range(lincom.shape[1])]
+        lab = [f"{lab[i]} - {lab[i + 1]}" for i in range(lincom.shape[1])]
     for i in range(lincom.shape[1]):
         lincom[i : i + 2, i] = [1, -1]
     if lincom.shape[1] == 1:
@@ -169,9 +169,9 @@ def lincom_sequential(x, by):
     lincom = np.zeros((len(x), len(x) - 1))
     lab = get_hypothesis_row_labels(x, by)
     if len(lab) == 0 or len(set(lab)) != len(lab):
-        lab = [f"Row {i+2} - Row {i+1}" for i in range(lincom.shape[1])]
+        lab = [f"Row {i + 2} - Row {i + 1}" for i in range(lincom.shape[1])]
     else:
-        lab = [f"{lab[i+1]} - {lab[i]}" for i in range(lincom.shape[1])]
+        lab = [f"{lab[i + 1]} - {lab[i]}" for i in range(lincom.shape[1])]
     for i in range(lincom.shape[1]):
         lincom[i : i + 2, i] = [-1, 1]
     if lincom.shape[1] == 1:
@@ -194,7 +194,7 @@ def lincom_revpairwise(x, by):
                 tmp[j] = 1
                 mat.append(tmp)
                 if flag:
-                    lab_col.append(f"Row {j+1} - Row {i+1}")
+                    lab_col.append(f"Row {j + 1} - Row {i + 1}")
                 else:
                     lab_col.append(f"{lab_row[j]} - {lab_row[i]}")
     if len(mat) == 1:
@@ -217,7 +217,7 @@ def lincom_pairwise(x, by):
                 tmp[i] = 1
                 mat.append(tmp)
                 if flag:
-                    lab_col.append(f"Row {i+1} - Row {j+1}")
+                    lab_col.append(f"Row {i + 1} - Row {j + 1}")
                 else:
                     lab_col.append(f"{lab_row[i]} - {lab_row[j]}")
     if len(mat) == 1:

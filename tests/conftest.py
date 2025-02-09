@@ -1,6 +1,7 @@
+import polars as pl
 import pytest
 import statsmodels.formula.api as smf
-import polars as pl
+from linearmodels.datasets import wage_panel
 
 
 diamonds = pl.read_csv("tests/data/diamonds.csv")
@@ -28,6 +29,8 @@ penguins = pl.read_csv(
 ).drop_nulls()
 
 quine = pl.read_csv("tests/data/quine.csv")
+
+wage_panel_pd = wage_panel.load().set_index(["nr", "year"])
 
 
 @pytest.fixture(scope="session")
