@@ -5,6 +5,10 @@ import numpy as np
 import patsy
 import polars as pl
 
+from marginaleffects.doc_templates import (
+    _TEMPLATE_COMPARISONS_NOTE,
+    _TEMPLATE_ORDER_OF_OPERATIONS,
+)
 from marginaleffects.predictions import _template_returns
 
 from .classes import MarginaleffectsDataFrame
@@ -50,7 +54,7 @@ def comparisons(
     model : object
         Model object fitted using the `statsmodels` formula API.
     variables : str, list, dictionary
-        - a string, list of strings, or dictionary of variables to compute comparisons for. If `None`, comparisons are computed for all regressors in the model object. Acceptable values depend on the variable type. See the examples below.
+        - a string, list of strings, or dictionary of variables to compute comparisons for. If `None`, comparisons are computed for all regressors in the model object (can be slow). Acceptable values depend on the variable type. See the examples below.
         - Dictionary: keys identify the subset of variables of interest, and values define the type of contrast to compute. Acceptable values depend on the variable type:
             - Categorical variables:
                 * "reference": Each factor level is compared to the factor reference (base) level
@@ -99,11 +103,6 @@ def comparisons(
     >>> comparisons(model, variables=None, newdata=None, comparison="difference",
     ...            transform=None, equivalence=None, by=False, cross=False,
     ...            type="response", hypothesis=0, conf_level=0.95)
-
-    Notes
-    -----
-
-    The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
     """
 
     if callable(newdata):
@@ -383,5 +382,21 @@ def avg_comparisons(
     return out
 
 
+def _subdocstring_notes_section():
+    """
+    Notes
+    -----
+    """
+
+
+_subdocstring_notes_section.__doc__ = "\n".join(
+    [
+        _subdocstring_notes_section.__doc__,
+        _TEMPLATE_COMPARISONS_NOTE,
+        _TEMPLATE_ORDER_OF_OPERATIONS,
+    ]
+)
+
+inherit_numpy_docstring(_subdocstring_notes_section.__doc__, comparisons)
 inherit_numpy_docstring(_template_returns.__doc__, comparisons)
 inherit_numpy_docstring(comparisons.__doc__, avg_comparisons)

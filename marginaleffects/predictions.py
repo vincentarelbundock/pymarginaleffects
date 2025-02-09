@@ -1,6 +1,8 @@
 import numpy as np
 import polars as pl
 
+from marginaleffects.doc_templates import _TEMPLATE_ORDER_OF_OPERATIONS
+
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
@@ -38,22 +40,17 @@ def _template_returns():
             - conf_high: the upper confidence interval bound.
     """
 
-def _template_order_of_operations():
+
+def _subdocstring_notes_section():
     """
     Notes
     -----
-    Order of operations:
-
-    Behind the scenes, the arguments of `marginaleffects` functions are evaluated in this order:
-
-    1. `newdata`
-    2. `variables`
-    3. `comparison` and `slope`
-    4. `by`
-    5. `vcov`
-    6. `hypothesis`
-    7. `transform`
     """
+
+
+_subdocstring_notes_section.__doc__ = _subdocstring_notes_section.__doc__ + (
+    _TEMPLATE_ORDER_OF_OPERATIONS
+)
 
 
 def predictions(
@@ -256,5 +253,5 @@ def avg_predictions(
 
 
 inherit_numpy_docstring(_template_returns.__doc__, predictions)
-inherit_numpy_docstring(_template_order_of_operations.__doc__, predictions)
+inherit_numpy_docstring(_subdocstring_notes_section.__doc__, predictions)
 inherit_numpy_docstring(predictions.__doc__, avg_predictions)
