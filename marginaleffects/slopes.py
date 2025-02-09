@@ -20,12 +20,16 @@ def slopes(
     Estimate unit-level (conditional) partial derivative of the regression equation with respect to a regressor of interest.
 
     The newdata argument and the datagrid() function can be used to control where statistics are evaluated in the predictor space: "at observed values", "at the mean", "at representative values", etc.
+    See the package website and vignette for examples:
+        - https://marginaleffects.com/chapters/slopes.html
+        - https://marginaleffects.com
 
     Parameters
     ----------
     variables : str, list, dictionary
         A string, list of strings, or dictionary of variables to compute slopes for. If `None`, slopes are computed for all regressors in the model object (can be slow). Acceptable values depend on the variable type. See the examples below.
-        - Dictionary: keys identify the subset of variables of interest, and values define the type of contrast to compute. Acceptable values depend on the variable type:
+        - List[str] or str: List of variable names to compute slopes for.
+        - Dictionary: keys identify the subset of variables of interest, and values define locations between which the slope is computed. Acceptable values depend on the variable type:
             - Categorical variables:
                 * "reference": Each factor level is compared to the factor reference (base) level
                 * "all": All combinations of observed levels
@@ -52,12 +56,19 @@ def slopes(
     newdata : polars or pandas DataFrame, or str
         Data frame or string specifying where statistics are evaluated in the predictor space. If `None`, unit-level slopes are computed for each observed value in the original dataset (empirical distribution).
         - Dataframe: should be created with datagrid() function
-        - String: 
+        - String:
             * "mean": Compute slopes at the mean of the regressor
             * "median": Compute slopes at the median of the regressor
             * "balanced": Slopes evaluated on a balanced grid with every combination of categories and numeric variables held at their means.
             * "tukey": Probably NotImplemented
             * "grid": Probably NotImplemented
+    slope : str
+        The type of slope or (semi-)elasticity to compute. Acceptable values are:
+            - "dydx": dY/dX
+            - "eyex": dY/dX * Y / X
+            - "eydx": dY/dX * Y
+            - "dyex": dY/dX / X
+
     """
     if callable(newdata):
         newdata = newdata(model)
@@ -99,7 +110,14 @@ def avg_slopes(
     eps_vcov=None,
 ):
     """
-    avg slopes docstring (TO DO)
+    Estimate average (marginal) partial derivative of the regression equation with respect to a regressor of interest.
+
+    This function computes average partial derivatives across the sample or within groups. The newdata argument and
+    the datagrid() function can be used to control where statistics are evaluated in the predictor space: "at observed values",
+    "at the mean", "at representative values", etc.
+    See the package website and vignette for examples:
+        - https://marginaleffects.com/chapters/slopes.html
+        - https://marginaleffects.com
     """
     if callable(newdata):
         newdata = newdata(model)

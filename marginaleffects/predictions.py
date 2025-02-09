@@ -1,7 +1,7 @@
 import numpy as np
 import polars as pl
 
-from marginaleffects.doc_templates import _TEMPLATE_ORDER_OF_OPERATIONS
+from .doc_templates import _template_returns
 
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
@@ -23,36 +23,6 @@ from .formulaic import model_matrices
 from docstring_inheritance import inherit_numpy_docstring
 
 
-def _template_returns():
-    """
-    Returns
-    -------
-    DataFrame
-        The functions return a data.frame with the following columns:
-            - term: the name of the variable.
-            - contrast: the comparison method used.
-            - estimate: the estimated contrast, difference, ratio, or other transformation between pairs of predictions.
-            - std_error: the standard error of the estimate.
-            - statistic: the test statistic (estimate / std.error).
-            - p_value: the p-value of the test.
-            - s_value: Shannon transform of the p value.
-            - conf_low: the lower confidence interval bound.
-            - conf_high: the upper confidence interval bound.
-    """
-
-
-def _subdocstring_notes_section():
-    """
-    Notes
-    -----
-    """
-
-
-_subdocstring_notes_section.__doc__ = _subdocstring_notes_section.__doc__ + (
-    _TEMPLATE_ORDER_OF_OPERATIONS
-)
-
-
 def predictions(
     model,
     variables=None,
@@ -72,8 +42,8 @@ def predictions(
 
     This function handles unit-level (conditional) estimates based
     on the `variables` and `newdata` arguments. See the package website and vignette for examples:
-    - https://vincentarelbundock.github.io/marginaleffects/articles/predictions.html
-    - https://vincentarelbundock.github.io/marginaleffects/
+        - https://marginaleffects.com/chapters/predictions.html
+        - https://marginaleffects.com
 
     Parameters
     ----------
@@ -92,22 +62,45 @@ def predictions(
     newdata : Union[None, DataFrame], optional
         Grid of predictor values at which to evaluate predictions, by default predictions are made on the data used to fit the model.
         - Dataframe: should be created with datagrid() function
-        - String: 
+        - String:
             * "mean": Compute predictions at the mean of the regressor
             * "median": Compute predictions at the median of the regressor
             * "balanced": Predictions evaluated on a balanced grid with every combination of categories and numeric variables held at their means.
             * "tukey": Probably NotImplemented
             * "grid": Probably NotImplemented
-    by : bool, List[str]
+    by : bool, List[str], optional
         a logical value or a list of column names in `newdata`. If `True`, estimate is aggregated across the whole dataset. If a list is provided, estimates are aggregated for each unique combination of values in the columns.
-    wts : str
-        Column name of weights to use for marginalization. Must be a column in `newdata`
-    transform : Callable
+    transform : Callable, optional
         a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
             - `transform = numpy.exp`
             - `transform = lambda x: x.exp()`
             - `transform = lambda x: x.map_elements()`
-    hypothesis: String formula of hypothesis test or numpy array.
+    hypothesis : str, optional
+        String formula of hypothesis test or numpy array.
+    wts : str, optional
+        Column name of weights to use for marginalization. Must be a column in `newdata`.
+    vcov : bool, np.ndarray, optional
+        Type of uncertainty estimates to report (e.g. for robust standard errors). Acceptable values are:
+            - `True`: Use the model's default covariance matrix.
+            - `False`: Do not compute standard errors.
+            - np.ndarray: A custom square covariance matrix.
+    equivalence : list, optional
+        List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Notes section below.
+    eps_vcov : float, optional
+        Custom value for the finite difference approximation of the Jacobian matrix. By default, the function uses the square root of the machine epsilon.
+
+    Notes
+    -----
+    - The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
+
+    - Order of operations. Behind the scenes, the arguments of `marginaleffects` functions are evaluated in this order:
+        1. `newdata`
+        2. `variables`
+        3. `comparison` and `slope`
+        4. `by`
+        5. `vcov`
+        6. `hypothesis`
+        7. `transform`
 
     """
 
@@ -237,8 +230,9 @@ def avg_predictions(
 
     This function handles average (marginal) estimates based
     on the `variables` and `newdata` arguments. See the package website and vignette for examples:
-    - https://vincentarelbundock.github.io/marginaleffects/articles/predictions.html
-    - https://vincentarelbundock.github.io/marginaleffects/
+        - https://marginaleffects.com/chapters/predictions.html
+        - https://marginaleffects.com
+
     """
 
     if callable(newdata):
@@ -260,5 +254,4 @@ def avg_predictions(
 
 
 inherit_numpy_docstring(_template_returns.__doc__, predictions)
-inherit_numpy_docstring(_subdocstring_notes_section.__doc__, predictions)
 inherit_numpy_docstring(predictions.__doc__, avg_predictions)
