@@ -22,9 +22,6 @@ A Polars DataFrame with the following columns:
 """
 
 
-
-
-
 def docstrings_to_qmd(output_dir: str):
     """
     Loops over every name in marginaleffects.__all__ and writes the

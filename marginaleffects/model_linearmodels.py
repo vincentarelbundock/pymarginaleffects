@@ -262,11 +262,11 @@ def fit_linearmodels(
         - model: The fitted linearmodels model object (PanelEffectsResults)
     """
     try:
-        from linearmodels.panel.model import PanelResults
         from linearmodels.panel.model import _PanelModelBase
-        if isinstance(model, PanelResults):
-            return ModelLinearmodels(model)
-        assert isinstance(engine, _PanelModelBase), "Engine must be an instance of _PanelModelBase"
+
+        assert isinstance(
+            engine, _PanelModelBase
+        ), "Engine must be an instance of _PanelModelBase"
     except ImportError:
         pass
     linearmodels_formula, effects = parse_linearmodels_formula(formula)

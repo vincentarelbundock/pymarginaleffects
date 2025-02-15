@@ -236,13 +236,19 @@ def get_dataset(
     }
 
     if package == "marginaleffects":
-        assert dataset in datasets, f"Dataset '{dataset}' is not available in the 'marginaleffects' package."
+        assert dataset in datasets, (
+            f"Dataset '{dataset}' is not available in the 'marginaleffects' package."
+        )
 
     try:
         if dataset in datasets:
             base_url = datasets[dataset]
             df = pl.read_parquet(f"{base_url}.parquet")
-            if "factorial" in dataset or "interaction" in dataset or "polynomial" in dataset:
+            if (
+                "factorial" in dataset
+                or "interaction" in dataset
+                or "polynomial" in dataset
+            ):
                 doc_url = "https://marginaleffects.com/data/model_to_meaning_simulated_data.html"
             elif dataset.startswith("ces"):
                 doc_url = "https://marginaleffects.com/data/ces.html"
