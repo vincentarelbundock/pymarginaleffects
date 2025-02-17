@@ -1,4 +1,4 @@
-#from docstring_inheritance import inherit_numpy_docstring
+# from docstring_inheritance import inherit_numpy_docstring
 from .comparisons import comparisons
 
 
@@ -142,5 +142,5 @@ def avg_slopes(
     return out
 
 
-#inherit_numpy_docstring(comparisons.__doc__, slopes)
-#inherit_numpy_docstring(slopes.__doc__, avg_slopes)
+# inherit_numpy_docstring(comparisons.__doc__, slopes)
+# inherit_numpy_docstring(slopes.__doc__, avg_slopes)

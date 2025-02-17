@@ -6,7 +6,11 @@ from typing import Any, Dict
 import polars as pl
 from .utils import ingest
 from .model_abstract import ModelAbstract
-from .formulaic_utils import listwise_deletion, model_matrices, parse_linearmodels_formula
+from .formulaic_utils import (
+    listwise_deletion,
+    model_matrices,
+    parse_linearmodels_formula,
+)
 
 
 class ModelLinearmodels(ModelAbstract):
@@ -264,9 +268,9 @@ def fit_linearmodels(
     try:
         from linearmodels.panel.model import _PanelModelBase
 
-        assert isinstance(
-            engine, _PanelModelBase
-        ), "Engine must be an instance of _PanelModelBase"
+        assert isinstance(engine, _PanelModelBase), (
+            "Engine must be an instance of _PanelModelBase"
+        )
     except ImportError:
         pass
     linearmodels_formula, effects = parse_linearmodels_formula(formula)

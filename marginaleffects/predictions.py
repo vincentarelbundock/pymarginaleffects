@@ -1,8 +1,6 @@
 import numpy as np
 import polars as pl
 
-from .doc_templates import _template_returns
-
 from .by import get_by
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
@@ -20,7 +18,6 @@ from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 from .formulaic_utils import model_matrices
-from docstring_inheritance import inherit_numpy_docstring
 
 
 def predictions(

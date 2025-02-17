@@ -4,10 +4,7 @@ from functools import reduce
 import numpy as np
 import patsy
 import polars as pl
-from docstring_inheritance import inherit_numpy_docstring
 
-from .doc_templates import _template_returns
-from .predictions import predictions
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .estimands import estimands
@@ -325,7 +322,8 @@ def avg_comparisons(
     return out
 
 
-docs_comparisons = """
+docs_comparisons = (
+    """
 
 # `comparisons()`
 
@@ -402,7 +400,9 @@ Data frame or string specifying where statistics are evaluated in the predictor 
     - `True`: Use the model's default covariance matrix.
     - `False`: Do not compute standard errors.
     - np.ndarray: A custom square covariance matrix.
-""" + docstring_returns + """ 
+"""
+    + docstring_returns
+    + """ 
 # Examples
 ```py
 comparisons(model, variables=None, newdata=None, comparison="difference",
@@ -417,6 +417,7 @@ avg_comparisons(model, variables=None, newdata=None, comparison="difference",
 
 The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
 """
+)
 
 
 comparisons.__doc__ = docs_comparisons
