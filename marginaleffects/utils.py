@@ -202,6 +202,12 @@ def get_dataset(
     ------
     ValueError
         If the dataset is not among the specified choices.
+
+    Examples
+    --------
+    >>> get_dataset()
+    >>> get_dataset("Titanic", package="Stat2Data")
+    >>> get_dataset(search = "(?i)titanic)
     """
     if search:
         try:

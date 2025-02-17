@@ -23,7 +23,7 @@ exclude = ["qmd_files/*"]
 test = [
     "duckdb >=1.1.2",
     "matplotlib >=3.7.1",
-    "linearmodels",
+    "linearmodels >=6.1",
     "pandas >=2.2.2",
     "pyarrow >=17.0.0",
     "pyfixest >=0.24.2",

@@ -1,3 +1,4 @@
+from docstring_inheritance import inherit_numpy_docstring
 from .plot_common import dt_on_condition, plot_labels
 from .p9 import plot_common
 from .slopes import slopes
@@ -64,7 +65,7 @@ def plot_slopes(
         Names of the categorical predictors to marginalize across.
 
     newdata : dataframe
-        When newdata is NULL, the grid is determined by the condition argument. When newdata is not NULL, the argument behaves in the same way as in the predictions() function.
+        When newdata is `None`, the grid is determined by the condition argument. When newdata is not `None`, the argument behaves in the same way as in the predictions() function.
 
     wts: Column name of weights to use for marginalization. Must be a column in `newdata`
 
@@ -150,3 +151,6 @@ def plot_slopes(
         return dt
 
     return plot_common(model, dt, "Slope", var_list)
+
+
+inherit_numpy_docstring(slopes.__doc__, plot_slopes)

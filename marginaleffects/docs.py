@@ -5,7 +5,7 @@ import marginaleffects
 
 docstring_returns = """
 
-## Returns
+# Returns
 
 A Polars DataFrame with the following columns:
 

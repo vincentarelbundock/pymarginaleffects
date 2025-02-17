@@ -6,7 +6,7 @@ from typing import Any, Dict
 import polars as pl
 from .utils import ingest
 from .model_abstract import ModelAbstract
-from .formulaic import listwise_deletion, model_matrices, parse_linearmodels_formula
+from .formulaic_utils import listwise_deletion, model_matrices, parse_linearmodels_formula
 
 
 class ModelLinearmodels(ModelAbstract):

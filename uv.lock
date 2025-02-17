@@ -314,6 +314,14 @@ wheels = [
 ]
 
 [[package]]
+name = "docstring-inheritance"
+version = "2.2.2"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/df/c4/a098fe2006371014eddf84244751352c6160c2dc7d2d033aee732f4b2065/docstring_inheritance-2.2.2-py3-none-any.whl", hash = "sha256:090d7a6e098bbea8914839391d56cc38e32d37d471d99a3397ef9d94fa84b5e9", size = 24201 },
+]
+
+[[package]]
 name = "duckdb"
 version = "1.1.3"
 source = { registry = "https://pypi.org/simple" }
@@ -761,10 +769,12 @@ wheels = [
 
 [[package]]
 name = "marginaleffects"
-version = "0.0.14.1"
+version = "0.0.14.2"
 source = { virtual = "." }
 dependencies = [
+    { name = "docstring-inheritance" },
     { name = "formulaic" },
+    { name = "linearmodels" },
     { name = "narwhals" },
     { name = "numpy" },
     { name = "patsy" },
@@ -777,7 +787,6 @@ dependencies = [
 [package.optional-dependencies]
 test = [
     { name = "duckdb" },
-    { name = "linearmodels" },
     { name = "matplotlib" },
     { name = "pandas" },
     { name = "pyarrow" },
@@ -798,9 +807,10 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "docstring-inheritance", specifier = ">=2.2.2" },
     { name = "duckdb", marker = "extra == 'test'", specifier = ">=1.1.2" },
     { name = "formulaic", specifier = ">=1.0.2" },
-    { name = "linearmodels", marker = "extra == 'test'" },
+    { name = "linearmodels", specifier = ">=6.1" },
     { name = "matplotlib", marker = "extra == 'test'", specifier = ">=3.7.1" },
     { name = "narwhals", specifier = ">=1.10.0" },
     { name = "numpy", specifier = ">=2.0.0" },

@@ -4,7 +4,10 @@ from functools import reduce
 import numpy as np
 import patsy
 import polars as pl
+from docstring_inheritance import inherit_numpy_docstring
 
+from .doc_templates import _template_returns
+from .predictions import predictions
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .estimands import estimands
@@ -288,7 +291,18 @@ def avg_comparisons(
     eps=1e-4,
 ):
     """
-    docstring (TO DO)
+    `avg_comparisons()` predicts the average (marginal) outcome variable across different regressor values and compares those predictions by computing a difference, ratio, or some other function. This function can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
+
+    See the package website and vignette for examples:
+        - https://marginaleffects.com/chapters/comparisons.html
+        - https://marginaleffects.com
+
+    Examples
+    --------
+    >>> avg_comparisons(model, variables=None, newdata=None, comparison="difference",
+    ...                transform=None, equivalence=None, by=False, cross=False,
+    ...                type="response", hypothesis=0, conf_level=0.95)
+
     """
     if callable(newdata):
         newdata = newdata(model)
@@ -317,11 +331,21 @@ docs_comparisons = """
 
 `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
 
+* comparisons(): unit-level (conditional) estimates.
+* avg_comparisons(): average (marginal) estimates.
+
+See the package website and vignette for examples:
+* https://marginaleffects.com/chapters/comparisons.html
+* https://marginaleffects.com
+
 ## Parameters
 
-* model : object Model object fitted using the `statsmodels` formula API.
-* variables : str, list, dictionary
-    - a string, list of strings, or dictionary of variables to compute comparisons for. If `None`, comparisons are computed for all regressors in the model object. Acceptable values depend on the variable type. See the examples below.
+* model : (object Model). 
+Object fitted using the `statsmodels` formula API.
+* variables : (str, list, dictionary)
+Specifies what variables (columns) to vary in order to make the comparison.
+If `None`, comparisons are computed for all regressors in the model object (can be slow). Acceptable values depend on the variable type. See the examples below.
+    - List[str] or str: List of variable names to compute comparisons for.
     - Dictionary: keys identify the subset of variables of interest, and values define the type of contrast to compute. Acceptable values depend on the variable type:
         - Categorical variables:
             * "reference": Each factor level is compared to the factor reference (base) level
@@ -346,33 +370,55 @@ docs_comparisons = """
     - Examples:
         + `variables = {"gear" = "pairwise", "hp" = 10}`
         + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
-* newdata : polars or pandas DataFrame, or str
-    - Data frame or string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
-* comparison : str
-    - String specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
-* transform : function
+* newdata : (polars or pandas DataFrame, or str)
+Data frame or string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
+    - Dataframe: should be created with datagrid() function
+    - String:
+        * "mean": Compute comparisons at the mean of the regressor
+        * "median": Compute comparisons at the median of the regressor
+        * "balanced": Comparisons evaluated on a balanced grid with every combination of categories and numeric variables held at their means.
+        * "tukey": Probably NotImplemented
+        * "grid": Probably NotImplemented
+* comparison : (str)
+    String specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
+    Acceptable values: difference, differenceavg, differenceavgwts, dydx, eyex, eydx, dyex, dydxavg, eyexavg, eydxavg, dyexavg, dydxavgwts, eyexavgwts, eydxavgwts, dyexavgwts, ratio, ratioavg, ratioavgwts, lnratio, lnratioavg, lnratioavgwts, lnor, lnoravg, lnoravgwts, lift, liftavg, liftavgwts, expdydx, expdydxavg, expdydxavgwts
+* transform : (function)
     Function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
         - `transform = numpy.exp`
         - `transform = lambda x: x.exp()`
         - `transform = lambda x: x.map_elements()`
-* equivalence : list
+* equivalence : (list)
     - List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
-* by : bool, str
-    - Logical value, list of column names in `newdata`. If `True`, estimates are aggregated for each term.
-* hypothesis : str, numpy array
-    - String specifying a numeric value specifying the null hypothesis used for computing p-values.
-* conf_level : float
-    - Numeric value specifying the confidence level for the confidence intervals. Default is 0.95.
-
+* hypothesis : (str, numpy array)
+    String specifying a numeric value specifying the null hypothesis used for computing p-values.
+* by : (bool, List[str], optional)
+    A logical value or a list of column names in `newdata`. If `True`, estimate is aggregated across the whole dataset. If a list is provided, estimates are aggregated for each unique combination of values in the columns.
+* conf_level : (float)
+    Numeric value specifying the confidence level for the confidence intervals. Default is 0.95.
+* wts : (str, optional)
+    Column name of weights to use for marginalization. Must be a column in `newdata`.
+* vcov : (bool, np.ndarray, optional)
+    Type of uncertainty estimates to report (e.g. for robust standard errors). Acceptable values are:
+    - `True`: Use the model's default covariance matrix.
+    - `False`: Do not compute standard errors.
+    - np.ndarray: A custom square covariance matrix.
+""" + docstring_returns + """ 
 # Examples
+```py
+comparisons(model, variables=None, newdata=None, comparison="difference",
+    transform=None, equivalence=None, by=False, cross=False,
+    type="response", hypothesis=0, conf_level=0.95)
 
-
+avg_comparisons(model, variables=None, newdata=None, comparison="difference",
+    transform=None, equivalence=None, by=False, cross=False,
+    type="response", hypothesis=0, conf_level=0.95)
+```
 # Details
 
 The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
 """
 
 
-comparisons.__doc__ = docs_comparisons + docstring_returns
+comparisons.__doc__ = docs_comparisons
 
 avg_comparisons.__doc__ = comparisons.__doc__
