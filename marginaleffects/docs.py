@@ -89,7 +89,8 @@ If `None`, comparisons are computed for all regressors in the model object (can 
         + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
 """
     docstring_eps = """
-* eps : (to be added if seen in R docs)
+* eps : (float, optional)
+    step size to use when calculating numerical derivatives: (f(x+eps)-f(x))/eps. Default value is 1e-4 multiplied by the difference between the maximum and minimum values of the variable with respect to which we are taking the derivative. Changing eps may be necessary to avoid numerical problems in certain models.
 """
 
 

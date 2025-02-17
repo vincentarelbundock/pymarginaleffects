@@ -139,5 +139,3 @@ def avg_slopes(
     )
 
     return out
-
-
