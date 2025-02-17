@@ -1,4 +1,3 @@
-from docstring_inheritance import inherit_numpy_docstring
 from .plot_common import dt_on_condition, plot_labels
 from .p9 import plot_common
 from .slopes import slopes
@@ -151,6 +150,3 @@ def plot_slopes(
         return dt
 
     return plot_common(model, dt, "Slope", var_list)
-
-
-inherit_numpy_docstring(slopes.__doc__, plot_slopes)
