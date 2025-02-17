@@ -88,6 +88,9 @@ If `None`, comparisons are computed for all regressors in the model object (can 
         + `variables = {"gear" = "pairwise", "hp" = 10}`
         + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
 """
+    docstring_eps = """
+* eps : (to be added if seen in R docs)
+"""
 
 
 docstring_returns = """

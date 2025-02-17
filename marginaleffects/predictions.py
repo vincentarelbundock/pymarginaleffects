@@ -177,8 +177,6 @@ def avg_predictions(
     return out
 
 
-# inherit_numpy_docstring(_template_returns.__doc__, predictions)
-# inherit_numpy_docstring(predictions.__doc__, avg_predictions)
 docs_predictions = (
     """
 # `predictions()`

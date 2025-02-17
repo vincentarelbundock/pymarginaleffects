@@ -291,20 +291,6 @@ def avg_comparisons(
     transform=None,
     eps=1e-4,
 ):
-    """
-    `avg_comparisons()` predicts the average (marginal) outcome variable across different regressor values and compares those predictions by computing a difference, ratio, or some other function. This function can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
-
-    See the package website and vignette for examples:
-        - https://marginaleffects.com/chapters/comparisons.html
-        - https://marginaleffects.com
-
-    Examples
-    --------
-    >>> avg_comparisons(model, variables=None, newdata=None, comparison="difference",
-    ...                transform=None, equivalence=None, by=False, cross=False,
-    ...                type="response", hypothesis=0, conf_level=0.95)
-
-    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -357,6 +343,7 @@ See the package website and vignette for examples:
     + DocsParameters.docstring_vcov
     + DocsParameters.docstring_equivalence
     + DocsParameters.docstring_conf_level
+    + DocsParameters.docstring_eps
     + DocsParameters.docstring_eps_vcov
     + docstring_returns
     + """ 
