@@ -3,7 +3,7 @@ import numpy as np
 import polars as pl
 import patsy
 from .model_abstract import ModelAbstract
-from . import formulaic as fml
+from . import formulaic_utils as fml
 from .utils import validate_types, ingest
 
 

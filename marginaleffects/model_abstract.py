@@ -2,7 +2,7 @@ import numpy as np
 import polars as pl
 from abc import ABC, abstractmethod
 from .utils import get_type_dictionary
-from . import formulaic as fml
+from . import formulaic_utils as fml
 
 
 class ModelAbstract(ABC):

@@ -44,36 +44,36 @@ def plot_comparisons(
     ----------
     model : object
         Model object.
-
     variables : str, list, dictionary
         Name of the variable whose contrast we want to plot on the y-axis.
         Refer to the `comparisons()` documentation.
-
     condition : str, list, dictionary
         Max length : 3.
         1: x-axis. 2: color. 3: facets.
-        list : Names of the predictors to display
-            Numeric variables in position 1 is summarized by 100 numbers
-            Numeric variables in positions 2 and 3 are summarized by Tukey’s five numbers
-        dictionary : Keys correspond to predictors. Values are numeric vectors.
-            - Series of lists of the same type as the original variable.
-            - Numeric variables:
-                - Series or list of numeric values.
-                - String: "minmax", "threenum", "fivenum".
+            list : Names of the predictors to display
+                Numeric variables in position 1 is summarized by 100 numbers
+                Numeric variables in positions 2 and 3 are summarized by Tukey’s five numbers
+            dictionary : Keys correspond to predictors. Values are numeric vectors.
+                - Series of lists of the same type as the original variable.
+                - Numeric variables:
+                    - Series or list of numeric values.
+                    - String: "minmax", "threenum", "fivenum".
 
     by : bool, str, list
-        Max length : 3.
-        1: x-axis. 2: color. 3: facets.
         Aggregate unit-level estimates (aka, marginalize, average over).
+            Max length of list is 3, with position meanings:
+                1. x-axis.
+                2. color.
+                3. facets.
 
     newdata : dataframe
-        When newdata is NULL, the grid is determined by the condition argument. When newdata is not NULL, the argument behaves in the same way as in the predictions() function.
+        When newdata is `None`, the grid is determined by the condition argument. When newdata is not `None`, the argument behaves in the same way as in the predictions() function.
 
     wts: Column name of weights to use for marginalization. Must be a column in `newdata`
 
     transform : Callable, optional
         A function applied to unit-level adjusted predictions and confidence intervals just before
-        the function returns results, by default None.
+        the function returns results, by default `None`.
 
     draw : True returns a matplotlib plot. False returns a dataframe of the underlying data.
     """

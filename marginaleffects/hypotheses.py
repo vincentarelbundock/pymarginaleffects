@@ -31,22 +31,24 @@ def hypotheses(
 
     To learn more, visit the package website: <https://marginaleffects.com/>
 
+    Warnings
+    --------
     Warning #1: Tests are conducted directly on the scale defined by the `type` argument. For some models, it can make
     sense to conduct hypothesis or equivalence tests on the `"link"` scale instead of the `"response"` scale which is
     often the default.
 
     Warning #2: For hypothesis tests on objects produced by the `marginaleffects` package, it is safer to use the
-    `hypothesis` argument of the original function. Using `hypotheses()` may not work in certain environments, in lists,
-    or when working programmatically with *apply style functions.
+    `hypothesis` argument of the original function.
 
     Warning #3: The tests assume that the `hypothesis` expression is (approximately) normally distributed, which for
     non-linear functions of the parameters may not be realistic. More reliable confidence intervals can be obtained using
-    the `inferences()` function with `method = "boot"`.
+    the `inferences()` (in R only) function with `method = "boot"`
 
-    Parameters:
+    Parameters
+    ----------
     model : object
         Model object estimated by `statsmodels`
-    hypothesis : str formula, int, float, numpy array or optional
+    hypothesis : str, int, float or numpy array, optional
         The null hypothesis value. Default is None.
     conf_level : float, optional
         Confidence level for the hypothesis test. Default is 0.95.
@@ -55,29 +57,30 @@ def hypotheses(
     equivalence : tuple, optional
         The equivalence range for the hypothesis test. Default is None.
 
-    Returns:
+    Returns
+    -------
     MarginaleffectsDataFrame
         A DataFrame containing the results of the hypothesis tests.
 
-    Examples:
+    Examples
+    --------
+    >>> # When `hypothesis` is `None`, `hypotheses()` returns a DataFrame of parameters
+    >>> hypotheses(model)
 
-        # When `hypothesis` is `None`, `hypotheses()` returns a DataFrame of parameters
-        hypotheses(model)
+    >>> # A different null hypothesis
+    >>> hypotheses(model, hypothesis = 3)
 
-        # A different null hypothesis
-        hypotheses(model, hypothesis = 3)
+    >>> # Test of equality between coefficients
+    >>> hypotheses(model, hypothesis="param1 = param2")
 
-        # Test of equality between coefficients
-        hypotheses(model, hypothesis="param1 = param2")
+    >>> # Non-linear function
+    >>> hypotheses(model, hypothesis="exp(param1 + param2) = 0.1")
 
-        # Non-linear function
-        hypotheses(model, hypothesis="exp(param1 + param2) = 0.1")
+    >>> # Robust standard errors
+    >>> hypotheses(model, hypothesis="param1 = param2", vcov="HC3")
 
-        # Robust standard errors
-        hypotheses(model, hypothesis="param1 = param2", vcov="HC3")
-
-        # Equivalence, non-inferiority, and non-superiority tests
-        hypotheses(model, equivalence=(0, 10))
+    >>> # Equivalence, non-inferiority, and non-superiority tests
+    >>> hypotheses(model, equivalence=(0, 10))
     """
 
     model = sanitize_model(model)

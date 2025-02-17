@@ -17,7 +17,13 @@ from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
-from .formulaic import model_matrices
+from .formulaic_utils import model_matrices
+
+from .docs import (
+    DocsDetails,
+    DocsParameters,
+    docstring_returns,
+)
 
 
 def predictions(
@@ -33,49 +39,6 @@ def predictions(
     wts=None,
     eps_vcov=None,
 ):
-    """
-    Predict outcomes using a fitted model on a specified scale for given combinations of values
-    of predictor variables, such as their observed values, means, or factor levels (reference grid).
-
-    This function handles unit-level (conditional) estimates and average (marginal) estimates based
-    on the `variables` and `newdata` arguments. See the package website and vignette for examples:
-    - https://vincentarelbundock.github.io/marginaleffects/articles/predictions.html
-    - https://vincentarelbundock.github.io/marginaleffects/
-
-    Parameters
-    ----------
-    model : object
-        Model object.
-
-    newdata : Union[None, DataFrame], optional
-        Grid of predictor values at which to evaluate predictions, by default predictions are made on the data used to fit the model.
-
-    by (bool, str): a logical value, a list of column names in `newdata`. If `True`, estimates are aggregated for each term.
-
-    wts: Column name of weights to use for marginalization. Must be a column in `newdata`
-
-    transform (function): a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
-        - `transform = numpy.exp`
-        - `transform = lambda x: x.exp()`
-        - `transform = lambda x: x.map_elements()`
-
-    hypothesis: String formula of hypothesis test or numpy array.
-
-    Returns
-    -------
-    DataFrame
-        A DataFrame with one row per observation and several columns:
-        - rowid: row number of the `newdata` data frame
-        - type: prediction type, as defined by the `type` argument
-        - group: (optional) value of the grouped outcome (e.g., categorical outcome models)
-        - estimate: predicted outcome
-        - std_error: standard errors computed using the delta method.
-        - p_value: p value associated with the `estimate` column.
-        - s_value: Shannon information transforms of p values.
-        - conf_low: lower bound of the confidence interval (or equal-tailed interval for Bayesian models)
-        - conf_high: upper bound of the confidence interval (or equal-tailed interval for Bayesian models)
-    """
-
     if callable(newdata):
         newdata = newdata(model)
 
@@ -196,9 +159,6 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
-    """
-    Predict average outcomes (TO DO)
-    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -215,3 +175,43 @@ def avg_predictions(
     )
 
     return out
+
+
+docs_predictions = (
+    """
+# `predictions()`
+
+`predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
+    
+* predictions(): unit-level (conditional) estimates.
+* avg_predictions(): average (marginal) estimates.
+
+See the package website and vignette for examples:
+    - https://marginaleffects.com/chapters/predictions.html
+    - https://marginaleffects.com
+
+## Parameters
+"""
+    + DocsParameters.docstring_model
+    + DocsParameters.docstring_variables
+    + DocsParameters.docstring_newdata
+    + DocsParameters.docstring_by
+    + DocsParameters.docstring_transform
+    + DocsParameters.docstring_hypothesis
+    + DocsParameters.docstring_wts
+    + DocsParameters.docstring_vcov
+    + DocsParameters.docstring_equivalence
+    + DocsParameters.docstring_conf_level
+    + DocsParameters.docstring_eps_vcov
+    + docstring_returns
+    + """ 
+## Details
+"""
+    + DocsDetails.docstring_tost
+    + DocsDetails.docstring_order_of_operations
+)
+
+
+predictions.__doc__ = docs_predictions
+
+avg_predictions.__doc__ = predictions.__doc__

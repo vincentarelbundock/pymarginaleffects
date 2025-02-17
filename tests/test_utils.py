@@ -80,7 +80,7 @@ def test_ingest_arrow(sample_arrow_df):
 def test_get_dataset_polars(input_args, expected_output):
     output = get_dataset(**input_args)
     assert isinstance(output, pl.DataFrame), "Result should be a Polars DataFrame"
-    assert output.shape == expected_output, "Expected shape (8,6)"
+    assert output.shape == expected_output, "Expected shape (2884, 8)"
 
 
 @pytest.mark.parametrize(
