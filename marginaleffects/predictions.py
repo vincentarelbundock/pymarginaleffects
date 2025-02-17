@@ -19,6 +19,12 @@ from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 from .formulaic_utils import model_matrices
 
+from .docs import (
+    DocsDetails,
+    DocsParameters,
+    docstring_returns,
+)
+
 
 def predictions(
     model,
@@ -33,74 +39,6 @@ def predictions(
     wts=None,
     eps_vcov=None,
 ):
-    """
-    Predict outcomes using a fitted model on a specified scale for given combinations of values
-    of predictor variables, such as their observed values, means, or factor levels (reference grid).
-
-    This function handles unit-level (conditional) estimates based
-    on the `variables` and `newdata` arguments. See the package website and vignette for examples:
-        - https://marginaleffects.com/chapters/predictions.html
-        - https://marginaleffects.com
-
-    Parameters
-    ----------
-    model : object
-        Model object.
-    variables : dict, optional
-        Dictionary of variables and associated values over which to compute predictions.
-        If `None`, computes one prediction per row in `newdata`.
-        Note that the `values` accept the following special strings:
-            - "sd": Contrast across one standard deviation around the regressor mean.
-            - "2sd": Contrast across two standard deviations around the regressor mean.
-            - "iqr": Contrast across the interquartile range of the regressor.
-            - "minmax": Contrast between the maximum and the minimum values of the regressor.
-            - "threenum": mean and 1 standard deviation on both sides
-            - "fivenum": Tukey's five numbers
-    newdata : Union[None, DataFrame], optional
-        Grid of predictor values at which to evaluate predictions, by default predictions are made on the data used to fit the model.
-        - Dataframe: should be created with datagrid() function
-        - String:
-            * "mean": Compute predictions at the mean of the regressor
-            * "median": Compute predictions at the median of the regressor
-            * "balanced": Predictions evaluated on a balanced grid with every combination of categories and numeric variables held at their means.
-            * "tukey": Probably NotImplemented
-            * "grid": Probably NotImplemented
-    by : bool, List[str], optional
-        a logical value or a list of column names in `newdata`. If `True`, estimate is aggregated across the whole dataset. If a list is provided, estimates are aggregated for each unique combination of values in the columns.
-    transform : Callable, optional
-        a function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
-            - `transform = numpy.exp`
-            - `transform = lambda x: x.exp()`
-            - `transform = lambda x: x.map_elements()`
-    hypothesis : str, optional
-        String formula of hypothesis test or numpy array.
-    wts : str, optional
-        Column name of weights to use for marginalization. Must be a column in `newdata`.
-    vcov : bool, np.ndarray, optional
-        Type of uncertainty estimates to report (e.g. for robust standard errors). Acceptable values are:
-            - `True`: Use the model's default covariance matrix.
-            - `False`: Do not compute standard errors.
-            - np.ndarray: A custom square covariance matrix.
-    equivalence : list, optional
-        List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Notes section below.
-    eps_vcov : float, optional
-        Custom value for the finite difference approximation of the Jacobian matrix. By default, the function uses the square root of the machine epsilon.
-
-    Notes
-    -----
-    - The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
-
-    - Order of operations. Behind the scenes, the arguments of `marginaleffects` functions are evaluated in this order:
-        1. `newdata`
-        2. `variables`
-        3. `comparison` and `slope`
-        4. `by`
-        5. `vcov`
-        6. `hypothesis`
-        7. `transform`
-
-    """
-
     if callable(newdata):
         newdata = newdata(model)
 
@@ -221,17 +159,6 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
-    """
-    Predict outcomes using a fitted model on a specified scale for given combinations of values
-    of predictor variables, such as their observed values, means, or factor levels (reference grid).
-
-    This function handles average (marginal) estimates based
-    on the `variables` and `newdata` arguments. See the package website and vignette for examples:
-        - https://marginaleffects.com/chapters/predictions.html
-        - https://marginaleffects.com
-
-    """
-
     if callable(newdata):
         newdata = newdata(model)
 
@@ -252,3 +179,41 @@ def avg_predictions(
 
 # inherit_numpy_docstring(_template_returns.__doc__, predictions)
 # inherit_numpy_docstring(predictions.__doc__, avg_predictions)
+docs_predictions = (
+    """
+# `predictions()`
+
+`predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
+    
+* predictions(): unit-level (conditional) estimates.
+* avg_predictions(): average (marginal) estimates.
+
+See the package website and vignette for examples:
+    - https://marginaleffects.com/chapters/predictions.html
+    - https://marginaleffects.com
+
+## Parameters
+"""
+    + DocsParameters.docstring_model
+    + DocsParameters.docstring_variables
+    + DocsParameters.docstring_newdata
+    + DocsParameters.docstring_by
+    + DocsParameters.docstring_transform
+    + DocsParameters.docstring_hypothesis
+    + DocsParameters.docstring_wts
+    + DocsParameters.docstring_vcov
+    + DocsParameters.docstring_equivalence
+    + DocsParameters.docstring_conf_level
+    + DocsParameters.docstring_eps_vcov
+    + docstring_returns
+    + """ 
+## Details
+"""
+    + DocsDetails.docstring_tost
+    + DocsDetails.docstring_order_of_operations
+)
+
+
+predictions.__doc__ = docs_predictions
+
+avg_predictions.__doc__ = predictions.__doc__

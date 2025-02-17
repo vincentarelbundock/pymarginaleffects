@@ -23,7 +23,11 @@ from .utils import get_pad, sort_columns, upcast, ingest
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 
-from .docs import docstring_returns
+from .docs import (
+    DocsDetails,
+    DocsParameters,
+    docstring_returns,
+)
 
 
 def comparisons(
@@ -337,73 +341,26 @@ See the package website and vignette for examples:
 * https://marginaleffects.com
 
 ## Parameters
-
-* model : (object Model). 
-Object fitted using the `statsmodels` formula API.
-* variables : (str, list, dictionary)
-Specifies what variables (columns) to vary in order to make the comparison.
-If `None`, comparisons are computed for all regressors in the model object (can be slow). Acceptable values depend on the variable type. See the examples below.
-    - List[str] or str: List of variable names to compute comparisons for.
-    - Dictionary: keys identify the subset of variables of interest, and values define the type of contrast to compute. Acceptable values depend on the variable type:
-        - Categorical variables:
-            * "reference": Each factor level is compared to the factor reference (base) level
-            * "all": All combinations of observed levels
-            * "sequential": Each factor level is compared to the previous factor level
-            * "pairwise": Each factor level is compared to all other levels
-            * "minmax": The highest and lowest levels of a factor.
-            * "revpairwise", "revreference", "revsequential": inverse of the corresponding hypotheses.
-            * Vector of length 2 with the two values to compare.
-        - Boolean variables:
-            * `None`: contrast between True and False
-        - Numeric variables:
-            * Numeric of length 1: Contrast for a gap of `x`, computed at the observed value plus and minus `x / 2`. For example, estimating a `+1` contrast compares adjusted predictions when the regressor is equal to its observed value minus 0.5 and its observed value plus 0.5.
-            * Numeric of length equal to the number of rows in `newdata`: Same as above, but the contrast can be customized for each row of `newdata`.
-            * Numeric vector of length 2: Contrast between the 2nd element and the 1st element of the `x` vector.
-            * Data frame with the same number of rows as `newdata`, with two columns of "low" and "high" values to compare.
-            * Function which accepts a numeric vector and returns a data frame with two columns of "low" and "high" values to compare. See examples below.
-            * "iqr": Contrast across the interquartile range of the regressor.
-            * "sd": Contrast across one standard deviation around the regressor mean.
-            * "2sd": Contrast across two standard deviations around the regressor mean.
-            * "minmax": Contrast between the maximum and the minimum values of the regressor.
-    - Examples:
-        + `variables = {"gear" = "pairwise", "hp" = 10}`
-        + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
-* newdata : (polars or pandas DataFrame, or str)
-Data frame or string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
-    - Dataframe: should be created with datagrid() function
-    - String:
-        * "mean": Compute comparisons at the mean of the regressor
-        * "median": Compute comparisons at the median of the regressor
-        * "balanced": Comparisons evaluated on a balanced grid with every combination of categories and numeric variables held at their means.
-        * "tukey": Probably NotImplemented
-        * "grid": Probably NotImplemented
+"""
+    + DocsParameters.docstring_model
+    + DocsParameters.docstring_variables
+    + DocsParameters.docstring_newdata
+    + """
 * comparison : (str)
     String specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
     Acceptable values: difference, differenceavg, differenceavgwts, dydx, eyex, eydx, dyex, dydxavg, eyexavg, eydxavg, dyexavg, dydxavgwts, eyexavgwts, eydxavgwts, dyexavgwts, ratio, ratioavg, ratioavgwts, lnratio, lnratioavg, lnratioavgwts, lnor, lnoravg, lnoravgwts, lift, liftavg, liftavgwts, expdydx, expdydxavg, expdydxavgwts
-* transform : (function)
-    Function specifying a transformation applied to unit-level estimates and confidence intervals just before the function returns results. Functions must accept a full column (series) of a Polars data frame and return a corresponding series of the same length. Ex:
-        - `transform = numpy.exp`
-        - `transform = lambda x: x.exp()`
-        - `transform = lambda x: x.map_elements()`
-* equivalence : (list)
-    - List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
-* hypothesis : (str, numpy array)
-    String specifying a numeric value specifying the null hypothesis used for computing p-values.
-* by : (bool, List[str], optional)
-    A logical value or a list of column names in `newdata`. If `True`, estimate is aggregated across the whole dataset. If a list is provided, estimates are aggregated for each unique combination of values in the columns.
-* conf_level : (float)
-    Numeric value specifying the confidence level for the confidence intervals. Default is 0.95.
-* wts : (str, optional)
-    Column name of weights to use for marginalization. Must be a column in `newdata`.
-* vcov : (bool, np.ndarray, optional)
-    Type of uncertainty estimates to report (e.g. for robust standard errors). Acceptable values are:
-    - `True`: Use the model's default covariance matrix.
-    - `False`: Do not compute standard errors.
-    - np.ndarray: A custom square covariance matrix.
 """
+    + DocsParameters.docstring_by
+    + DocsParameters.docstring_transform
+    + DocsParameters.docstring_hypothesis
+    + DocsParameters.docstring_wts
+    + DocsParameters.docstring_vcov
+    + DocsParameters.docstring_equivalence
+    + DocsParameters.docstring_conf_level
+    + DocsParameters.docstring_eps_vcov
     + docstring_returns
     + """ 
-# Examples
+## Examples
 ```py
 comparisons(model, variables=None, newdata=None, comparison="difference",
     transform=None, equivalence=None, by=False, cross=False,
@@ -413,10 +370,10 @@ avg_comparisons(model, variables=None, newdata=None, comparison="difference",
     transform=None, equivalence=None, by=False, cross=False,
     type="response", hypothesis=0, conf_level=0.95)
 ```
-# Details
-
-The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
+## Details
 """
+    + DocsDetails.docstring_tost
+    + DocsDetails.docstring_order_of_operations
 )
 
 
