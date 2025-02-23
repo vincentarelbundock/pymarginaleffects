@@ -187,14 +187,14 @@ docs_predictions = (
 * avg_predictions(): average (marginal) estimates.
 
 See the package website and vignette for examples:
-    - https://marginaleffects.com/chapters/predictions.html
-    - https://marginaleffects.com
+- https://marginaleffects.com/chapters/predictions.html
+- https://marginaleffects.com
 
 ## Parameters
 """
     + DocsParameters.docstring_model
-    + DocsParameters.docstring_variables
-    + DocsParameters.docstring_newdata
+    + DocsParameters.docstring_variables("prediction")
+    + DocsParameters.docstring_newdata("prediction")
     + DocsParameters.docstring_by
     + DocsParameters.docstring_transform
     + DocsParameters.docstring_hypothesis

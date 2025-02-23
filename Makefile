@@ -28,3 +28,6 @@ docs: ## build quartodoc
 	sed -i '' '1s/{.*//' qmd_files/*.qmd
 	sed -i '' '1s/$/ {.unnumbered}/' qmd_files/*.qmd
 	cp qmd_files/*qmd ~/repos/marginaleffectscom/man/python/
+
+qmd:
+	uv build && uv pip install dist/marginaleffects-0.0.14.2-py3-none-any.whl && python marginaleffects/docs.py

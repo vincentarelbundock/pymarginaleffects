@@ -4,6 +4,14 @@ import marginaleffects
 
 
 class DocsParameters:
+    docstring_slope = """
+* slope : (str)
+    The type of slope or (semi-)elasticity to compute. Acceptable values are:
+        - "dydx": dY/dX
+        - "eyex": dY/dX * Y / X
+        - "eydx": dY/dX * Y
+        - "dyex": dY/dX / X
+"""
     docstring_hypothesis = """
 * hypothesis : (str, numpy array)
     String specifying a numeric value specifying the null hypothesis used for computing p-values.
@@ -39,17 +47,20 @@ class DocsParameters:
         - `transform = lambda x: x.map_elements()`
 """
 
-    docstring_newdata = """
+    def docstring_newdata(x):
+        return f"""
 * newdata : (polars or pandas DataFrame, or str)
-Data frame or string specifying where statistics are evaluated in the predictor space. If `None`, unit-level contrasts are computed for each observed value in the original dataset (empirical distribution).
+Data frame or string specifying where statistics are evaluated in the predictor space.
+    - None: Compute {x}s at each observed value in the original dataset (empirical distribution)
     - Dataframe: should be created with datagrid() function
     - String:
-        * "mean": Compute comparisons at the mean of the regressor
-        * "median": Compute comparisons at the median of the regressor
-        * "balanced": Comparisons evaluated on a balanced grid with every combination of categories and numeric variables held at their means.
+        * "mean": Compute {x}s at the mean of the regressor
+        * "median": Compute {x}s at the median of the regressor
+        * "balanced": Compute {x}s on a balanced grid with every combination of categories and numeric variables held at their means.
         * "tukey": Probably NotImplemented
         * "grid": Probably NotImplemented
 """
+
     docstring_model = """
 * model : (object Model). 
 Object fitted using the `statsmodels` formula API.
@@ -58,11 +69,13 @@ Object fitted using the `statsmodels` formula API.
 * eps_vcov : float, optional
     custom value for the finite difference approximation of the jacobian matrix. by default, the function uses the square root of the machine epsilon.
 """
-    docstring_variables = """
+
+    def docstring_variables(x):
+        return f"""
 * variables : (str, list, dictionary)
-Specifies what variables (columns) to vary in order to make the comparison.
-If `None`, comparisons are computed for all regressors in the model object (can be slow). Acceptable values depend on the variable type. See the examples below.
-    - List[str] or str: List of variable names to compute comparisons for.
+Specifies what variables (columns) to vary in order to make the {x}.
+If `None`, {x}s are computed for all regressors in the model object (can be slow). Acceptable values depend on the variable type. See the examples below.
+    - List[str] or str: List of variable names to compute {x}s for.
     - Dictionary: keys identify the subset of variables of interest, and values define the type of contrast to compute. Acceptable values depend on the variable type:
         - Categorical variables:
             * "reference": Each factor level is compared to the factor reference (base) level
@@ -85,9 +98,10 @@ If `None`, comparisons are computed for all regressors in the model object (can 
             * "2sd": Contrast across two standard deviations around the regressor mean.
             * "minmax": Contrast between the maximum and the minimum values of the regressor.
     - Examples:
-        + `variables = {"gear" = "pairwise", "hp" = 10}`
-        + `variables = {"gear" = "sequential", "hp" = [100, 120]}`
+        + `variables = "gear" : "pairwise", "hp" : 10`
+        + `variables = "gear" : "sequential", "hp" : [100, 120]`
 """
+
     docstring_eps = """
 * eps : (float, optional)
     step size to use when calculating numerical derivatives: (f(x+eps)-f(x))/eps. Default value is 1e-4 multiplied by the difference between the maximum and minimum values of the variable with respect to which we are taking the derivative. Changing eps may be necessary to avoid numerical problems in certain models.
@@ -157,6 +171,8 @@ def docstrings_to_qmd(output_dir: str):
             # Write the docstring to the file
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(docstring)
+                print(f"File written: {f.name}")
 
 
-docstrings_to_qmd("qmd_files")
+if __name__ == "__main__":
+    docstrings_to_qmd("qmd_files")

@@ -329,8 +329,8 @@ See the package website and vignette for examples:
 ## Parameters
 """
     + DocsParameters.docstring_model
-    + DocsParameters.docstring_variables
-    + DocsParameters.docstring_newdata
+    + DocsParameters.docstring_variables("comparison")
+    + DocsParameters.docstring_newdata("comparison")
     + """
 * comparison : (str)
     String specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
@@ -361,6 +361,7 @@ avg_comparisons(model, variables=None, newdata=None, comparison="difference",
 """
     + DocsDetails.docstring_tost
     + DocsDetails.docstring_order_of_operations
+    + ""  # add comparisons argument functions section as in R at https://marginaleffects.com/man/r/comparisons.html
 )
 
 
