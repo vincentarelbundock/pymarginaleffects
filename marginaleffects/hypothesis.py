@@ -25,7 +25,7 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
         rowlabels = [f"marginaleffects__{i}" for i in range(x.shape[0])]
     else:
         if "term" not in x.columns or len(x["term"]) != len(set(x["term"])):
-            msg = 'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b1`, `b2`, etc. indices instead of term names in the `hypotheses` string Ex: "b1 + b2 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
+            msg = 'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b0`, `b1`, etc. indices instead of term names in the `hypotheses` string Ex: "b0 + b1 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
             raise ValueError(msg)
 
         rowlabels = x["term"].to_list()
@@ -47,7 +47,7 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
 
 # function extracts the estimate column from a data frame and sets it to x. If `hypothesis` argument is a numpy array, it feeds it directly to lincome_multiply. If lincome is a string, it checks if the string is valid, and then calls the corresponding function.
 def get_hypothesis(x, hypothesis, by=None):
-    msg = f"Invalid hypothesis argument: {hypothesis}. Valid arguments are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', 'revpairwise' or a numpy array or a float."
+    msg = f"Invalid hypothesis argument: {hypothesis}. Valid arguments are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', 'revpairwise', a formula string, a numpy array or a float."
 
     if hypothesis is None or isinstance(hypothesis, (int, float)):
         return x

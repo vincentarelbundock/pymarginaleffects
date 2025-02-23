@@ -13,26 +13,41 @@ class DocsParameters:
         - "dyex": dY/dX / X
 """
     docstring_hypothesis = """
-* hypothesis : (str, numpy array)
-    String specifying a numeric value specifying the null hypothesis used for computing p-values.
+* hypothesis : (str, int, float, numpy array)
+    Specifies a hypothesis test or custom contrast using a number, formula, string equation, `np.ndarrar` or a function. 
+    - int, float: The null hypothesis used in the computation of Z and p-values (before applying transform) 
+    - str: 
+        * equation specifying linear or non-linear hypothesis tests. Use the names of the model variables, or use `b0`, `b1` to identify the position of each parameter. The `b*` wildcard can be used to test hypotheses on all estimates. Examples:
+            - `hp = drat`
+            - `hp + drat = 12`
+            - `b0 + b1 + b2 = 0`
+            - `b* / b0 = 1`
+        * one of the following hypothesis test strings:
+            - `pairwise` and `revpairwise`: pairwise differences between estimates in each row.
+            - `reference` and `revreference`: differences between the estimates in each row and the estimate in the first row.
+            - `sequential` and `revsequential`: differences between an estimate and the estimate in the next row.
+    - numpy.ndarray: Each column is a vector of weights. The output is the dot product between these vectors of weights and the vectors of estimates. e.g. `hypothesis=np.array([[1, 1, 2], [2, 2, 3]]).T`
+    - See the Examples section and the vignette: https://marginaleffects.com/chapters/hypothesis.html
 """
     docstring_by = """
 * by : (bool, List[str], optional)
     A logical value or a list of column names in `newdata`. If `True`, estimate is aggregated across the whole dataset. If a list is provided, estimates are aggregated for each unique combination of values in the columns.
 """
     docstring_conf_level = """
-* conf_level : (float)
-    Numeric value specifying the confidence level for the confidence intervals. Default is 0.95.
+* conf_level : (float, default=0.95)
+    Numeric value specifying the confidence level for the confidence intervals.
 """
     docstring_wts = """
 * wts : (str, optional)
     Column name of weights to use for marginalization. Must be a column in `newdata`.
 """
     docstring_vcov = """
-* vcov : (bool, np.ndarray, optional)
+* vcov : (bool, np.ndarray, default=True)
     Type of uncertainty estimates to report (e.g. for robust standard errors). Acceptable values are:
     - `True`: Use the model's default covariance matrix.
     - `False`: Do not compute standard errors.
+    - String: Literal indicating the kind of uncertainty estimates to return:
+        - Heteroskedasticity-consistent: `"HC0"`, `"HC1"`, `"HC2"`, `"HC3"`.
     - np.ndarray: A custom square covariance matrix.
 """
     docstring_equivalence = """
@@ -67,7 +82,7 @@ Object fitted using the `statsmodels` formula API.
 """
     docstring_eps_vcov = """
 * eps_vcov : float, optional
-    custom value for the finite difference approximation of the jacobian matrix. by default, the function uses the square root of the machine epsilon.
+    custom value for the finite difference approximation of the jacobian matrix. By default, the function uses the square root of the machine epsilon.
 """
 
     def docstring_variables(x):

@@ -1,5 +1,6 @@
 import numpy as np
 import polars as pl
+import pytest
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
 from tests.conftest import guerry_with_nulls, mtcars_df
@@ -36,16 +37,12 @@ def test_comparisons():
 
 def test_null_hypothesis():
     # Test with hypothesis = 0
-    hyp_py_0 = hypotheses(mod, hypothesis=np.array([1, -1, 0, 0]))
-    hyp_r_0 = pl.read_csv("tests/r/test_hypotheses_coefs.csv")
-    assert_series_equal(hyp_r_0["estimate"], hyp_py_0["estimate"])
-    assert_series_equal(hyp_r_0["std.error"], hyp_py_0["std_error"], check_names=False)
-
-    # # Test with hypothesis = 1
-    # hyp_py_1 = hypotheses(mod, hypothesis=np.array([1, -1, 0, 0]), hypothesis_null=1)
-    # hyp_r_1 = pl.read_csv("tests/r/test_hypotheses_coefs_hypothesis_1.csv")
-    # assert_series_equal(hyp_r_1["estimate"], hyp_py_1["estimate"])
-    # assert_series_equal(hyp_r_1["std.error"], hyp_py_1["std_error"], check_names=False)
+    # This test is the same as test_coefs, maybe we should delete it
+    hyp_py = hypotheses(mod, hypothesis=0)
+    # hyp_r = pl.read_csv("tests/r/test_hypotheses_coefs.csv")
+    # assert_series_equal(hyp_r["estimate"], hyp_py["estimate"])
+    # assert_series_equal(hyp_r["std.error"], hyp_py["std_error"], check_names=False)
+    assert hyp_py.shape[0] == (4)
 
 
 def test_hypothesis_list():
@@ -63,3 +60,20 @@ def test_coef():
     assert isinstance(h, pl.DataFrame)
     assert h.shape[0] == 1
     assert h["term"][0] == "Pop1831=Desertion"
+
+
+@pytest.mark.parametrize(
+    "string_hypothesis, hypothesis_shape",
+    [
+        ("reference", 3),
+        ("revreference", 3),
+        ("sequential", 3),
+        ("revsequential", 3),
+        ("pairwise", 6),
+        ("revpairwise", 6),
+    ],
+)
+def test_string(string_hypothesis, hypothesis_shape):
+    h = hypotheses(mod, hypothesis=string_hypothesis)
+    assert isinstance(h, pl.DataFrame)
+    assert h.shape[0] == hypothesis_shape

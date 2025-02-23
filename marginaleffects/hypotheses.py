@@ -1,5 +1,7 @@
 import polars as pl
 
+from marginaleffects.docs import DocsDetails, DocsParameters
+
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
@@ -20,69 +22,6 @@ def hypotheses(
     joint=False,
     joint_test="f",
 ):
-    """
-    (Non-)Linear Tests for Null Hypotheses, Joint Hypotheses, Equivalence, Non Superiority, and Non Inferiority.
-
-    This function calculates uncertainty estimates as first-order approximate standard errors for linear or non-linear
-    functions of a vector of random variables with known or estimated covariance matrix. It emulates the behavior of
-    the excellent and well-established `car::deltaMethod` and `car::linearHypothesis` functions in R, but it supports
-    more models; requires fewer dependencies; expands the range of tests to equivalence and superiority/inferiority;
-    and offers convenience features like robust standard errors.
-
-    To learn more, visit the package website: <https://marginaleffects.com/>
-
-    Warnings
-    --------
-    Warning #1: Tests are conducted directly on the scale defined by the `type` argument. For some models, it can make
-    sense to conduct hypothesis or equivalence tests on the `"link"` scale instead of the `"response"` scale which is
-    often the default.
-
-    Warning #2: For hypothesis tests on objects produced by the `marginaleffects` package, it is safer to use the
-    `hypothesis` argument of the original function.
-
-    Warning #3: The tests assume that the `hypothesis` expression is (approximately) normally distributed, which for
-    non-linear functions of the parameters may not be realistic. More reliable confidence intervals can be obtained using
-    the `inferences()` (in R only) function with `method = "boot"`
-
-    Parameters
-    ----------
-    model : object
-        Model object estimated by `statsmodels`
-    hypothesis : str, int, float or numpy array, optional
-        The null hypothesis value. Default is None.
-    conf_level : float, optional
-        Confidence level for the hypothesis test. Default is 0.95.
-    vcov : bool, optional
-        Whether to use the covariance matrix in the hypothesis test. Default is True.
-    equivalence : tuple, optional
-        The equivalence range for the hypothesis test. Default is None.
-
-    Returns
-    -------
-    MarginaleffectsDataFrame
-        A DataFrame containing the results of the hypothesis tests.
-
-    Examples
-    --------
-    >>> # When `hypothesis` is `None`, `hypotheses()` returns a DataFrame of parameters
-    >>> hypotheses(model)
-
-    >>> # A different null hypothesis
-    >>> hypotheses(model, hypothesis = 3)
-
-    >>> # Test of equality between coefficients
-    >>> hypotheses(model, hypothesis="param1 = param2")
-
-    >>> # Non-linear function
-    >>> hypotheses(model, hypothesis="exp(param1 + param2) = 0.1")
-
-    >>> # Robust standard errors
-    >>> hypotheses(model, hypothesis="param1 = param2", vcov="HC3")
-
-    >>> # Equivalence, non-inferiority, and non-superiority tests
-    >>> hypotheses(model, equivalence=(0, 10))
-    """
-
     model = sanitize_model(model)
 
     if joint:
@@ -114,3 +53,63 @@ def hypotheses(
     out = sort_columns(out, by=None)
     out = MarginaleffectsDataFrame(out, conf_level=conf_level, jacobian=J)
     return out
+
+
+hypotheses.__doc__ = (
+    """
+# `hypotheses()`
+
+(Non-)Linear Tests for Null Hypotheses, Joint Hypotheses, Equivalence, Non Superiority, and Non Inferiority.
+
+This function calculates uncertainty estimates as first-order approximate standard errors for linear or non-linear
+functions of a vector of random variables with known or estimated covariance matrix. It emulates the behavior of
+the excellent and well-established `car::deltaMethod` and `car::linearHypothesis` functions in R, but it supports
+more models; requires fewer dependencies; expands the range of tests to equivalence and superiority/inferiority;
+and offers convenience features like robust standard errors.
+
+To learn more, visit the package website: <https://marginaleffects.com/>
+
+## Warnings
+* Warning #1: Tests are conducted directly on the scale defined by the `type` argument. For some models, it can make sense to conduct hypothesis or equivalence tests on the `"link"` scale instead of the `"response"` scale which is often the default.
+* Warning #2: For hypothesis tests on objects produced by the `marginaleffects` package, it is safer to use the `hypothesis` argument of the original function.
+* Warning #3: The tests assume that the `hypothesis` expression is (approximately) normally distributed, which for non-linear functions of the parameters may not be realistic. More reliable confidence intervals can be obtained using the `inferences()` (in R only) function with `method = "boot"`
+
+## Parameters
+* model : object
+    Model object estimated by `statsmodels`
+"""
+    + DocsParameters.docstring_hypothesis
+    + DocsParameters.docstring_conf_level
+    + DocsParameters.docstring_vcov
+    + DocsParameters.docstring_equivalence
+    + """
+
+## Returns
+(MarginaleffectsDataFrame)
+* DataFrame containing the results of the hypothesis tests.
+
+## Examples
+```py
+# When `hypothesis` is `None`, `hypotheses()` returns a DataFrame of parameters
+hypotheses(model)
+
+# A different null hypothesis
+hypotheses(model, hypothesis = 3)
+
+# Test of equality between coefficients
+hypotheses(model, hypothesis="param1 = param2")
+
+# Non-linear function
+hypotheses(model, hypothesis="exp(param1 + param2) = 0.1")
+
+# Robust standard errors
+hypotheses(model, hypothesis="param1 = param2", vcov="HC3")
+
+# Equivalence, non-inferiority, and non-superiority tests
+hypotheses(model, equivalence=(0, 10))
+```
+
+## Details
+"""
+    + DocsDetails.docstring_tost
+)

@@ -72,6 +72,12 @@ def test_HC3():
     )
 
 
+@pytest.mark.parametrize("vcov_str", ["HC0", "HC1", "HC2", "HC3"])
+def test_vcov(vcov_str):
+    cmp_py = comparisons(mod, comparison="differenceavg", vcov=vcov_str).sort("term")
+    assert cmp_py.shape == (2, 9)
+
+
 def test_difference_wts():
     cmp_py = comparisons(mod, variables="Desertion", by="Region", wts="Literacy")
     cmp_r = pl.read_csv("tests/r/test_comparisons_06.csv").sort("Region")
