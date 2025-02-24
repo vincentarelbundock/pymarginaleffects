@@ -69,11 +69,6 @@ and offers convenience features like robust standard errors.
 
 To learn more, visit the package website: <https://marginaleffects.com/>
 
-## Warnings
-* Warning #1: Tests are conducted directly on the scale defined by the `type` argument. For some models, it can make sense to conduct hypothesis or equivalence tests on the `"link"` scale instead of the `"response"` scale which is often the default.
-* Warning #2: For hypothesis tests on objects produced by the `marginaleffects` package, it is safer to use the `hypothesis` argument of the original function.
-* Warning #3: The tests assume that the `hypothesis` expression is (approximately) normally distributed, which for non-linear functions of the parameters may not be realistic. More reliable confidence intervals can be obtained using the `inferences()` (in R only) function with `method = "boot"`
-
 ## Parameters
 * model : object
     Model object estimated by `statsmodels`
@@ -82,7 +77,18 @@ To learn more, visit the package website: <https://marginaleffects.com/>
     + DocsParameters.docstring_conf_level
     + DocsParameters.docstring_vcov
     + DocsParameters.docstring_equivalence
+    + DocsParameters.docstring_eps_vcov
+    # add joint param docstring
+    # add joint test param dosctring
     + """
+* joint: (bool, str, List[str], default = `False`) Specifies the joint test of statistical significance. The null hypothesis value can be set using the hypothesis argument.
+    - `False`: Hypothesis are not tested jointly
+    - `True`: Hypothesis are tested jointly
+    - List[str]: Parameter names to be tested jointly as displayed by `mod.model.data.param_names`
+    - List[int]: Parameter positions to test jointly where positions refer to the order specified by `mod.model.data.param_names`
+    
+* joint_test: (str, default=`"f"`) Chooses the type of test between `"f"` and `"chisq"`
+
 
 ## Returns
 (MarginaleffectsDataFrame)
@@ -108,6 +114,10 @@ hypotheses(model, hypothesis="param1 = param2", vcov="HC3")
 # Equivalence, non-inferiority, and non-superiority tests
 hypotheses(model, equivalence=(0, 10))
 ```
+## Warnings
+* Warning #1: Tests are conducted directly on the scale defined by the `type` argument. For some models, it can make sense to conduct hypothesis or equivalence tests on the `"link"` scale instead of the `"response"` scale which is often the default.
+* Warning #2: For hypothesis tests on objects produced by the `marginaleffects` package, it is safer to use the `hypothesis` argument of the original function.
+* Warning #3: The tests assume that the `hypothesis` expression is (approximately) normally distributed, which for non-linear functions of the parameters may not be realistic. More reliable confidence intervals can be obtained using the `inferences()` (in R only) function with `method = "boot"`
 
 ## Details
 """
