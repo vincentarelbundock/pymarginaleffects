@@ -178,36 +178,37 @@ def get_dataset(
     search: str = None,
 ):
     """
+    # `get_dataset()`
+
+
     Download and read a dataset as a Polars DataFrame from the `marginaleffects` or from the list at https://vincentarelbundock.github.io/Rdatasets/.
     Returns documentation link if `docs` is True.
 
-    Parameters
-    ----------
-    dataset : str
+    ## Parameters
+    * dataset : (str)
         The dataset to download. One of "affairs", "airbnb", "ces_demographics", "ces_survey", "immigration", "lottery", "military", "thornton", "factorial_01", "interaction_01", "interaction_02", "interaction_03", "interaction_04", "polynomial_01", "polynomial_02" or Rdatasets
-    package : str, optional
+    * package : (str, optional)
         The package to download the dataset from. Default is "marginaleffects".
-    docs : bool, optional
+    * docs : (bool, optional)
         If True, return the documentation URL instead of the dataset. Default is False.
-    search: str, optional
+    * search: (str, optional)
         The string is a regular expression. Download the dataset index from Rdatasets; search the "Package", "Item", and "Title" columns; and return the matching rows.
 
-    Returns
-    -------
-    Union[str, pl.DataFrame]
-        A string representing the documentation URL if `docs` is True, or
+    ## Returns
+    (Union[str, pl.DataFrame])
+    * A string representing the documentation URL if `docs` is True, or
         a Polars DataFrame containing the dataset if `docs` is False.
 
-    Raises
-    ------
+    ## Raises
     ValueError
-        If the dataset is not among the specified choices.
+    * If the dataset is not among the specified choices.
 
-    Examples
-    --------
-    >>> get_dataset()
-    >>> get_dataset("Titanic", package="Stat2Data")
-    >>> get_dataset(search = "(?i)titanic)
+    ## Examples
+    ```py
+    get_dataset()
+    get_dataset("Titanic", package="Stat2Data")
+    get_dataset(search = "(?i)titanic)
+    ```
     """
     if search:
         try:
