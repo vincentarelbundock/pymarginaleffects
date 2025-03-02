@@ -15,14 +15,14 @@ FIGURES_FOLDER = "plot_predictions"
 @pytest.mark.plot
 class TestPlotPredictions:
     @pytest.mark.parametrize(
-        "input_condition, expected_figure_filename",
+        "by, expected_figure_filename",
         [
             ("species", "by_01"),
             (["species", "island"], "by_02"),
         ],
     )
-    def test_by(self, input_condition, expected_figure_filename, penguins_model):
-        fig = plot_predictions(penguins_model, by=input_condition)
+    def test_by(self, by, expected_figure_filename, penguins_model):
+        fig = plot_predictions(penguins_model, by=by)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
 
     @pytest.mark.parametrize(
