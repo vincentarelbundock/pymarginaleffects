@@ -1,4 +1,4 @@
-from marginaleffects.docs import DocsParameters
+from .docs import DocsParameters
 from .comparisons import comparisons
 from .plot_common import dt_on_condition
 from .p9 import plot_common

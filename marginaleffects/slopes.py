@@ -1,4 +1,4 @@
-from marginaleffects.docs import DocsDetails, DocsParameters, docstring_returns
+from .docs import DocsDetails, DocsParameters, docstring_returns
 from .comparisons import comparisons
 
 

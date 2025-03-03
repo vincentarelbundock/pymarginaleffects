@@ -1,4 +1,4 @@
-from marginaleffects.docs import DocsParameters
+from .docs import DocsParameters
 from .plot_common import dt_on_condition, plot_labels
 from .p9 import plot_common
 from .predictions import predictions

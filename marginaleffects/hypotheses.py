@@ -1,6 +1,6 @@
 import polars as pl
 
-from marginaleffects.docs import DocsDetails, DocsParameters
+from .docs import DocsDetails, DocsParameters
 
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
