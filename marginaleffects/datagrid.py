@@ -3,14 +3,16 @@ from functools import reduce, partial
 import polars as pl
 
 from .sanitize_model import sanitize_model
-
+from .types import is_numeric, is_binary, is_character, is_logical, is_integer, is_other
 
 def datagrid(
     model=None,
     newdata=None,
     grid_type="mean_or_mode",
-    FUN_numeric=lambda x: x.mean(),
-    FUN_other=lambda x: x.mode()[0],  # mode can return multiple values
+    FUN_binary=None,
+    FUN_numeric=None,
+    FUN_character=FUN_character,
+    FUN_other=None,
     **kwargs,
 ):
     """
@@ -57,11 +59,12 @@ def datagrid(
     print(dg.shape)
     """
 
-    # allow preditions() to pass `model` argument automatically
+    # allow predictions() to pass `model` argument automatically
     if model is None and newdata is None:
         out = partial(
             datagrid,
             grid_type=grid_type,
+            FUN_binary=FUN_binary,
             FUN_numeric=FUN_numeric,
             FUN_other=FUN_other,
             **kwargs,
@@ -91,41 +94,36 @@ def datagrid(
 
     elif grid_type == "balanced":
         if FUN_other is None:
-            # mode can return multiple values
-            def FUN_other(x):
-                x.unique()
+            FUN_other = lambda x: x.unique()
+
+    if FUN_other is None:
+        # mode can return multiple values
+        FUN_other = lambda x: x.mode()[0]
+
+    if FUN_numeric is None:
+        FUN_numeric = lambda x: x.mean()
+
+    if FUN_binary is None:
+        FUN_binary = lambda x: x.unique()
+
+    if FUN_character is None:
+        FUN_character = lambda x: x.unique()
 
     out = {}
     for key, value in kwargs.items():
         if value is not None:
             out[key] = pl.DataFrame({key: value})
 
-    numtypes = [
-        pl.Int8,
-        pl.Int16,
-        pl.Int32,
-        pl.Int64,
-        pl.UInt8,
-        pl.UInt16,
-        pl.UInt32,
-        pl.UInt64,
-        pl.Float32,
-        pl.Float64,
-    ]
-
     for col in newdata.columns:
         if col not in out.keys():
-            # model classes include relevant information. use if available
-            if model is not None:
-                coltype = model.variables_type[col]
-            else:
-                if newdata[col].dtype in numtypes:
-                    coltype = "numeric"
-                else:
-                    coltype = "other"
-
-            if coltype in ["numeric", "integer"]:
+            if is_numeric(newdata[col]):
+                out[col] = pl.DataFrame({col: FUN_numeric(newdata[col]})
+            elif is_binary(newdata[col]):
+                out[col] = pl.DataFrame({col: FUN_binary(newdata[col])})
+            elif is_integer(newdata[col]):
                 out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
+            elif is_character(newdata[col]):
+                out[col] = pl.DataFrame({col: FUN_character(newdata[col])})
             else:
                 out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
 
