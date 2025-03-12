@@ -10,8 +10,8 @@ def datagrid(
     newdata=None,
     grid_type="mean_or_mode",
     FUN_binary=None,
+    FUN_character=None,
     FUN_numeric=None,
-    FUN_character=FUN_character,
     FUN_other=None,
     **kwargs,
 ):
@@ -65,6 +65,7 @@ def datagrid(
             datagrid,
             grid_type=grid_type,
             FUN_binary=FUN_binary,
+            FUN_character=FUN_character,
             FUN_numeric=FUN_numeric,
             FUN_other=FUN_other,
             **kwargs,
@@ -93,21 +94,23 @@ def datagrid(
         pass
 
     elif grid_type == "balanced":
+        if FUN_binary is None:
+            FUN_binary = lambda x: x.unique()
+        if FUN_character is None:
+            FUN_character = lambda x: x.unique()
+        if FUN_numeric is None:
+            FUN_numeric = lambda x: x.mean()
         if FUN_other is None:
             FUN_other = lambda x: x.unique()
 
-    if FUN_other is None:
-        # mode can return multiple values
-        FUN_other = lambda x: x.mode()[0]
-
+    if FUN_binary is None:
+        FUN_binary = lambda x: x.mode()[0]
+    if FUN_character is None:
+        FUN_character = lambda x: x.mode()[0]
     if FUN_numeric is None:
         FUN_numeric = lambda x: x.mean()
-
-    if FUN_binary is None:
-        FUN_binary = lambda x: x.unique()
-
-    if FUN_character is None:
-        FUN_character = lambda x: x.unique()
+    if FUN_other is None:
+        FUN_other = lambda x: x.mode()[0]
 
     out = {}
     for key, value in kwargs.items():
@@ -116,11 +119,10 @@ def datagrid(
 
     for col in newdata.columns:
         if col not in out.keys():
-            if is_numeric(newdata[col]):
-                out[col] = pl.DataFrame({col: FUN_numeric(newdata[col]})
-            elif is_binary(newdata[col]):
+            # binary before numeric
+            if is_binary(newdata[col]):
                 out[col] = pl.DataFrame({col: FUN_binary(newdata[col])})
-            elif is_integer(newdata[col]):
+            elif is_numeric(newdata[col]):
                 out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
             elif is_character(newdata[col]):
                 out[col] = pl.DataFrame({col: FUN_character(newdata[col])})

@@ -8,7 +8,11 @@ def is_numeric(column: pl.Series) -> bool:
     ]
 
 def is_binary(column: pl.Series) -> bool:
-    return column.dtype == pl.Boolean
+    if is_numeric(column):
+        out = column.is_in([0, 1]).all()
+    else:
+        out = False
+    return out
 
 def is_character(column: pl.Series) -> bool:
     return column.dtype == pl.Utf8
