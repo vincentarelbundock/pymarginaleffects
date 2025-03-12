@@ -3,7 +3,8 @@ from functools import reduce, partial
 import polars as pl
 
 from .sanitize_model import sanitize_model
-from .types import is_numeric, is_binary, is_character, is_logical, is_integer, is_other
+from .types import is_numeric, is_binary, is_character
+
 
 def datagrid(
     model=None,
@@ -95,22 +96,30 @@ def datagrid(
 
     elif grid_type == "balanced":
         if FUN_binary is None:
-            FUN_binary = lambda x: x.unique()
+            def FUN_binary(x):
+                return x.unique()
         if FUN_character is None:
-            FUN_character = lambda x: x.unique()
+            def FUN_character(x):
+                return x.unique()
         if FUN_numeric is None:
-            FUN_numeric = lambda x: x.mean()
+            def FUN_numeric(x):
+                return x.mean()
         if FUN_other is None:
-            FUN_other = lambda x: x.unique()
+            def FUN_other(x):
+                return x.unique()
 
     if FUN_binary is None:
-        FUN_binary = lambda x: x.mode()[0]
+        def FUN_binary(x):
+            return x.mode()[0]
     if FUN_character is None:
-        FUN_character = lambda x: x.mode()[0]
+        def FUN_character(x):
+            return x.mode()[0]
     if FUN_numeric is None:
-        FUN_numeric = lambda x: x.mean()
+        def FUN_numeric(x):
+            return x.mean()
     if FUN_other is None:
-        FUN_other = lambda x: x.mode()[0]
+        def FUN_other(x):
+            return x.mode()[0]
 
     out = {}
     for key, value in kwargs.items():
