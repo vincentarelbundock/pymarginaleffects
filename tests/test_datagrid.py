@@ -1,7 +1,9 @@
+import numpy as np
 import polars as pl
 
 from marginaleffects import *
-from tests.conftest import mtcars_df
+
+mtcars_df = get_dataset("mtcars", "datasets")
 
 
 def test_FUN_numeric():
@@ -59,3 +61,25 @@ def test_cf():
         "hp",
         "carb",
     }
+
+
+def test_issue156():
+    rng = np.random.default_rng(seed=48103)
+    N = 10
+    dat = pl.DataFrame({
+        "Num": rng.normal(loc=0, scale=1, size=N),
+        "Bin": rng.binomial(n=1, p=0.5, size=N),
+        "Cat": rng.choice(["A", "B", "C"], size=N)
+    })
+    d = datagrid(grid_type="balanced", newdata=dat)
+    assert d.shape[0] == 6
+    assert set(d["Bin"].unique()) == {0, 1}
+    assert set(d["Cat"].unique()) == {"A", "B", "C"}
+    assert len(d["Num"].unique()) == 1
+
+
+def test_mean_or_mode():
+    d1 = datagrid(newdata=mtcars_df)
+    d2 = datagrid(newdata=mtcars_df, grid_type="mean_or_mode")
+    for col in d1.columns[1:]:
+        assert (d1[col] == d2[col]).all()
