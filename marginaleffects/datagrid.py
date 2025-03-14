@@ -3,7 +3,7 @@ from functools import reduce, partial
 import polars as pl
 
 from .sanitize_model import sanitize_model
-from .types import is_numeric, is_binary, is_character
+import marginaleffects.utils as ut
 
 
 def datagrid(
@@ -147,18 +147,25 @@ def datagrid(
             col = model.response_name
             out[col] = pl.DataFrame({col: newdata[col].mode()[0]})
 
+    if model is not None:
+        variables_type = model.variables_type
+    else:
+        variables_type = ut.get_type_dictionary(formula=None, modeldata=newdata)
+
     cols = newdata.columns
+    cols = [col for col in cols if col in variables_type.keys()]
+    cols = [col for col in cols if col in newdata.columns]
+    cols = [col for col in cols if col not in out.keys()]
+
     for col in cols:
-        if col not in out.keys() and col in newdata.columns:
-            # binary before numeric
-            if is_binary(newdata[col]):
-                out[col] = pl.DataFrame({col: FUN_binary(newdata[col])})
-            elif is_numeric(newdata[col]):
-                out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
-            elif is_character(newdata[col]):
-                out[col] = pl.DataFrame({col: FUN_character(newdata[col])})
-            else:
-                out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
+        if variables_type[col] == "binary":
+            out[col] = pl.DataFrame({col: FUN_binary(newdata[col])})
+        elif variables_type[col] in ["integer", "numeric"]:
+            out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
+        elif variables_type[col] == "character":
+            out[col] = pl.DataFrame({col: FUN_character(newdata[col])})
+        else:
+            out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
 
     out = reduce(lambda x, y: x.join(y, how="cross"), out.values())
 

@@ -8,7 +8,7 @@ __all__ = ["listwise_deletion", "model_matrices"]
 
 
 # @validate_types
-def extract_variables(formula: str) -> list[str]:
+def get_variables(formula: str) -> list[str]:
     """
     Extract all variables (column names) from a formula string.
 
@@ -25,12 +25,12 @@ def extract_variables(formula: str) -> list[str]:
 
     Examples
     --------
-    >>> extract_variables("y ~ x1 + x2")
+    >>> get_variables("y ~ x1 + x2")
     ['y', 'x1', 'x2']
     """
-    tokens = formulaic.parser.DefaultFormulaParser().get_tokens(formula)
 
-    return [str(token) for token in tokens if token.kind.value == "name"]
+    fml = formulaic.Formula(formula)
+    return list(fml.required_variables)
 
 
 # @validate_types
@@ -66,7 +66,7 @@ def listwise_deletion(formula: str, data: "IntoFrame"):
     0  1   1   1
     3  4   4   4
     """
-    variables = extract_variables(formula)
+    variables = get_variables(formula)
     data = nw.from_native(data)
     return data.drop_nulls(subset=variables).to_native()
 

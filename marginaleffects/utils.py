@@ -5,6 +5,7 @@ import polars as pl
 from typing import Protocol, runtime_checkable
 from pydantic import ConfigDict, validate_call
 from functools import wraps
+import marginaleffects.formulaic as fml
 # from narwhals.typing import IntoFrame
 
 
@@ -137,10 +138,23 @@ def upcast(dfs: list) -> list:
     return tmp
 
 
-def get_type_dictionary(modeldata):
+def get_type_dictionary(formula=None, modeldata=None):
     out = dict()
-    for v in modeldata.columns:
-        t_i = [pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64]
+    if formula is None:
+        variables = modeldata.columns
+    else:
+        variables = fml.get_variables(formula)
+    for v in variables:
+        t_i = [
+            pl.Int8,
+            pl.Int16,
+            pl.Int32,
+            pl.Int64,
+            pl.UInt8,
+            pl.UInt16,
+            pl.UInt32,
+            pl.UInt64,
+        ]
         t_c = [pl.Utf8, pl.Categorical]
         t_n = [pl.Float32, pl.Float64]
         t_b = [pl.Boolean]

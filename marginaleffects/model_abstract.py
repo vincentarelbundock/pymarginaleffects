@@ -14,7 +14,7 @@ class ModelAbstract(ABC):
         self.validate_response_name()
         self.validate_formula()
         self.validate_modeldata()
-        self.variables_type = get_type_dictionary(self.data)
+        self.variables_type = get_type_dictionary(self.formula, self.data)
 
     def validate_coef(self):
         coef = self.get_coef()
@@ -66,7 +66,7 @@ class ModelAbstract(ABC):
         return None
 
     def find_variables(self, variables=None, newdata=None):
-        out = fml.extract_variables(self.formula)
+        out = fml.get_variables(self.formula)
         return out
 
     def find_response(self):
