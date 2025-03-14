@@ -226,7 +226,9 @@ def test_misc(impartiality_model):
 
 
 def test_titanic():
-    tit = pl.read_csv("tests/data/titanic.csv")
+    tit = pl.read_csv("tests/data/titanic.csv").with_columns(
+        pl.col("Passenger_Class").cast(pl.Categorical)
+    )
     mod_tit = smf.ols("Survived ~ Woman * Passenger_Class", data=tit.to_pandas()).fit()
 
     p = avg_predictions(

@@ -16,7 +16,10 @@ guerry = pl.read_csv(
 guerry_with_nulls = pl.read_csv("tests/data/Guerry.csv")
 
 impartiality_df = pl.read_csv("tests/data/impartiality.csv").with_columns(
-    pl.col("impartial").cast(pl.Int8)
+    pl.col("impartial").cast(pl.Int8),
+    pl.col("continent").cast(pl.Categorical),
+    pl.col("democracy").cast(pl.Categorical),
+    pl.col("country").cast(pl.Categorical),
 )
 
 iris = pl.read_csv("tests/data/iris.csv")
@@ -47,7 +50,7 @@ def guerry_mod():
 @pytest.fixture(scope="session")
 def impartiality_model():
     return smf.logit(
-        "impartial ~ equal * democracy + continent", data=impartiality_df.to_pandas()
+        "impartial ~ equal * democracy + continent", data=impartiality_df
     ).fit()
 
 

@@ -18,7 +18,9 @@ dat = guerry.with_columns(
 )
 dat = dat.with_columns(
     pl.col("Bin").cast(pl.Int32),
-    pl.Series(np.random.choice(["a", "b", "c"], dat.shape[0])).alias("Char"),
+    pl.Series(np.random.choice(["a", "b", "c"], dat.shape[0]))
+    .alias("Char")
+    .cast(pl.Categorical),
 ).to_pandas()
 
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()

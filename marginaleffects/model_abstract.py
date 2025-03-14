@@ -56,6 +56,14 @@ class ModelAbstract(ABC):
         if self.data.shape[0] != original_row_count:
             warnings.warn("Dropping rows with missing observations.", UserWarning)
 
+        # Check for string or Utf8 columns in the formula variables
+        for var in self.find_variables():
+            if self.data[var].dtype in [pl.String, pl.Utf8]:
+                raise ValueError(f"""Column '{var}' must be converted to categorical before fitting the model.
+Pandas example: df['{var}'] = df['{var}'].astype('category')
+Polars example: df = df.with_columns(pl.col('{var}').cast(pl.Categorical))
+""")
+
     def get_vcov(self, vcov=False):
         return None
 

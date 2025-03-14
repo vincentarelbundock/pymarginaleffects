@@ -5,6 +5,11 @@ from tests.conftest import guerry
 
 from tests.utilities import *
 
+# strict categorical treatment
+guerry = get_dataset("Guerry", "HistData").with_columns(
+    pl.col("Region").cast(pl.Categorical)
+)
+
 
 def test_predictions_by_string(guerry_mod):
     cmp_py = predictions(guerry_mod, by="Region")
