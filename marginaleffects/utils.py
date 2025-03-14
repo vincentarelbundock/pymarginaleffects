@@ -123,6 +123,7 @@ def upcast(dfs: list) -> list:
     cols = set(list(itertools.chain(*cols)))
 
     for col in cols:
+        # numeric
         dtypes = [df[col].dtype for df in tmp if col in df.columns]
         match = [
             next((i for i, x in enumerate(numeric_types) if x == dtype), None)
@@ -250,9 +251,9 @@ def get_dataset(
     }
 
     if package == "marginaleffects":
-        assert dataset in datasets, (
-            f"Dataset '{dataset}' is not available in the 'marginaleffects' package."
-        )
+        assert (
+            dataset in datasets
+        ), f"Dataset '{dataset}' is not available in the 'marginaleffects' package."
 
     try:
         if dataset in datasets:
@@ -280,3 +281,44 @@ def get_dataset(
 
     except BaseException as e:
         raise ValueError(f"Error reading dataset: {e}")
+
+
+def upcast_to_enum(dfs):
+    """
+    Convert columns in a list of DataFrames to Enum type where applicable.
+
+    This function iterates over a list of DataFrames and attempts to cast
+    columns of type String/Utf8 or Categorical to Enum type, using the
+    categories found in the DataFrames. It ensures that all DataFrames
+    have consistent Enum categories for the same column names.
+
+    Parameters:
+    - dfs: List of Polars DataFrames to process.
+
+    Returns:
+    - A list of DataFrames with columns cast to Enum type where applicable.
+    """
+    # Step 1: Collect enum categories from all DataFrames
+    enum_types_map = {}
+
+    for df in dfs:
+        for col in df.columns:
+            # Prioritize extracting enum categories first
+            if df.schema[col] == pl.Enum:
+                enum_types_map[col] = df[col].cat.get_categories()
+            elif df.schema[col] == pl.Categorical:
+                if (
+                    col not in enum_types_map
+                ):  # Only take from categorical if no enum exists
+                    enum_types_map[col] = df[col].cat.get_categories()
+
+    # Step 2: Cast both String/Utf8 and Categorical columns to Enum where applicable
+    result = []
+    for df in dfs:
+        for col in df.columns:
+            if col in enum_types_map:
+                if df.schema[col] in (pl.String, pl.Utf8, pl.Categorical):
+                    df = df.with_columns(pl.col(col).cast(pl.Enum(enum_types_map[col])))
+        result.append(df)
+
+    return result
