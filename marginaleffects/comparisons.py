@@ -1,10 +1,5 @@
-import re
-from functools import reduce
-
-import numpy as np
-import patsy
-import polars as pl
-
+from .model_pyfixest import ModelPyfixest
+from .model_linearmodels import ModelLinearmodels
 from .classes import MarginaleffectsDataFrame
 from .equivalence import get_equivalence
 from .estimands import estimands
@@ -20,10 +15,14 @@ from .sanity import (
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast, ingest
-from .model_pyfixest import ModelPyfixest
-from .model_linearmodels import ModelLinearmodels
-
 from .docs import docstring_returns
+
+import re
+from functools import reduce
+
+import numpy as np
+import patsy
+import polars as pl
 
 
 def comparisons(

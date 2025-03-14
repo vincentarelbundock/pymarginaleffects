@@ -183,3 +183,17 @@ def test_lift():
     assert cmp2.shape[0] == 1
     with pytest.raises(AssertionError):
         comparisons(mod, comparison="liftr")
+
+
+def test_issue84():
+    dat = get_dataset("thornton")
+    mod = smf.logit("outcome ~ incentive + C(agecat)", dat.to_pandas()).fit()
+    res = avg_comparisons(mod)
+    expected_estimate = pl.Series(
+        [0.00804350814941187, 0.0441399394204686, 0.449595767454968]
+    )
+    expected_std_error = pl.Series(
+        [0.0267794839256317, 0.0270685986842363, 0.0209063665852017]
+    )
+    assert_series_equal(res["estimate"], expected_estimate, check_names=False)
+    assert_series_equal(res["std_error"], expected_std_error, check_names=False)

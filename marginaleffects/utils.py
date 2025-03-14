@@ -100,6 +100,7 @@ def get_pad(df, colname, uniqs):
 
 
 def upcast(dfs: list) -> list:
+    categorical_types = [pl.Utf8, pl.Categorical]
     numeric_types = [
         pl.Boolean,
         pl.Int8,
@@ -134,6 +135,13 @@ def upcast(dfs: list) -> list:
             if match is not None:
                 for i, v in enumerate(tmp):
                     tmp[i] = tmp[i].with_columns(pl.col(col).cast(numeric_types[match]))
+
+    for col in cols:
+        dtypes = [df[col].dtype for df in tmp if col in df.columns]
+        if any(dtype in categorical_types for dtype in dtypes):
+            for i, v in enumerate(tmp):
+                if col in tmp[i].columns:
+                    tmp[i] = tmp[i].with_columns(pl.col(col).cast(pl.Categorical))
 
     return tmp
 
@@ -171,6 +179,14 @@ def get_type_dictionary(formula=None, modeldata=None):
             out[v] = "numeric"
         else:
             out[v] = "unknown"
+
+    if formula is not None:
+        import re
+
+        categorical_vars = re.findall(r"C\((.*?)\)", formula)
+        for var in categorical_vars:
+            out[var] = "categorical"
+
     return out
 
 

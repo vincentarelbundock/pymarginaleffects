@@ -237,7 +237,7 @@ def get_one_variable_hi_lo(
         )
         return [out]
 
-    if vartype == "character":
+    if vartype in ["character", "categorical", "factor"]:
         if isinstance(value, list) and len(value) == 2:
             hi = clean([value[1]])
             lo = clean([value[0]])
