@@ -99,44 +99,22 @@ def get_pad(df, colname, uniqs):
     return first
 
 
-def upcast(dfs: list) -> list:
-    numeric_types = [
-        pl.Boolean,
-        pl.Int8,
-        pl.Int16,
-        pl.Int32,
-        pl.Int64,
-        pl.UInt8,
-        pl.UInt16,
-        pl.UInt32,
-        pl.UInt64,
-        pl.Float32,
-        pl.Float64,
-    ]
+def upcast_df(df, modeldata=None):
+    for col in df.columns:
+        if col in modeldata.columns:
+            df = df.with_columns(pl.col(col).cast(modeldata[col].dtype))
+    return df
 
-    tmp = [df for df in dfs if type(df) is pl.DataFrame]
 
-    if len(tmp) == 0:
-        return dfs
-
-    cols = [df.columns for df in tmp]
-    cols = set(list(itertools.chain(*cols)))
-
-    for col in cols:
-        # numeric
-        dtypes = [df[col].dtype for df in tmp if col in df.columns]
-        match = [
-            next((i for i, x in enumerate(numeric_types) if x == dtype), None)
-            for dtype in dtypes
-        ]
-        match = list(set(match))
-        if len(match) > 1:
-            match = max(match)
-            if match is not None:
-                for i, v in enumerate(tmp):
-                    tmp[i] = tmp[i].with_columns(pl.col(col).cast(numeric_types[match]))
-
-    return tmp
+def upcast(df, modeldata=None) -> pl.DataFrame:
+    if modeldata is None or not isinstance(modeldata, pl.DataFrame):
+        return df
+    if isinstance(df, pl.DataFrame):
+        return upcast_df(df, modeldata)
+    if isinstance(df, list):
+        for i, v in enumerate(df):
+            df[i] = upcast(v, modeldata)
+        return df
 
 
 def get_type_dictionary(formula=None, modeldata=None):
@@ -281,44 +259,3 @@ def get_dataset(
 
     except BaseException as e:
         raise ValueError(f"Error reading dataset: {e}")
-
-
-def upcast_to_enum(dfs):
-    """
-    Convert columns in a list of DataFrames to Enum type where applicable.
-
-    This function iterates over a list of DataFrames and attempts to cast
-    columns of type String/Utf8 or Categorical to Enum type, using the
-    categories found in the DataFrames. It ensures that all DataFrames
-    have consistent Enum categories for the same column names.
-
-    Parameters:
-    - dfs: List of Polars DataFrames to process.
-
-    Returns:
-    - A list of DataFrames with columns cast to Enum type where applicable.
-    """
-    # Step 1: Collect enum categories from all DataFrames
-    enum_types_map = {}
-
-    for df in dfs:
-        for col in df.columns:
-            # Prioritize extracting enum categories first
-            if df.schema[col] == pl.Enum:
-                enum_types_map[col] = df[col].cat.get_categories()
-            elif df.schema[col] == pl.Categorical:
-                if (
-                    col not in enum_types_map
-                ):  # Only take from categorical if no enum exists
-                    enum_types_map[col] = df[col].cat.get_categories()
-
-    # Step 2: Cast both String/Utf8 and Categorical columns to Enum where applicable
-    result = []
-    for df in dfs:
-        for col in df.columns:
-            if col in enum_types_map:
-                if df.schema[col] in (pl.String, pl.Utf8, pl.Categorical):
-                    df = df.with_columns(pl.col(col).cast(pl.Enum(enum_types_map[col])))
-        result.append(df)
-
-    return result
