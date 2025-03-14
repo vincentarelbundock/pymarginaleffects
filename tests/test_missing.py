@@ -6,8 +6,8 @@ dat = get_dataset("thornton")
 mod = logit("outcome ~ incentive", dat.to_pandas()).fit()
 
 
-def test_no_missing_value_error():
-    with pytest.raises(ValueError, match="no missing value"):
+def test_no_missing_value_warning():
+    with pytest.warns(UserWarning, match="Dropping rows with missing observations."):
         avg_comparisons(mod, variables="incentive")
 
 
