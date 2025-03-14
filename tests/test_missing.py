@@ -1,6 +1,5 @@
 from marginaleffects import get_dataset, avg_comparisons
 from statsmodels.formula.api import logit
-from polars.testing import assert_series_equal
 import pytest
 
 dat = get_dataset("thornton")

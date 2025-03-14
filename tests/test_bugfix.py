@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import polars as pl
-from statsmodels.formula.api import ols, logit
+from statsmodels.formula.api import ols
 
-from marginaleffects import predictions, get_dataset
+from marginaleffects import predictions
 
 
 def test_issue_25():

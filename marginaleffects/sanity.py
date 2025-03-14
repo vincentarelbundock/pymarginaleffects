@@ -90,9 +90,9 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         "contrast",
         "statistic",
     }
-    assert not (
-        set(out.columns) & reserved_names
-    ), f"Input data contain reserved column name(s) : {set(out.columns).intersection(reserved_names)}"
+    assert not (set(out.columns) & reserved_names), (
+        f"Input data contain reserved column name(s) : {set(out.columns).intersection(reserved_names)}"
+    )
 
     datagrid_explicit = None
     if isinstance(out, pl.DataFrame) and hasattr(out, "datagrid_explicit"):
@@ -158,9 +158,9 @@ def sanitize_comparison(comparison, by, wts=None):
         "expdydx": "exp(dY/dX)",
     }
 
-    assert (
-        out in lab.keys()
-    ), f"`comparison` must be one of: {', '.join(list(lab.keys()))}."
+    assert out in lab.keys(), (
+        f"`comparison` must be one of: {', '.join(list(lab.keys()))}."
+    )
 
     return (out, lab[out])
 
@@ -304,9 +304,9 @@ def get_one_variable_hi_lo(
 
         elif callable(value):
             tmp = value(newdata[variable])
-            assert (
-                tmp.shape[1] == 2
-            ), f"The function passed to `variables` must return a DataFrame with two columns. Got {tmp.shape[1]}."
+            assert tmp.shape[1] == 2, (
+                f"The function passed to `variables` must return a DataFrame with two columns. Got {tmp.shape[1]}."
+            )
             lo = tmp[:, 0]
             hi = tmp[:, 1]
             lab = "custom"

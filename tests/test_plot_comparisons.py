@@ -1,6 +1,4 @@
 import sys
-import polars as pl
-import statsmodels.formula.api as smf
 import pytest
 from marginaleffects import *
 from marginaleffects.plot_comparisons import *

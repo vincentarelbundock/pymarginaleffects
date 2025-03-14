@@ -91,53 +91,55 @@ def test_bare_minimum():
     fit = smf.ols(
         "Literacy ~ Pop1831 * Desertion + Boolea + Bin + Char", data=dat
     ).fit()
-    assert type(comparisons(fit)) == marginaleffects.classes.MarginaleffectsDataFrame
-    assert (
-        type(comparisons(fit, variables="Pop1831", comparison="differenceavg"))
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit), marginaleffects.classes.MarginaleffectsDataFrame
     )
-    assert (
-        type(comparisons(fit, variables="Pop1831", comparison="difference").head())
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit, variables="Pop1831", comparison="differenceavg"),
+        marginaleffects.classes.MarginaleffectsDataFrame,
     )
-    assert (
-        type(comparisons(fit, variables="Pop1831", comparison="ratio").head())
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit, variables="Pop1831", comparison="difference").head(),
+        marginaleffects.classes.MarginaleffectsDataFrame,
     )
-    assert (
-        type(
-            comparisons(fit, variables="Pop1831", comparison="difference", by="Region")
-        )
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit, variables="Pop1831", comparison="ratio").head(),
+        marginaleffects.classes.MarginaleffectsDataFrame,
     )
-    assert (
-        type(comparisons(fit, vcov=False, comparison="differenceavg"))
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit, variables="Pop1831", comparison="difference", by="Region"),
+        marginaleffects.classes.MarginaleffectsDataFrame,
     )
-    assert (
-        type(comparisons(fit, vcov="HC3", comparison="differenceavg"))
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit, vcov=False, comparison="differenceavg"),
+        marginaleffects.classes.MarginaleffectsDataFrame,
     )
-    assert type(comparisons(fit)) == marginaleffects.classes.MarginaleffectsDataFrame
-    assert (
-        type(comparisons(fit, variables={"Char": "sequential"}))
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit, vcov="HC3", comparison="differenceavg"),
+        marginaleffects.classes.MarginaleffectsDataFrame,
     )
-    assert (
-        type(comparisons(fit, variables="Pop1831"))
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit), marginaleffects.classes.MarginaleffectsDataFrame
     )
-    assert (
-        type(comparisons(fit, variables=["Pop1831", "Desertion"]))
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit, variables={"Char": "sequential"}),
+        marginaleffects.classes.MarginaleffectsDataFrame,
     )
-    assert (
-        type(comparisons(fit, variables={"Pop1831": 1000, "Desertion": 2}))
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit, variables="Pop1831"),
+        marginaleffects.classes.MarginaleffectsDataFrame,
     )
-    assert (
-        type(comparisons(fit, variables={"Pop1831": [100, 2000]}))
-        == marginaleffects.classes.MarginaleffectsDataFrame
+    assert isinstance(
+        comparisons(fit, variables=["Pop1831", "Desertion"]),
+        marginaleffects.classes.MarginaleffectsDataFrame,
+    )
+    assert isinstance(
+        comparisons(fit, variables={"Pop1831": 1000, "Desertion": 2}),
+        marginaleffects.classes.MarginaleffectsDataFrame,
+    )
+    assert isinstance(
+        comparisons(fit, variables={"Pop1831": [100, 2000]}),
+        marginaleffects.classes.MarginaleffectsDataFrame,
     )
 
 

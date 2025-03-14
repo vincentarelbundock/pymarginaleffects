@@ -5,7 +5,6 @@ from polars.testing import assert_series_equal
 import numpy as np
 from marginaleffects import *
 import pytest
-import sys
 
 rtol = 1e-4
 
@@ -115,6 +114,7 @@ def test_bare_minimum():
     # )
     # assert_series_equal(c3["estimate"], known, check_names=False, rtol=rtol)
     #
+
 
 @pytest.mark.skip(reason="predict method with newdata not yet implemented for fepois.")
 def test_bare_minimum_fepois():
