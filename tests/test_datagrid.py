@@ -2,6 +2,7 @@ import numpy as np
 import polars as pl
 
 from marginaleffects import *
+from statsmodels.formula.api import logit
 
 mtcars_df = get_dataset("mtcars", "datasets")
 
@@ -66,11 +67,13 @@ def test_cf():
 def test_issue156():
     rng = np.random.default_rng(seed=48103)
     N = 10
-    dat = pl.DataFrame({
-        "Num": rng.normal(loc=0, scale=1, size=N),
-        "Bin": rng.binomial(n=1, p=0.5, size=N),
-        "Cat": rng.choice(["A", "B", "C"], size=N)
-    })
+    dat = pl.DataFrame(
+        {
+            "Num": rng.normal(loc=0, scale=1, size=N),
+            "Bin": rng.binomial(n=1, p=0.5, size=N),
+            "Cat": rng.choice(["A", "B", "C"], size=N),
+        }
+    )
     d = datagrid(grid_type="balanced", newdata=dat)
     assert d.shape[0] == 6
     assert set(d["Bin"].unique()) == {0, 1}
@@ -83,3 +86,11 @@ def test_mean_or_mode():
     d2 = datagrid(newdata=mtcars_df, grid_type="mean_or_mode")
     for col in d1.columns[1:]:
         assert (d1[col] == d2[col]).all()
+
+
+def test_issue_169():
+    dat = get_dataset("thornton")
+    dat = dat.drop_nulls(subset=["incentive"])
+    mod = logit("outcome ~ incentive + agecat + distance", data=dat.to_pandas()).fit()
+    p = predictions(mod, newdata="balanced")
+    assert p.shape[0] == 6

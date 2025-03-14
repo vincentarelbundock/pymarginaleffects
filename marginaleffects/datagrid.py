@@ -96,28 +96,42 @@ def datagrid(
 
     elif grid_type == "balanced":
         if FUN_binary is None:
+
             def FUN_binary(x):
                 return x.unique()
+
         if FUN_character is None:
+
             def FUN_character(x):
                 return x.unique()
+
         if FUN_numeric is None:
+
             def FUN_numeric(x):
                 return x.mean()
+
         if FUN_other is None:
+
             def FUN_other(x):
                 return x.unique()
 
     if FUN_binary is None:
+
         def FUN_binary(x):
             return x.mode()[0]
+
     if FUN_character is None:
+
         def FUN_character(x):
             return x.mode()[0]
+
     if FUN_numeric is None:
+
         def FUN_numeric(x):
             return x.mean()
+
     if FUN_other is None:
+
         def FUN_other(x):
             return x.mode()[0]
 
@@ -126,8 +140,16 @@ def datagrid(
         if value is not None:
             out[key] = pl.DataFrame({key: value})
 
-    for col in newdata.columns:
-        if col not in out.keys():
+    # Balanced grid should not be built with combiations of response variable, otherwise we get a
+    # duplicated rows on `grid_type="balanced"` and other types.
+    if grid_type == "balanced":
+        if hasattr(model, "response_name") and isinstance(model.response_name, str):
+            col = model.response_name
+            out[col] = pl.DataFrame({col: newdata[col].mode()[0]})
+
+    cols = newdata.columns
+    for col in cols:
+        if col not in out.keys() and col in newdata.columns:
             # binary before numeric
             if is_binary(newdata[col]):
                 out[col] = pl.DataFrame({col: FUN_binary(newdata[col])})
