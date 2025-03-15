@@ -4,7 +4,7 @@ import statsmodels.formula.api as smf
 from marginaleffects import *
 from tests.utilities import *
 import pytest
-from tests.helpers import impartiality_df as dat
+from tests.helpers import impartiality_df, impartiality_model  # noqa
 
 
 @pytest.mark.skip(reason="to be fixed")
