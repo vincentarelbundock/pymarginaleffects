@@ -115,7 +115,7 @@ def get_type_dictionary(formula=None, modeldata=None):
             pl.UInt32,
             pl.UInt64,
         ]
-        t_c = [pl.Utf8, pl.Categorical]
+        t_c = [pl.Utf8, pl.Categorical, pl.Enum]
         t_n = [pl.Float32, pl.Float64]
         t_b = [pl.Boolean]
         if modeldata[v].dtype in t_i:
