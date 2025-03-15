@@ -777,7 +777,7 @@ dev = [
 requires-dist = [
     { name = "duckdb", marker = "extra == 'test'", specifier = ">=1.1.2" },
     { name = "formulaic", specifier = ">=1.0.2" },
-    { name = "linearmodels", marker = "extra == 'test'" },
+    { name = "linearmodels", marker = "extra == 'test'", specifier = ">=6.1" },
     { name = "matplotlib", marker = "extra == 'test'", specifier = ">=3.7.1" },
     { name = "narwhals", specifier = ">=1.10.0" },
     { name = "numpy", specifier = ">=2.0.0" },

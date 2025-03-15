@@ -2,7 +2,7 @@ import numpy as np
 import warnings
 import polars as pl
 from .utils import validate_types, ingest
-from .formulaic import listwise_deletion, model_matrices, get_variables
+from .formulaic_utils import listwise_deletion, model_matrices, get_variables
 from .model_abstract import ModelAbstract
 
 
