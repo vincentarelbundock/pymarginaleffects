@@ -25,5 +25,5 @@ lint: ## run the lint checkers
 install: ## install in poetry venv
 	uv pip install .
 
-qmd:
+qmd: ## extract docstrings into quarto files
 	uv run marginaleffects/docs.py
