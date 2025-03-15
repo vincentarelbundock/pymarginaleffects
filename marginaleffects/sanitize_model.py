@@ -4,9 +4,6 @@ from .model_pyfixest import ModelPyfixest
 from .model_statsmodels import ModelStatsmodels
 from .model_sklearn import ModelSklearn
 
-import importlib
-import inspect
-
 
 def is_linearmodels(model):
     if hasattr(model, "fit_engine") and model.fit_engine == "statsmodels":
