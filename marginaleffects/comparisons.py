@@ -120,6 +120,8 @@ def comparisons(
     if len(pad) == 0:
         pad = pl.DataFrame()
     else:
+        for i, v in enumerate(pad):
+            pad[i] = upcast(v, pad[i - 1])
         pad = pl.concat(pad).unique()
 
     # manipulated data must have at least the same precision as the modeldata
