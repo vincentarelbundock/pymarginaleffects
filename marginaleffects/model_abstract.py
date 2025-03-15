@@ -87,8 +87,12 @@ class ModelAbstract(ABC):
         # categorical variables must be encoded as such
         catvars = get_variables_categorical(self.formula)
         for c in catvars:
-            if self.data[c].dtype not in [pl.Categorical, pl.Enum]:
+            if self.data[c].dtype not in [pl.Enum, pl.Categorical]:
+                if self.data[c].dtype.is_numeric():
+                    self.data = self.data.with_columns(pl.col(c).cast(pl.String))
+                catvals = self.data[c].unique().sort()
                 self.data = self.data.with_columns(pl.col(c).cast(pl.Categorical))
+                self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
 
     @abstractmethod
     def get_predict(self):
