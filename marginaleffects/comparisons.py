@@ -327,10 +327,11 @@ docs_comparisons = (
 
 `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, etc.
 
-* comparisons(): unit-level (conditional) estimates.
-* avg_comparisons(): average (marginal) estimates.
+* `comparisons()`: unit-level (conditional) estimates.
+* `avg_comparisons()`: average (marginal) estimates.
 
 See the package website and vignette for examples:
+
 * https://marginaleffects.com/chapters/comparisons.html
 * https://marginaleffects.com
 
@@ -340,9 +341,9 @@ See the package website and vignette for examples:
     + DocsParameters.docstring_variables("comparison")
     + DocsParameters.docstring_newdata("comparison")
     + """
-* comparison : (str)
-    String specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
-    Acceptable values: difference, differenceavg, differenceavgwts, dydx, eyex, eydx, dyex, dydxavg, eyexavg, eydxavg, dyexavg, dydxavgwts, eyexavgwts, eydxavgwts, dyexavgwts, ratio, ratioavg, ratioavgwts, lnratio, lnratioavg, lnratioavgwts, lnor, lnoravg, lnoravgwts, lift, liftavg, liftavgwts, expdydx, expdydxavg, expdydxavgwts
+* `comparison`: (str) String specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
+
+* Acceptable strings: difference, differenceavg, differenceavgwts, dydx, eyex, eydx, dyex, dydxavg, eyexavg, eydxavg, dyexavg, dydxavgwts, eyexavgwts, eydxavgwts, dyexavgwts, ratio, ratioavg, ratioavgwts, lnratio, lnratioavg, lnratioavgwts, lnor, lnoravg, lnoravgwts, lift, liftavg, liftavgwts, expdydx, expdydxavg, expdydxavgwts
 """
     + DocsParameters.docstring_by
     + DocsParameters.docstring_transform

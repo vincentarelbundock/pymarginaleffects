@@ -84,12 +84,13 @@ docs_predictions = (
 
 `slopes()` and `avg_slopes()` estimate unit-level (conditional) partial derivative of the regression equation with respect to a regressor of interest.
     
-* slopes(): unit-level (conditional) estimates.
-* avg_slopes(): average (marginal) estimates.
+* `slopes()`: unit-level (conditional) estimates.
+* `avg_slopes()`: average (marginal) estimates.
 
-The newdata argument and the datagrid() function can be used to control where statistics are evaluated in the predictor space: "at observed values", "at the mean", "at representative values", etc.
+The newdata argument and the `datagrid()` function can be used to control where statistics are evaluated in the predictor space: "at observed values", "at the mean", "at representative values", etc.
 
 See the package website and vignette for examples:
+
 - https://marginaleffects.com/chapters/slopes.html
 - https://marginaleffects.com
 
@@ -97,10 +98,10 @@ See the package website and vignette for examples:
 """
     + DocsParameters.docstring_model
     + """
-* variables : (str, list, dictionary)
-Specifies what variables (columns) to vary in order to make the slopes.
-    - str: Variable for which to compute the slopes for.
-    - NoneType: Slopes are computed for all regressors in the model object (can be slow)
+`variables`: (str, list, dictionary) Specifies what variables (columns) to vary in order to make the slopes.
+
+- str: Variable for which to compute the slopes for.
+- NoneType: Slopes are computed for all regressors in the model object (can be slow)
 """
     + DocsParameters.docstring_newdata("slope")
     + DocsParameters.docstring_slope

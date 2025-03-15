@@ -6,13 +6,15 @@ import marginaleffects
 class DocsParameters:
     docstring_slope = """
 `slope`: (str) The type of slope or (semi-)elasticity to compute. Acceptable values are:
-    - "dydx": dY/dX
-    - "eyex": dY/dX * Y / X
-    - "eydx": dY/dX * Y
-    - "dyex": dY/dX / X
+
+- "dydx": dY/dX
+- "eyex": dY/dX * Y / X
+- "eydx": dY/dX * Y
+- "dyex": dY/dX / X
 """
     docstring_hypothesis = """
 `hypothesis`: (str, int, float, numpy array) Specifies a hypothesis test or custom contrast using a number, formula, string equation, `np.ndarrar` or a function. 
+
 - int, float: The null hypothesis used in the computation of Z and p-values (before applying transform) 
 - str: 
     * equation specifying linear or non-linear hypothesis tests. Use the names of the model variables, or use `b0`, `b1` to identify the position of each parameter. The `b*` wildcard can be used to test hypotheses on all estimates. Examples:
@@ -28,7 +30,10 @@ class DocsParameters:
 - See the Examples section and the vignette: https://marginaleffects.com/chapters/hypothesis.html
 """
     docstring_by = """
-`by`: (bool, List[str], optional) A logical value or a list of column names in `newdata`. If `True`, estimate is aggregated across the whole dataset. If a list is provided, estimates are aggregated for each unique combination of values in the columns. 
+`by`: (bool, List[str], optional) A logical value or a list of column names in `newdata`. 
+
+- `True`: estimate is aggregated across the whole dataset. 
+- list: estimates are aggregated for each unique combination of values in the columns. 
 """
     docstring_conf_level = """
 `conf_level`: (float, default=0.95) Numeric value specifying the confidence level for the confidence intervals.
@@ -123,6 +128,7 @@ This is analogous to using the `newdata` argument and `datagrid()` function in a
 All unspecified variables are held at their mean or mode. This includes grouping variables in mixed-effects models, so analysts who fit such models may want to specify the groups of interest using the `variables` argument, or supply model-specific arguments to compute population-level estimates. See details below.
 
 See the "Plots" vignette and website for tutorials and information on how to customize plots:
+
 - https://marginaleffects.com/articles/plot.html
 - https://marginaleffects.com
 
@@ -177,15 +183,17 @@ docstring_returns = """
 
 A Polars DataFrame with (some of) the following columns:
 
-- term: the name of the variable.
-- contrast: the comparison method used.
-- estimate: the estimated contrast, difference, ratio, or other transformation between pairs of predictions.
-- std_error: the standard error of the estimate.
-- statistic: the test statistic (estimate / std.error).
-- p_value: the p-value of the test.
-- s_value: Shannon transform of the p value.
-- conf_low: the lower confidence interval bound.
-- conf_high: the upper confidence interval bound.
+- `term`: the name of the variable.
+- `contrast`: the comparison method used.
+- `estimate`: the estimated contrast, difference, ratio, or other transformation between pairs of predictions.
+- `std_error`: the standard error of the estimate.
+- `statistic`: the test statistic (estimate / std.error).
+- `p_value`: the p-value of the test.
+- `s_value`: Shannon transform of the p value.
+- `conf_low`: the lower confidence interval bound.
+- `conf_high`: the upper confidence interval bound.
+- `pred_low`: the lower prediction interval bound.
+- `pred_high`: the upper prediction interval bound.
 
 """
 
