@@ -10,7 +10,7 @@ import pytest
 import marginaleffects
 from marginaleffects import *
 from marginaleffects.comparisons import estimands
-from tests.conftest import mtcars_df, guerry
+from tests.helpers import mtcars, guerry
 
 dat = guerry.with_columns(
     (pl.col("Area") > pl.col("Area").median()).alias("Boolea"),
@@ -153,7 +153,7 @@ def test_variables_function():
     def center_diff(x):
         return pl.DataFrame({"low": x - 5, "high": x + 5})
 
-    mod = smf.glm("vs ~ hp", data=mtcars_df, family=sm.families.Binomial()).fit()
+    mod = smf.glm("vs ~ hp", data=mtcars, family=sm.families.Binomial()).fit()
 
     cmp_py = comparisons(mod, variables={"hp": forward_diff})
     cmp_r = pl.read_csv("tests/r/test_comparisons_08_forward_diff.csv")
@@ -170,13 +170,13 @@ def test_variables_function():
 
 
 def test_contrast():
-    mod = smf.ols("mpg ~ hp * qsec", data=mtcars_df).fit()
+    mod = smf.ols("mpg ~ hp * qsec", data=mtcars).fit()
     comp = avg_comparisons(mod, variables={"hp": "2sd"})
     assert comp["contrast"].item(), "mean((x+sd)) - mean((x-sd))"
 
 
 def test_lift():
-    mod = smf.ols("am ~ hp", data=mtcars_df).fit()
+    mod = smf.ols("am ~ hp", data=mtcars).fit()
     cmp1 = comparisons(mod, comparison="lift")
     cmp2 = comparisons(mod, comparison="liftavg")
     assert cmp1.shape[0] == 32

@@ -2,11 +2,11 @@ import polars as pl
 import statsmodels.formula.api as smf
 
 from marginaleffects import *
-from tests.conftest import mtcars_df
+from tests.helpers import mtcars
 from tests.utilities import *
 
 
-mod_py = smf.ols("mpg ~ wt * hp", mtcars_df).fit()
+mod_py = smf.ols("mpg ~ wt * hp", mtcars).fit()
 
 
 def test_comparison_derivatives():
@@ -26,14 +26,14 @@ def test_slopes():
 
 
 def test_slopes_padding():
-    dat = mtcars_df.with_columns(pl.col("cyl").cast(pl.Utf8))
+    dat = mtcars.with_columns(pl.col("cyl").cast(pl.Utf8))
     mod = smf.ols("mpg ~ cyl + hp", dat.to_pandas()).fit()
     s = slopes(mod, newdata="mean")
     assert s.shape[0] == 3
 
 
 def test_bug_newdata_variables():
-    dat = mtcars_df.with_columns(pl.col("cyl").cast(pl.Utf8))
+    dat = mtcars.with_columns(pl.col("cyl").cast(pl.Utf8))
     mod = smf.ols("mpg ~ cyl + hp", dat.to_pandas()).fit()
     s = slopes(mod, newdata="mean", variables="hp")
     assert s.shape[0] == 1

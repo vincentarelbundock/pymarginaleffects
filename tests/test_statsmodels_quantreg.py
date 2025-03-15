@@ -3,7 +3,7 @@ import pytest
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
 from marginaleffects import *
-from tests.conftest import iris
+from tests.helpers import iris
 
 dat = iris
 dat = dat.rename(

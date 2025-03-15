@@ -1,7 +1,7 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from pytest import approx
-from tests.conftest import quine
+from tests.helpers import quine
 from marginaleffects import *
 
 dat = quine

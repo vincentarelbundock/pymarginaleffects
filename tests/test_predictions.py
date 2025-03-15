@@ -1,7 +1,7 @@
 import polars as pl
 from polars.testing import assert_series_equal
 import statsmodels.formula.api as smf
-from tests.conftest import guerry, penguins, diamonds
+from tests.helpers import guerry, penguins, diamonds
 import marginaleffects
 from marginaleffects import *
 

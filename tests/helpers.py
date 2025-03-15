@@ -21,7 +21,7 @@ impartiality_df = pl.read_csv("tests/data/impartiality.csv").with_columns(
 
 iris = pl.read_csv("tests/data/iris.csv")
 
-mtcars_df = pl.read_csv("tests/data/mtcars.csv")
+mtcars = pl.read_csv("tests/data/mtcars.csv")
 
 penguins = pl.read_csv(
     "tests/data/penguins.csv",
@@ -31,12 +31,6 @@ penguins = pl.read_csv(
 quine = pl.read_csv("tests/data/quine.csv")
 
 wage_panel_pd = wage_panel.load().set_index(["nr", "year"])
-
-
-@pytest.fixture(scope="session")
-def mtcars():
-    return pl.read_csv("tests/data/mtcars.csv")
-    return mtcars
 
 
 @pytest.fixture(scope="session")
@@ -80,5 +74,5 @@ def penguins_mod_5var():
 
 @pytest.fixture(scope="session")
 def mtcars_mod():
-    mod = smf.ols("mpg ~ hp * wt * disp * cyl * qsec", data=mtcars_df).fit()
+    mod = smf.ols("mpg ~ hp * wt * disp * cyl * qsec", data=mtcars).fit()
     return mod
