@@ -1,6 +1,6 @@
 [project]
 name = "marginaleffects"
-version = "0.0.15.5"
+version = "0.0.15.6"
 description = "Predictions, counterfactual comparisons, slopes, and hypothesis tests for statistical models."
 readme = "README.md"
 requires-python = ">=3.10"

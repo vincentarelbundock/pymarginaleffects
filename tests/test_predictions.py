@@ -1,10 +1,9 @@
 import polars as pl
 from polars.testing import assert_series_equal
 import statsmodels.formula.api as smf
-from tests.helpers import guerry, penguins, diamonds
+from tests.helpers import guerry, penguins, diamonds, mtcars
 import marginaleffects
 from marginaleffects import *
-
 from tests.utilities import *
 
 df = guerry.with_columns(pl.Series(range(guerry.shape[0])).alias("row_id")).sort(
@@ -95,3 +94,26 @@ def test_issue_95():
     newdata = newdata.sort(by="cut")
 
     assert_series_equal(p["estimate"], newdata["pred"], check_names=False)
+
+
+def test_issue161():
+    mod = smf.ols("mpg ~ wt * hp * cyl", mtcars.to_pandas()).fit()
+
+    # predictions(variables=)
+    p = predictions(mod)
+    assert p.shape[0] == 32
+    p = predictions(mod, variables="cyl")
+    assert p.shape[0] == 96
+    p = predictions(mod, variables={"cyl": None})
+    assert p.shape[0] == 96
+    p = predictions(mod, variables=["cyl"])
+    assert p.shape[0] == 96
+    p = predictions(mod, variables=["cyl", "am"])
+    assert p.shape[0] == 192
+
+    # avg_predictions(variables=)
+    p1 = avg_predictions(mod)
+    p2 = avg_predictions(mod, variables="cyl")
+    p3 = predictions(mod, variables="cyl")
+    assert p2["estimate"][0] != p1["estimate"][0]
+    assert p2["estimate"][0] == p3["estimate"].mean()
