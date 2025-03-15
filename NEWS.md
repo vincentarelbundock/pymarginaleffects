@@ -5,9 +5,12 @@ New functions:
 * `get_dataset()`
 * `fit_sklearn()`, `fit_statsmodels()`, `fit_linearmodels()`
 
-New arguments:
+
+New:
 
 * `datagrid()` gets new arguments: `FUN_other`, `FUN_binary`, `FUN_numeric`, `FUN_character`
+* `variables` is available in `avg_predictions()`
+* `variables` accepts strings and list of strings in `predictions()`
 
 Bugs:
 
