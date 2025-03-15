@@ -3,8 +3,7 @@ import numpy as np
 import polars as pl
 from abc import ABC, abstractmethod
 from .utils import get_type_dictionary
-from .formulaic import get_variables_categorical
-from . import formulaic as fml
+from . import formulaic_utils as fml
 
 
 class ModelAbstract(ABC):
@@ -85,7 +84,7 @@ class ModelAbstract(ABC):
             warnings.warn("Dropping rows with missing observations.", UserWarning)
 
         # categorical variables must be encoded as such
-        catvars = get_variables_categorical(self.formula)
+        catvars = fml.get_variables_categorical(self.formula)
         for c in catvars:
             if self.data[c].dtype not in [pl.Enum, pl.Categorical]:
                 if self.data[c].dtype.is_numeric():

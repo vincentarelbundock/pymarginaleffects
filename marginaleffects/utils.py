@@ -4,7 +4,7 @@ import polars as pl
 from typing import Protocol, runtime_checkable
 from pydantic import ConfigDict, validate_call
 from functools import wraps
-import marginaleffects.formulaic as fml
+import marginaleffects.formulaic_utils as fml
 # from narwhals.typing import IntoFrame
 
 

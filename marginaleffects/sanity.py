@@ -7,7 +7,7 @@ import polars as pl
 from .datagrid import datagrid
 from .estimands import estimands
 from .utils import ingest, upcast
-from .formulaic import listwise_deletion
+from .formulaic_utils import listwise_deletion
 
 
 def sanitize_vcov(vcov, model):
