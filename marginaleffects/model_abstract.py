@@ -3,6 +3,7 @@ import numpy as np
 import polars as pl
 from abc import ABC, abstractmethod
 from .utils import get_type_dictionary
+from .formulaic import get_variables_categorical
 from . import formulaic as fml
 
 
@@ -55,6 +56,12 @@ class ModelAbstract(ABC):
         self.data = fml.listwise_deletion(self.formula, self.data)
         if self.data.shape[0] != original_row_count:
             warnings.warn("Dropping rows with missing observations.", UserWarning)
+
+        # categorical variables must be encoded as such
+        catvars = get_variables_categorical(self.formula)
+        for c in catvars:
+            if self.data[c].dtype not in [pl.Categorical, pl.Enum]:
+                self.data = self.data.with_columns(pl.col(c).cast(pl.Categorical))
 
     def get_vcov(self, vcov=False):
         return None

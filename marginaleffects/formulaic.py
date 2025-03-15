@@ -1,3 +1,4 @@
+import re
 import formulaic
 import narwhals as nw
 from narwhals.typing import IntoFrame
@@ -5,6 +6,10 @@ from formulaic.parser.algos.tokenize import tokenize
 
 
 __all__ = ["listwise_deletion", "model_matrices"]
+
+
+def get_variables_categorical(fml: str) -> list[str]:
+    return re.findall(r"C\((.*?)\)", fml)
 
 
 # @validate_types

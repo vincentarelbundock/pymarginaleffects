@@ -19,7 +19,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, upcast, ingest
+from .utils import get_pad, sort_columns, ingest, upcast
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 
@@ -108,12 +108,6 @@ def comparisons(
             if model.variables_type[v] not in ["numeric", "integer"]:
                 pad.append(get_pad(newdata, v, modeldata[v].unique()))
 
-    # Hack: Polars is very strict and `value / 2`` is float, so we need to upcast.
-    nd = upcast(nd)
-    hi = upcast(hi)
-    lo = upcast(lo)
-    pad = upcast(pad)
-
     # nd, hi, and lo are lists of data frames, since the user could have
     # requested many contrasts at the same time using the `variables` argument.
     # We could make predictions on each of them separately, but it's more
@@ -127,9 +121,14 @@ def comparisons(
         pad = pl.DataFrame()
     else:
         pad = pl.concat(pad).unique()
-        nd = pl.concat(upcast([pad, nd]), how="diagonal")
-        hi = pl.concat(upcast([pad, hi]), how="diagonal")
-        lo = pl.concat(upcast([pad, lo]), how="diagonal")
+
+    pad = upcast(pad, modeldata)
+    lo = upcast(lo, modeldata)
+    hi = upcast(hi, modeldata)
+
+    nd = pl.concat([pad, nd], how="diagonal")
+    hi = pl.concat([pad, hi], how="diagonal")
+    lo = pl.concat([pad, lo], how="diagonal")
 
     # Use the `nd`, `lo`, and `hi` to make counterfactual predictions.
     # data frame -> Patsy -> design matrix -> predict()
