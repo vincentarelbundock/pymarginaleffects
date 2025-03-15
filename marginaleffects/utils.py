@@ -243,10 +243,27 @@ def get_dataset(
 
 
 def upcast(df, reference):
+    numtypes = [
+        pl.UInt8,
+        pl.UInt16,
+        pl.UInt32,
+        pl.Int8,
+        pl.Int16,
+        pl.Int32,
+        pl.Int64,
+        pl.UInt64,
+        pl.Float32,
+        pl.Float64,
+    ]
     for col in df.columns:
         if col in df.columns and col in reference.columns:
             good = reference[col].dtype
             bad = df[col].dtype
             if good != bad:
-                df = df.with_columns(pl.col(col).cast(good))
+                if good in numtypes and bad in numtypes:
+                    idx = max(numtypes.index(good), numtypes.index(bad))
+                    df = df.with_columns(pl.col(col).cast(numtypes[idx]))
+                else:
+                    df = df.with_columns(pl.col(col).cast(good))
+
     return df

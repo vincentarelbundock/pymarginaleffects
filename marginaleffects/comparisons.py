@@ -122,9 +122,16 @@ def comparisons(
     else:
         pad = pl.concat(pad).unique()
 
-    pad = upcast(pad, modeldata)
+    # manipulated data must have at least the same precision as the modeldata
     lo = upcast(lo, modeldata)
     hi = upcast(hi, modeldata)
+    pad = upcast(pad, modeldata)
+    nd = upcast(nd, modeldata)
+
+    # non-manipulated data must have at least the smae precision as manipulated data
+    # ex: int + 0.0001 for slopes
+    pad = upcast(pad, hi)
+    nd = upcast(nd, hi)
 
     nd = pl.concat([pad, nd], how="diagonal")
     hi = pl.concat([pad, hi], how="diagonal")
