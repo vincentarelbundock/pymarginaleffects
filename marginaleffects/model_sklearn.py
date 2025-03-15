@@ -1,7 +1,7 @@
 import numpy as np
 import warnings
 import polars as pl
-from .utils import validate_types, ingest
+from .utils import ingest
 from .formulaic_utils import listwise_deletion, model_matrices, get_variables
 from .model_abstract import ModelAbstract
 
@@ -93,6 +93,7 @@ def fit_sklearn(
     out.formula_engine = "formulaic"
     out.fit_engine = "sklearn"
     return out
+
 
 docs_sklearn = """
 # `fit_sklearn()`
