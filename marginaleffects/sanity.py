@@ -6,7 +6,7 @@ import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
-from .utils import ingest
+from .utils import ingest, upcast
 
 
 def sanitize_vcov(vcov, model):
@@ -114,6 +114,8 @@ def sanitize_newdata(model, newdata, wts, by=[]):
 
     if datagrid_explicit is not None:
         out.datagrid_explicit = datagrid_explicit
+
+    out = upcast(out, modeldata)
 
     return out
 

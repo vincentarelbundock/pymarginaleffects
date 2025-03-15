@@ -17,9 +17,6 @@ def test_comparison_derivatives():
         compare_r_to_py(cmp_r, cmp_py, msg=e, tolr=1e-4, tola=1e-4)
 
 
-test_comparison_derivatives()
-
-
 def test_slopes():
     est = ["dydx", "dydx", "dyex", "eydx", "eyex"]
     for e in est:

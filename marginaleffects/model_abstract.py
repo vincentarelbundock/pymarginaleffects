@@ -3,6 +3,7 @@ import numpy as np
 import polars as pl
 from abc import ABC, abstractmethod
 from .utils import get_type_dictionary
+from .formulaic import get_variables_categorical
 from . import formulaic as fml
 
 
@@ -46,16 +47,6 @@ class ModelAbstract(ABC):
 
         self.formula = formula
 
-    def validate_modeldata(self):
-        if not isinstance(self.data, pl.DataFrame):
-            raise ValueError("data attribute must be a Polars DataFrame")
-
-        # there can be no missing values in the formula variables
-        original_row_count = self.data.shape[0]
-        self.data = fml.listwise_deletion(self.formula, self.data)
-        if self.data.shape[0] != original_row_count:
-            warnings.warn("Dropping rows with missing observations.", UserWarning)
-
     def get_vcov(self, vcov=False):
         return None
 
@@ -82,6 +73,22 @@ class ModelAbstract(ABC):
             return None
         else:
             return vars[1:]
+
+    def validate_modeldata(self):
+        if not isinstance(self.data, pl.DataFrame):
+            raise ValueError("data attribute must be a Polars DataFrame")
+
+        # there can be no missing values in the formula variables
+        original_row_count = self.data.shape[0]
+        self.data = fml.listwise_deletion(self.formula, self.data)
+        if self.data.shape[0] != original_row_count:
+            warnings.warn("Dropping rows with missing observations.", UserWarning)
+
+        # categorical variables must be encoded as such
+        catvars = get_variables_categorical(self.formula)
+        for c in catvars:
+            if self.data[c].dtype not in [pl.Categorical, pl.Enum]:
+                self.data = self.data.with_columns(pl.col(c).cast(pl.Categorical))
 
     @abstractmethod
     def get_predict(self):
