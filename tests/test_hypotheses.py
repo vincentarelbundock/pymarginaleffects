@@ -3,12 +3,17 @@ import polars as pl
 import pytest
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-from tests.conftest import guerry_with_nulls, mtcars_df
 from marginaleffects import *
 
 
-mod = smf.ols("Literacy ~ Pop1831 * Desertion", guerry_with_nulls).fit()
-mtcars_mod = smf.ols("mpg ~ hp + cyl", data=mtcars_df).fit()
+guerry = (
+    get_dataset("Guerry", "HistData")
+    .select("Literacy", "Pop1831", "Desertion")
+    .drop_nulls()
+)
+mtcars = get_dataset("mtcars", "datasets")
+mod = smf.ols("Literacy ~ Pop1831 * Desertion", guerry).fit()
+mtcars_mod = smf.ols("mpg ~ hp + cyl", data=mtcars).fit()
 
 
 def test_coefs():
@@ -48,7 +53,7 @@ def test_null_hypothesis():
 def test_hypothesis_list():
     # Hypothesis values from R
     hypothesis_values = [0.4630551, -112.8876651, -10.6664417, -5384.2708089]
-    mod = smf.ols("Literacy ~ Pop1831 * Desertion", guerry_with_nulls).fit()
+    mod = smf.ols("Literacy ~ Pop1831 * Desertion", guerry).fit()
     hyp = hypotheses(mod, hypothesis=3)
     assert np.allclose(hyp["statistic"], hypothesis_values)
     hyp = hypotheses(mod, hypothesis=3.0)

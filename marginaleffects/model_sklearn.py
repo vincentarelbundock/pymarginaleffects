@@ -2,7 +2,7 @@ import numpy as np
 import warnings
 import polars as pl
 from .utils import validate_types, ingest
-from .formulaic_utils import listwise_deletion, model_matrices, extract_variables
+from .formulaic import listwise_deletion, model_matrices, get_variables
 from .model_abstract import ModelAbstract
 
 
@@ -88,7 +88,7 @@ def fit_sklearn(
     y, X = model_matrices(formula, d)
     # formulaic returns a matrix when the response is character or categorical
     if y.ndim == 2:
-        y = d[extract_variables(formula)[0]]
+        y = d[get_variables(formula)[0]]
     y = np.ravel(y)
     out = engine(**kwargs_engine).fit(X=X, y=y, **kwargs_fit)
     out.data = d

@@ -1,10 +1,9 @@
 import sys
-import polars as pl
 import pytest
-import statsmodels.formula.api as smf
 from marginaleffects import *
 from marginaleffects.plot_slopes import *
 from tests.utilities import *
+from tests.helpers import *
 
 pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
 

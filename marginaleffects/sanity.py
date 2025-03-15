@@ -6,7 +6,8 @@ import polars as pl
 
 from .datagrid import datagrid
 from .estimands import estimands
-from .utils import ingest
+from .utils import ingest, upcast
+from .formulaic import listwise_deletion
 
 
 def sanitize_vcov(vcov, model):
@@ -39,6 +40,13 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         out = modeldata
         newdata = modeldata
 
+    if isinstance(newdata, pl.DataFrame):
+        any_missing = any(newdata.select(pl.all().is_null().any()).row(0))
+        if any_missing:
+            raise ValueError(
+                "Please supply a data frame with no missing value to the `newdata` argument."
+            )
+
     # if newdata is a string, then we need to treat `by` as unique entries.
     args = {"model": model}
     if isinstance(by, list) and len(by) > 0:
@@ -68,6 +76,14 @@ def sanitize_newdata(model, newdata, wts, by=[]):
             out = ingest(newdata)
         except Exception as e:
             raise e
+
+    # user-supplied newdata may include missing values
+    if (
+        model is not None
+        and hasattr(model, "formula")
+        and isinstance(out, pl.DataFrame)
+    ):
+        out = listwise_deletion(model.formula, out)
 
     reserved_names = {
         "rowid",
@@ -107,6 +123,8 @@ def sanitize_newdata(model, newdata, wts, by=[]):
 
     if datagrid_explicit is not None:
         out.datagrid_explicit = datagrid_explicit
+
+    out = upcast(out, modeldata)
 
     return out
 

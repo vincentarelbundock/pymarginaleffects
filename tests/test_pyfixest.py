@@ -1,13 +1,10 @@
 from pyfixest.estimation import feols, fepois
 from pyfixest.utils import ssc
-
-
 import polars as pl
 from polars.testing import assert_series_equal
 import numpy as np
 from marginaleffects import *
 import pytest
-import sys
 
 rtol = 1e-4
 
@@ -24,9 +21,10 @@ def create_test_data():
             "f2": np.random.choice([0, 1, 2, 3, 4, 5], size=1000, replace=True),
         }
     ).with_columns(
-        (pl.col("X1") * pl.col("X2") * pl.col("Z1") + pl.col("e")).alias("Y")
+        (pl.col("X1") * pl.col("X2") * pl.col("Z1") + pl.col("e")).alias("Y"),
+        pl.col("f1").cast(pl.Utf8),
+        pl.col("f2").cast(pl.Utf8),
     )
-
     return data
 
 
@@ -35,8 +33,7 @@ def test_bare_minimum():
     data = create_test_data()
 
     # test 1: no fixed effects
-
-    fit = feols("Y ~ X1 * X2 * Z1", data=data.to_pandas(), ssc=ssc(fixef_k="none"))
+    fit = feols("Y ~ X1 * X2 * Z1", data=data, ssc=ssc(fixef_k="none"))
 
     p = predictions(fit)
     assert p.shape == (1000, 16)
@@ -63,7 +60,7 @@ def test_bare_minimum():
     assert_series_equal(c["estimate"], known, check_names=False, rtol=rtol)
 
     # test 2: fixed effects
-    fit2 = feols("Y ~ X1 * X2 * Z1 | f1", data=data.to_pandas())
+    fit2 = feols("Y ~ X1 * X2 * Z1 | f1", data=data)
     p2 = predictions(fit2)
     assert p2.shape == (1000, 16)
 
@@ -89,40 +86,40 @@ def test_bare_minimum():
     )
     assert_series_equal(c2["estimate"], known, check_names=False, rtol=rtol)
 
-    if False:
-        # dontrun as bug in pyfixest with ^ interaction for fixed effects and predict()
-        # test 3: special syntax - interacted fixed effects
-        fit3 = feols("Y ~ X1 * X2 * Z1 | f1^f2", data=data.to_pandas())
-        p3 = predictions(fit3)
-        assert p3.shape == (1000, 16)
-
-        p3 = avg_predictions(fit3)
-        assert_series_equal(
-            p3["estimate"], pl.Series([0.01044666147]), check_names=False, rtol=rtol
-        )
-
-        s3 = avg_slopes(fit3)
-        known = pl.Series([-0.002662644695, -0.012290790756, 0.090667738344])
-        assert_series_equal(s3["estimate"], known, check_names=False, rtol=rtol)
-
-        c3 = comparisons(fit3, newdata=datagrid(X1=[2, 4], model=fit3))
-        known = pl.Series(
-            [
-                0.01222839154,
-                0.01222839154,
-                0.06484658716,
-                0.13887504383,
-                -0.11390247943,
-                -0.26667151028,
-            ]
-        )
-        assert_series_equal(c3["estimate"], known, check_names=False, rtol=rtol)
+    # dontrun as bug in pyfixest with ^ interaction for fixed effects and predict()
+    # test 3: special syntax - interacted fixed effects
+    # fit3 = feols("Y ~ X1 * X2 * Z1 | f1^f2", data=data)
+    # p3 = predictions(fit3)
+    # assert p3.shape == (1000, 16)
+    #
+    # p3 = avg_predictions(fit3)
+    # assert_series_equal(
+    #     p3["estimate"], pl.Series([0.01044666147]), check_names=False, rtol=rtol
+    # )
+    #
+    # s3 = avg_slopes(fit3)
+    # known = pl.Series([-0.002662644695, -0.012290790756, 0.090667738344])
+    # assert_series_equal(s3["estimate"], known, check_names=False, rtol=rtol)
+    #
+    # c3 = comparisons(fit3, newdata=datagrid(X1=[2, 4], model=fit3))
+    # known = pl.Series(
+    #     [
+    #         0.01222839154,
+    #         0.01222839154,
+    #         0.06484658716,
+    #         0.13887504383,
+    #         -0.11390247943,
+    #         -0.26667151028,
+    #     ]
+    # )
+    # assert_series_equal(c3["estimate"], known, check_names=False, rtol=rtol)
+    #
 
 
 @pytest.mark.skip(reason="predict method with newdata not yet implemented for fepois.")
 def test_bare_minimum_fepois():
-    data = create_test_data().to_pandas()
-    data["Y"] = data["Y"].abs()
+    data = create_test_data()
+    data = data.with_columns(pl.col("Y").abs().round())
 
     # test 1: no fixed effects
     fit1 = fepois("Y ~ X1 * X2 * Z1", data=data)

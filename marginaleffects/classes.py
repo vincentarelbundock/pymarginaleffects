@@ -32,6 +32,11 @@ class MarginaleffectsDataFrame(pl.DataFrame):
                 "statistic": "z",
                 "p_value": "P(>|z|)",
                 "s_value": "S",
+                "p_value_noninf": "p (NonInf)",
+                "p_value_nonsup": "p (NonSup)",
+                "p_value_equiv": "p (Equiv)",
+                "pred_low": "Pred low",
+                "pred_high": "Pred high",
             }
             if mapping is None:
                 self.mapping = default_mapping

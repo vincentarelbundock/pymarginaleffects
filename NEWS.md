@@ -5,6 +5,18 @@ New functions:
 * `get_dataset()`
 * `fit_sklearn()`, `fit_statsmodels()`, `fit_linearmodels()`
 
+
+New:
+
+* `datagrid()` gets new arguments: `FUN_other`, `FUN_binary`, `FUN_numeric`, `FUN_character`
+* `variables` is available in `avg_predictions()`
+* `variables` accepts strings and list of strings in `predictions()`
+
+Bugs:
+
+* `datagrid(grid_type='balanced')` takes unique values of binary and categorical variables. Issue #156.
+* `datagrid(grid_type='balanced')` does not return duplicates based on response. Issue 169.
+
 # 0.0.14
 
 * Thanks to Narwhals, marginaleffects can now ingest data frames in multiple formats and convert them to the Polars representation that we need internally. This no longer requires external dependencies like Pandas or DuckDB. Thanks to @artiom-matvei.

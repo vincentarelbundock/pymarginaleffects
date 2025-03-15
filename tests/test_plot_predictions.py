@@ -1,11 +1,10 @@
 import sys
-import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
 from marginaleffects.plot_predictions import *
 from tests.utilities import *
 import pytest
-from tests.conftest import mtcars_df
+from tests.helpers import *
 
 pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
 
@@ -46,7 +45,7 @@ class TestPlotPredictions:
             (
                 {
                     "am": None,
-                    "qsec": [mtcars_df["qsec"].min(), mtcars_df["qsec"].max()],
+                    "qsec": [mtcars["qsec"].min(), mtcars["qsec"].max()],
                 },
                 "issue_57_02",
             ),
@@ -54,7 +53,7 @@ class TestPlotPredictions:
         ],
     )
     def test_issue_57(self, input_condition, expected_figure_filename):
-        mod = smf.ols("mpg ~ wt + am + qsec", mtcars_df.to_pandas()).fit()
+        mod = smf.ols("mpg ~ wt + am + qsec", mtcars.to_pandas()).fit()
 
         fig = plot_predictions(mod, condition=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
@@ -62,13 +61,13 @@ class TestPlotPredictions:
     def issue_62(self):
         import types
 
-        mod = smf.ols("mpg ~ hp * wt * am", data=mtcars_df).fit()
+        mod = smf.ols("mpg ~ hp * wt * am", data=mtcars).fit()
         cond = {
             "hp": None,
             "wt": [
-                mtcars_df["wt"].mean() - mtcars_df["wt"].std(),
-                mtcars_df["wt"].mean(),
-                mtcars_df["wt"].mean() + mtcars_df["wt"].std(),
+                mtcars["wt"].mean() - mtcars["wt"].std(),
+                mtcars["wt"].mean(),
+                mtcars["wt"].mean() + mtcars["wt"].std(),
             ],
             "am": None,
         }

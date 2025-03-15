@@ -26,17 +26,8 @@ def is_sklearn(model):
 
 
 def is_statsmodels(model):
-    if hasattr(model, "fit_engine") and model.fit_engine == "statsmodels":
-        return True
-    try:
-        import statsmodels.base.wrapper as smw
-
-        if isinstance(model, smw.ResultsWrapper):
-            return True
-        else:
-            return False
-    except ImportError:
-        return False
+    typename = str(type(model))
+    return "statsmodels" in typename
 
 
 def sanitize_model(model):

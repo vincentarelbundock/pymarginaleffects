@@ -3,14 +3,17 @@ from functools import reduce, partial
 import polars as pl
 
 from .sanitize_model import sanitize_model
+import marginaleffects.utils as ut
 
 
 def datagrid(
     model=None,
     newdata=None,
     grid_type="mean_or_mode",
-    FUN_numeric=lambda x: x.mean(),
-    FUN_other=lambda x: x.mode()[0],  # mode can return multiple values
+    FUN_binary=None,
+    FUN_character=None,
+    FUN_numeric=None,
+    FUN_other=None,
     **kwargs,
 ):
     """
@@ -72,6 +75,8 @@ def datagrid(
         out = partial(
             datagrid,
             grid_type=grid_type,
+            FUN_binary=FUN_binary,
+            FUN_character=FUN_character,
             FUN_numeric=FUN_numeric,
             FUN_other=FUN_other,
             **kwargs,
@@ -100,44 +105,77 @@ def datagrid(
         pass
 
     elif grid_type == "balanced":
+        if FUN_binary is None:
+
+            def FUN_binary(x):
+                return x.unique()
+
+        if FUN_character is None:
+
+            def FUN_character(x):
+                return x.unique()
+
+        if FUN_numeric is None:
+
+            def FUN_numeric(x):
+                return x.mean()
+
         if FUN_other is None:
-            # mode can return multiple values
+
             def FUN_other(x):
-                x.unique()
+                return x.unique()
+
+    if FUN_binary is None:
+
+        def FUN_binary(x):
+            return x.mode()[0]
+
+    if FUN_character is None:
+
+        def FUN_character(x):
+            return x.mode()[0]
+
+    if FUN_numeric is None:
+
+        def FUN_numeric(x):
+            return x.mean()
+
+    if FUN_other is None:
+
+        def FUN_other(x):
+            return x.mode()[0]
 
     out = {}
     for key, value in kwargs.items():
         if value is not None:
             out[key] = pl.DataFrame({key: value})
 
-    numtypes = [
-        pl.Int8,
-        pl.Int16,
-        pl.Int32,
-        pl.Int64,
-        pl.UInt8,
-        pl.UInt16,
-        pl.UInt32,
-        pl.UInt64,
-        pl.Float32,
-        pl.Float64,
-    ]
+    # Balanced grid should not be built with combiations of response variable, otherwise we get a
+    # duplicated rows on `grid_type="balanced"` and other types.
+    if grid_type == "balanced":
+        if hasattr(model, "response_name") and isinstance(model.response_name, str):
+            col = model.response_name
+            out[col] = pl.DataFrame({col: newdata[col].mode()[0]})
 
-    for col in newdata.columns:
-        if col not in out.keys():
-            # model classes include relevant information. use if available
-            if model is not None:
-                coltype = model.variables_type[col]
-            else:
-                if newdata[col].dtype in numtypes:
-                    coltype = "numeric"
-                else:
-                    coltype = "other"
+    if model is not None:
+        variables_type = model.variables_type
+    else:
+        variables_type = ut.get_type_dictionary(formula=None, modeldata=newdata)
 
-            if coltype in ["numeric", "integer"]:
-                out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
-            else:
-                out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
+    cols = newdata.columns
+    cols = [col for col in cols if col in variables_type.keys()]
+    cols = [col for col in cols if col in newdata.columns]
+    cols = [col for col in cols if col not in out.keys()]
+
+    for col in cols:
+        if variables_type[col] == "binary":
+            out[col] = pl.DataFrame({col: FUN_binary(newdata[col])})
+        elif variables_type[col] in ["integer", "numeric"]:
+            out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
+        elif variables_type[col] == "character":
+            out[col] = pl.DataFrame({col: FUN_character(newdata[col])})
+        else:
+            out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
 
     out = reduce(lambda x, y: x.join(y, how="cross"), out.values())
 

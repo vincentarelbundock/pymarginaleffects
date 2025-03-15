@@ -3,10 +3,10 @@ import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
 
 from marginaleffects import *
-from tests.conftest import mtcars_df
+from tests.helpers import mtcars
 
 
-dat = mtcars_df.with_columns(pl.col("cyl").cast(pl.Utf8))
+dat = mtcars.with_columns(pl.col("cyl").cast(pl.Utf8))
 mod = smf.ols("mpg ~ qsec * wt + cyl", data=dat.to_pandas()).fit()
 
 

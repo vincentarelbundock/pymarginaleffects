@@ -1,10 +1,13 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-from tests.conftest import dietox
 from marginaleffects import *
 
-dat = dietox
+dat = (
+    get_dataset("dietox", "geepack")
+    .select("Weight", "Time", "Litter", "Pig", "Cu")
+    .drop_nulls()
+)
 mod = smf.mixedlm(
     formula="Weight ~ Time * Litter", data=dat.to_pandas(), groups=dat["Pig"]
 ).fit()

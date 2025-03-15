@@ -265,14 +265,7 @@ def fit_linearmodels(
         - formula_engine: Set to "linearmodels"
         - model: The fitted linearmodels model object (PanelEffectsResults)
     """
-    try:
-        from linearmodels.panel.model import _PanelModelBase
 
-        assert isinstance(engine, _PanelModelBase), (
-            "Engine must be an instance of _PanelModelBase"
-        )
-    except ImportError:
-        pass
     linearmodels_formula, effects = parse_linearmodels_formula(formula)
 
     d = listwise_deletion(linearmodels_formula, data=data)

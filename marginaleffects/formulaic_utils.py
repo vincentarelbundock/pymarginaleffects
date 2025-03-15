@@ -1,7 +1,6 @@
+import re
 import formulaic
 import narwhals as nw
-import numpy as np
-import pandas as pd
 from narwhals.typing import IntoFrame
 from formulaic.parser.algos.tokenize import tokenize
 
@@ -9,8 +8,12 @@ from formulaic.parser.algos.tokenize import tokenize
 __all__ = ["listwise_deletion", "model_matrices"]
 
 
+def get_variables_categorical(fml: str) -> list[str]:
+    return re.findall(r"C\((.*?)\)", fml)
+
+
 # @validate_types
-def extract_variables(formula: str) -> list[str]:
+def get_variables(formula: str) -> list[str]:
     """
     Extract all variables (column names) from a formula string.
 
@@ -27,12 +30,12 @@ def extract_variables(formula: str) -> list[str]:
 
     Examples
     --------
-    >>> extract_variables("y ~ x1 + x2")
+    >>> get_variables("y ~ x1 + x2")
     ['y', 'x1', 'x2']
     """
-    tokens = formulaic.parser.DefaultFormulaParser().get_tokens(formula)
 
-    return [str(token) for token in tokens if token.kind.value == "name"]
+    fml = formulaic.Formula(formula)
+    return list(fml.required_variables)
 
 
 # @validate_types
@@ -68,7 +71,7 @@ def listwise_deletion(formula: str, data: "IntoFrame"):
     0  1   1   1
     3  4   4   4
     """
-    variables = extract_variables(formula)
+    variables = get_variables(formula)
     data = nw.from_native(data)
     return data.drop_nulls(subset=variables).to_native()
 
@@ -153,9 +156,7 @@ def parse_linearmodels_formula(formula: str):
     return cleaned_formula, effects_kwargs
 
 
-def model_matrices(
-    formula: str, data: "IntoFrame", formula_engine: str = "formulaic"
-) -> tuple[np.ndarray | None | pd.DataFrame, np.ndarray | pd.DataFrame]:
+def model_matrices(formula: str, data: "IntoFrame", formula_engine: str = "formulaic"):
     """
     Construct model matrices (design matrices) from a formula and data using different formula engines.
 
@@ -177,8 +178,7 @@ def model_matrices(
 
     Returns
     -------
-    tuple[np.ndarray | None | pd.DataFrame, np.ndarray | pd.DataFrame]
-        A tuple containing:
+    A tuple containing:
         - First element: Endogenous variable matrix (dependent variable)
             - numpy array for formulaic
             - None for patsy
@@ -208,7 +208,11 @@ def model_matrices(
 
     elif formula_engine == "linearmodels":
         linearmodels_formula, _ = parse_linearmodels_formula(formula)
-        endog, exog = formulaic.Formula.get_model_matrix(
-            linearmodels_formula, data.to_pandas()
-        )
+        endog, exog = formulaic.model_matrix(linearmodels_formula, data.to_pandas())
+
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError("The pandas package is required to use this feature.")
+
         return pd.DataFrame(endog), pd.DataFrame(exog)

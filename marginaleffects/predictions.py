@@ -52,11 +52,24 @@ def predictions(
     modeldata = model.data
 
     if variables:
-        if not isinstance(variables, dict):
+        # convert to dictionary
+        if isinstance(variables, str):
+            variables = {variables: None}
+        elif isinstance(variables, list):
+            for v in variables:
+                if not isinstance(v, str):
+                    raise TypeError(
+                        "All entries in the `variables` list must be strings."
+                    )
+            variables = {v: None for v in variables}
+        elif not isinstance(variables, dict):
             raise TypeError("`variables` argument must be a dictionary")
+
         for variable, value in variables.items():
             if callable(value):
                 val = value()
+            elif value is None:
+                val = modeldata[variable].unique()
             elif value == "sd":
                 std = modeldata[variable].std()
                 mean = modeldata[variable].mean()
@@ -150,6 +163,7 @@ def predictions(
 
 def avg_predictions(
     model,
+    variables=None,
     conf_level=0.95,
     vcov=True,
     by=True,
@@ -164,6 +178,7 @@ def avg_predictions(
 
     out = predictions(
         model=model,
+        variables=variables,
         conf_level=conf_level,
         vcov=vcov,
         by=by,

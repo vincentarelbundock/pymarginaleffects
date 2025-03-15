@@ -2,10 +2,7 @@ import pytest
 import pandas as pd
 import polars as pl
 import duckdb
-import pyarrow as pa
-import narwhals as nw
 from marginaleffects.utils import ingest, get_dataset
-from typing import Callable
 
 
 def get_sample_data():

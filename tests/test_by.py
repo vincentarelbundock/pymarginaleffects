@@ -1,7 +1,7 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
-from tests.conftest import guerry
+from tests.helpers import guerry, guerry_mod  # noqa
 
 from tests.utilities import *
 

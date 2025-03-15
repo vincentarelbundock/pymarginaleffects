@@ -1,10 +1,10 @@
-import itertools
 import narwhals as nw
 import numpy as np
 import polars as pl
 from typing import Protocol, runtime_checkable
 from pydantic import ConfigDict, validate_call
 from functools import wraps
+import marginaleffects.formulaic as fml
 # from narwhals.typing import IntoFrame
 
 
@@ -98,50 +98,24 @@ def get_pad(df, colname, uniqs):
     return first
 
 
-def upcast(dfs: list) -> list:
-    numeric_types = [
-        pl.Boolean,
-        pl.Int8,
-        pl.Int16,
-        pl.Int32,
-        pl.Int64,
-        pl.UInt8,
-        pl.UInt16,
-        pl.UInt32,
-        pl.UInt64,
-        pl.Float32,
-        pl.Float64,
-    ]
-
-    tmp = [df for df in dfs if type(df) is pl.DataFrame]
-
-    if len(tmp) == 0:
-        return dfs
-
-    cols = [df.columns for df in tmp]
-    cols = set(list(itertools.chain(*cols)))
-
-    for col in cols:
-        dtypes = [df[col].dtype for df in tmp if col in df.columns]
-        match = [
-            next((i for i, x in enumerate(numeric_types) if x == dtype), None)
-            for dtype in dtypes
-        ]
-        match = list(set(match))
-        if len(match) > 1:
-            match = max(match)
-            if match is not None:
-                for i, v in enumerate(tmp):
-                    tmp[i] = tmp[i].with_columns(pl.col(col).cast(numeric_types[match]))
-
-    return tmp
-
-
-def get_type_dictionary(modeldata):
+def get_type_dictionary(formula=None, modeldata=None):
     out = dict()
-    for v in modeldata.columns:
-        t_i = [pl.Int32, pl.Int64, pl.UInt8, pl.UInt16, pl.UInt32, pl.UInt64]
-        t_c = [pl.Utf8, pl.Categorical]
+    if formula is None:
+        variables = modeldata.columns
+    else:
+        variables = fml.get_variables(formula)
+    for v in variables:
+        t_i = [
+            pl.Int8,
+            pl.Int16,
+            pl.Int32,
+            pl.Int64,
+            pl.UInt8,
+            pl.UInt16,
+            pl.UInt32,
+            pl.UInt64,
+        ]
+        t_c = [pl.Utf8, pl.Categorical, pl.Enum]
         t_n = [pl.Float32, pl.Float64]
         t_b = [pl.Boolean]
         if modeldata[v].dtype in t_i:
@@ -273,3 +247,30 @@ def get_dataset(
 
     except BaseException as e:
         raise ValueError(f"Error reading dataset: {e}")
+
+
+def upcast(df, reference):
+    numtypes = [
+        pl.UInt8,
+        pl.UInt16,
+        pl.UInt32,
+        pl.Int8,
+        pl.Int16,
+        pl.Int32,
+        pl.Int64,
+        pl.UInt64,
+        pl.Float32,
+        pl.Float64,
+    ]
+    for col in df.columns:
+        if col in df.columns and col in reference.columns:
+            good = reference[col].dtype
+            bad = df[col].dtype
+            if good != bad:
+                if good in numtypes and bad in numtypes:
+                    idx = max(numtypes.index(good), numtypes.index(bad))
+                    df = df.with_columns(pl.col(col).cast(numtypes[idx]))
+                else:
+                    df = df.with_columns(pl.col(col).cast(good))
+
+    return df

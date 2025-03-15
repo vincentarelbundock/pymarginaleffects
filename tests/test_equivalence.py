@@ -1,7 +1,7 @@
 import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-from tests.conftest import guerry
+from tests.helpers import guerry
 
 from marginaleffects import *
 
