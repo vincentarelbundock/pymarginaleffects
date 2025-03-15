@@ -33,4 +33,6 @@ docs: ## build quartodoc
 	cp qmd_files/*qmd ~/repos/marginaleffectscom/man/python/
 
 qmd:
-	uv build && uv pip install dist/marginaleffects-0.0.14.2-py3-none-any.whl && python marginaleffects/docs.py
+	uv build && uv pip install dist/marginaleffects-0.0.15.6-py3-none-any.whl && python marginaleffects/docs.py
+coverage:
+	pytest --cov=marginaleffects --cov-report=term-missing --cov-report=html tests/

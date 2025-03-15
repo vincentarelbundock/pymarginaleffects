@@ -77,13 +77,10 @@ class ModelSklearn(ModelAbstract):
         return p
 
 
-@validate_types
+# @validate_types
 def fit_sklearn(
     formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
-):
-    """
-    fit_sklearn docstring (TO DO)
-    """
+) -> ModelSklearn:
     d = listwise_deletion(formula, data=data)
     y, X = model_matrices(formula, d)
     # formulaic returns a matrix when the response is character or categorical
@@ -96,3 +93,72 @@ def fit_sklearn(
     out.formula_engine = "formulaic"
     out.fit_engine = "sklearn"
     return out
+
+docs_sklearn = """
+# `fit_sklearn()`
+
+Fit a sklearn model with output that is compatible with pymarginaleffects.
+
+This function streamlines the process of fitting sklearn models by:
+1. Parsing the formula
+2. Handling missing values
+3. Creating model matrices
+4. Fitting the model with specified options
+
+## Parameters
+
+* formula : (str)
+    Model formula with optional panel effects terms. Supported effects are:
+    - EntityEffects: Entity-specific fixed effects
+    - TimeEffects: Time-specific fixed effects
+    - FixedEffects: Alias for EntityEffects
+    Example: "y ~ x1 + x2 + EntityEffects"
+
+* data : (pandas.DataFrame)
+    Panel data with MultiIndex (entity, time) or regular DataFrame with
+    entity and time columns.
+
+* engine : (callable)
+    linearmodels model class (e.g., PanelOLS, BetweenOLS, FirstDifferenceOLS)
+
+* kwargs_engine : (dict, default={})
+    Additional arguments passed to the model initialization.
+    Example: {'weights': weights_array}
+
+* kwargs_fit : (dict, default={})
+    Additional arguments passed to the model's fit method.
+    Example: {'cov_type': 'robust'}
+
+## Returns
+
+(ModelLinearmodels)
+    A fitted model wrapped in the ModelLinearmodels class for compatibility
+    with marginaleffects.
+
+## Examples
+
+```python
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from marginaleffects import fit_sklearn, get_dataset
+
+data = get_dataset()
+
+# Model with robust standard errors
+model_robust = fit_sklearn(
+    formula="outcome ~ distance + incentive",
+    data=data,
+    engine=LinearRegression,
+)
+```
+
+## Notes
+
+The fitted model includes additional attributes:
+- data: The processed data after listwise deletion
+- formula: The original formula string
+- formula_engine: Set to "sklearn"
+- model: The fitted sklearn model object
+"""
+
+fit_sklearn.__doc__ = docs_sklearn
