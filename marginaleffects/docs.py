@@ -208,6 +208,18 @@ A Polars DataFrame with (some of) the following columns:
 
 
 class DocsModels:
+    def docstring_notes(x):
+        return f"""
+## Notes
+
+The fitted model includes additional attributes:
+
+- `data`: The processed data after listwise deletion
+- `formula`: The original formula string
+- `formula_engine`: Set to "{x}"
+- `model`: The fitted {x} model object
+"""
+
     docstring_formula = """
 `formula`: (str)
     Model formula 
