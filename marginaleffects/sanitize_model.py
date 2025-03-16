@@ -6,14 +6,14 @@ from .model_sklearn import ModelSklearn
 
 
 def is_linearmodels(model):
-    if hasattr(model, "fit_engine") and model.fit_engine == "statsmodels":
+    if hasattr(model, "fit_engine") and model.fit_engine == "linearmodels":
         return True
     else:
         return False
 
 
 def is_sklearn(model):
-    if hasattr(model, "fit_engine") and model.fit_engine == "statsmodels":
+    if hasattr(model, "fit_engine") and model.fit_engine == "sklearn":
         return True
     try:
         from sklearn.base import BaseEstimator

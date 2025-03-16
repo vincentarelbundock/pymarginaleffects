@@ -1,7 +1,8 @@
 import numpy as np
 import warnings
 import polars as pl
-from .utils import validate_types, ingest
+from .docs import DocsModels
+from .utils import ingest
 from .formulaic_utils import listwise_deletion, model_matrices, get_variables
 from .model_abstract import ModelAbstract
 
@@ -77,13 +78,10 @@ class ModelSklearn(ModelAbstract):
         return p
 
 
-@validate_types
+# @validate_types
 def fit_sklearn(
     formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
-):
-    """
-    fit_sklearn docstring (TO DO)
-    """
+) -> ModelSklearn:
     d = listwise_deletion(formula, data=data)
     y, X = model_matrices(formula, d)
     # formulaic returns a matrix when the response is character or categorical
@@ -95,4 +93,62 @@ def fit_sklearn(
     out.formula = formula
     out.formula_engine = "formulaic"
     out.fit_engine = "sklearn"
-    return out
+    return ModelSklearn(out)
+
+
+docs_sklearn = (
+    """
+# `fit_sklearn()`
+
+Fit a sklearn model with output that is compatible with pymarginaleffects.
+
+This function streamlines the process of fitting sklearn models by:
+
+1. Parsing the formula
+2. Handling missing values
+3. Creating model matrices
+4. Fitting the model with specified options
+
+## Parameters
+"""
+    + DocsModels.docstring_formula
+    + """
+`data`: (pandas.DataFrame) Dataframe with the response variable and predictors.
+
+`engine`: (callable) sklearn model class (e.g., LinearRegression, LogisticRegression)
+"""
+    + DocsModels.docstring_kwargs_engine
+    + """
+`kwargs_fit` : (dict, default={}) Additional arguments passed to the model's fit method. 
+"""
+    + DocsModels.docstring_fit_returns("Sklearn")
+    + """
+## Examples
+
+```python
+from sklearn.linear_model import LinearRegression
+from marginaleffects import *
+
+data = get_dataset()
+
+model = fit_sklearn(
+    formula="outcome ~ distance + incentive",
+    data=data,
+    engine=LinearRegression,
+)
+
+predictions(model)
+```
+
+## Notes
+
+The fitted model includes additional attributes:
+
+- `data`: The processed data after listwise deletion
+- `formula`: The original formula string
+- `formula_engine`: Set to "sklearn"
+- `model`: The fitted sklearn model object
+"""
+)
+
+fit_sklearn.__doc__ = docs_sklearn

@@ -2,6 +2,7 @@ import re
 import numpy as np
 import polars as pl
 import patsy
+from .docs import DocsModels
 from .model_abstract import ModelAbstract
 from . import formulaic_utils as fml
 from .utils import validate_types, ingest
@@ -109,9 +110,6 @@ class ModelStatsmodels(ModelAbstract):
 def fit_statsmodels(
     formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
 ):
-    """
-    fit docstring (TO DO)
-    """
     d = fml.listwise_deletion(formula, data=data)
     y, X = fml.model_matrices(formula, d)
     mod = engine(endog=y, exog=X, **kwargs_engine)
@@ -120,4 +118,71 @@ def fit_statsmodels(
     mod.formula = formula
     mod.formula_engine = "formulaic"
     mod.fit_engine = "statsmodels"
-    return mod
+    return ModelStatsmodels(mod)
+
+
+docs_statsmodels = (
+    """
+# `fit_statsmodels()`
+
+Fit a statsmodels model with output that is compatible with pymarginaleffects.
+
+This function streamlines the process of fitting statsmodels models by:
+1. Parsing the formula
+2. Handling missing values
+3. Creating model matrices
+4. Fitting the model with specified options
+
+## Parameters
+"""
+    + DocsModels.docstring_formula
+    + """
+
+`data`: (pandas.DataFrame) Dataframe with the response variable and predictors.
+
+`engine`: (callable) statsmodels model class (e.g., OLS, Logit)
+
+`kwargs_engine`: (dict, default={}) Additional arguments passed to the model initialization.
+
+* Example: {'weights': weights_array}
+
+`kwargs_fit`: (dict, default={}) Additional arguments passed to the model's fit method.
+
+* Example: {'cov_type': 'HC3'}
+
+"""
+    + DocsModels.docstring_fit_returns("Statsmodels")
+    + """
+## Examples
+
+```python
+from marginaleffects import fit_statsmodels, get_dataset, predictions, slopes, comparisons
+
+import statsmodels.api as sm
+
+data = get_dataset()
+
+# Model with robust standard errors
+model_robust = fit_statsmodels(
+    formula="outcome ~ distance + incentive",
+    data=data,
+    engine=sm.OLS,
+    kwargs_fit={"cov_type": "HC3"}
+)
+
+print(predictions(model_robust))
+print(slopes(model_robust))
+print(comparisons(model_robust))
+```
+
+## Notes
+
+The fitted model includes additional attributes:
+- data: The processed data after listwise deletion
+- formula: The original formula string
+- formula_engine: Set to "statsmodels"
+- model: The fitted statsmodels model object
+"""
+)
+
+fit_statsmodels.__doc__ = docs_statsmodels

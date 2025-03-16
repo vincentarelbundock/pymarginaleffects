@@ -207,6 +207,29 @@ A Polars DataFrame with (some of) the following columns:
 """
 
 
+class DocsModels:
+    docstring_formula = """
+`formula`: (str)
+    Model formula 
+
+* Example: "outcome ~ distance + incentive"
+"""
+    docstring_kwargs_engine = """
+`kwargs_engine`: (dict, default={}) Additional arguments passed to the model initialization.
+
+* Example: `{'weights': weights_array}`
+"""
+
+    def docstring_fit_returns(x):
+        return f"""
+## Returns
+
+(Model{x})
+    A fitted model wrapped in the Model{x} class for compatibility
+    with marginaleffects.
+"""
+
+
 class DocsDetails:
     docstring_tost = """
 ### Two-One-Sided Test (TOST) of Equivalence

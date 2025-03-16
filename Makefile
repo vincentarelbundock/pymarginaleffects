@@ -27,3 +27,10 @@ install: ## install in poetry venv
 
 qmd: ## extract docstrings into quarto files
 	uv run marginaleffects/docs.py
+
+coverage:
+	pytest --cov=marginaleffects --cov-report=term-missing --cov-report=html tests/
+
+qmd_local:
+	uv pip install -e . && python marginaleffects/docs.py
+
