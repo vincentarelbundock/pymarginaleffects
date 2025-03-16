@@ -50,7 +50,7 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
 def get_hypothesis(x, hypothesis, by=None):
     msg = "Invalid `hypothesis` argument"
 
-    lab = get_hypothesis_row_labels(x, by=None)
+    lab = get_hypothesis_row_labels(x, by=by)
     if hypothesis is None or isinstance(hypothesis, (int, float)):
         return x
     if isinstance(hypothesis, np.ndarray):
@@ -82,7 +82,7 @@ def get_hypothesis_row_labels(x, by=None):
     lab = [col for col in lab if len(x[col].unique()) > 1]
 
     # Step 3: Include additional columns from "by" if provided
-    if by is not None:
+    if by is not None and isinstance(by, bool) is False:
         if isinstance(by, str):
             by = [by]
         lab = [e for e in list(set(lab) | set(by)) if e != "group"]

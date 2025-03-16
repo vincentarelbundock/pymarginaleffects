@@ -107,55 +107,71 @@ def test_hypotheses(impartiality_model):
             "~reference",
             {
                 "democracy": "(Democracy) - (Autocracy)",
-                "continent": ["Americas - Africa", "Asia - Africa", "Europe - Africa"],
+                "continent": [
+                    "(Americas) - (Africa)",
+                    "(Asia) - (Africa)",
+                    "(Europe) - (Africa)",
+                ],
             },
         ),
         (
             "~revreference",
             {
                 "democracy": "(Autocracy) - (Democracy)",
-                "continent": ["Africa - Americas", "Africa - Asia", "Africa - Europe"],
+                "continent": [
+                    "(Africa) - (Americas)",
+                    "(Africa) - (Asia)",
+                    "(Africa) - (Europe)",
+                ],
             },
         ),
         (
             "~sequential",
             {
-                "democracy": "Democracy - Autocracy",
-                "continent": ["Americas - Africa", "Asia - Americas", "Europe - Asia"],
+                "democracy": "(Democracy) - (Autocracy)",
+                "continent": [
+                    "(Americas) - (Africa)",
+                    "(Asia) - (Americas)",
+                    "(Europe) - (Asia)",
+                ],
             },
         ),
         (
             "~revsequential",
             {
-                "democracy": "Autocracy - Democracy",
-                "continent": ["Africa - Americas", "Americas - Asia", "Asia - Europe"],
-            },
-        ),
-        (
-            "~pairwise",
-            {
-                "democracy": "Autocracy - Democracy",
+                "democracy": "(Autocracy) - (Democracy)",
                 "continent": [
-                    "Africa - Americas",
-                    "Africa - Asia",
-                    "Africa - Europe",
-                    "Americas - Asia",
-                    "Americas - Europe",
-                    "Asia - Europe",
+                    "(Africa) - (Americas)",
+                    "(Americas) - (Asia)",
+                    "(Asia) - (Europe)",
                 ],
             },
         ),
         (
             "~revpairwise",
             {
-                "democracy": "Democracy - Autocracy",
+                "democracy": "(Autocracy) - (Democracy)",
                 "continent": [
-                    "Americas - Africa",
-                    "Asia - Africa",
-                    "Europe - Africa",
-                    "Asia - Americas",
-                    "Europe - Americas",
-                    "Europe - Asia",
+                    "(Africa) - (Americas)",
+                    "(Africa) - (Asia)",
+                    "(Africa) - (Europe)",
+                    "(Americas) - (Asia)",
+                    "(Americas) - (Europe)",
+                    "(Asia) - (Europe)",
+                ],
+            },
+        ),
+        (
+            "~pairwise",
+            {
+                "democracy": "(Democracy) - (Autocracy)",
+                "continent": [
+                    "(Americas) - (Africa)",
+                    "(Asia) - (Africa)",
+                    "(Europe) - (Africa)",
+                    "(Asia) - (Americas)",
+                    "(Europe) - (Americas)",
+                    "(Europe) - (Asia)",
                 ],
             },
         ),
