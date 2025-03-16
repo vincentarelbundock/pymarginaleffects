@@ -1,6 +1,9 @@
 import numpy as np
 import warnings
 import polars as pl
+
+from marginaleffects.docs import DocsModels
+
 from .utils import ingest
 from .formulaic_utils import listwise_deletion, model_matrices, get_variables
 from .model_abstract import ModelAbstract
@@ -92,10 +95,11 @@ def fit_sklearn(
     out.formula = formula
     out.formula_engine = "formulaic"
     out.fit_engine = "sklearn"
-    return out
+    return ModelSklearn(out)
 
 
-docs_sklearn = """
+docs_sklearn = (
+    """
 # `fit_sklearn()`
 
 Fit a sklearn model with output that is compatible with pymarginaleffects.
@@ -107,20 +111,14 @@ This function streamlines the process of fitting sklearn models by:
 4. Fitting the model with specified options
 
 ## Parameters
-
-* formula : (str)
-    Model formula with optional panel effects terms. Supported effects are:
-    - EntityEffects: Entity-specific fixed effects
-    - TimeEffects: Time-specific fixed effects
-    - FixedEffects: Alias for EntityEffects
-    Example: "y ~ x1 + x2 + EntityEffects"
-
+"""
+    + DocsModels.docstring_formula
+    + """
 * data : (pandas.DataFrame)
-    Panel data with MultiIndex (entity, time) or regular DataFrame with
-    entity and time columns.
+    Dataframe with the response variable and predictors.
 
 * engine : (callable)
-    linearmodels model class (e.g., PanelOLS, BetweenOLS, FirstDifferenceOLS)
+    sklearn model class (e.g., LinearRegression, LogisticRegression)
 
 * kwargs_engine : (dict, default={})
     Additional arguments passed to the model initialization.
@@ -130,12 +128,9 @@ This function streamlines the process of fitting sklearn models by:
     Additional arguments passed to the model's fit method.
     Example: {'cov_type': 'robust'}
 
-## Returns
-
-(ModelLinearmodels)
-    A fitted model wrapped in the ModelLinearmodels class for compatibility
-    with marginaleffects.
-
+"""
+    + DocsModels.docstring_fit_returns("Sklearn")
+    + """
 ## Examples
 
 ```python
@@ -161,5 +156,6 @@ The fitted model includes additional attributes:
 - formula_engine: Set to "sklearn"
 - model: The fitted sklearn model object
 """
+)
 
 fit_sklearn.__doc__ = docs_sklearn

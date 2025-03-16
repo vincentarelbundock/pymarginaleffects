@@ -30,3 +30,7 @@ qmd:
 
 coverage:
 	pytest --cov=marginaleffects --cov-report=term-missing --cov-report=html tests/
+
+qmd_local:
+	uv build && uv pip install dist/marginaleffects-0.0.15.6-py3-none-any.whl && python marginaleffects/docs.py
+

@@ -4,6 +4,8 @@ import pandas as pd
 import narwhals as nw
 from typing import Any, Dict
 import polars as pl
+
+from marginaleffects.docs import DocsModels
 from .utils import ingest
 from .model_abstract import ModelAbstract
 from .formulaic_utils import (
@@ -223,10 +225,11 @@ def fit_linearmodels(
     out.initialize_engine = initialized_engine
     out.fit_engine = "linearmodels"
 
-    return out
+    return ModelLinearmodels(out)
 
 
-docs_linearmodels = """
+docs_linearmodels = (
+    """
 # `fit_linearmodels()`
 
 Fit a linearmodels model with output that is compatible with pymarginaleffects.
@@ -240,11 +243,12 @@ This function streamlines the process of fitting linearmodels panel models by:
 ## Parameters
 
 * formula : (str)
-    Model formula with optional panel effects terms. Supported effects are:
-    - EntityEffects: Entity-specific fixed effects
-    - TimeEffects: Time-specific fixed effects
-    - FixedEffects: Alias for EntityEffects
-    Example: "y ~ x1 + x2 + EntityEffects"
+    Model formula with optional panel effects terms. 
+    - Supported effects are:
+        - EntityEffects: Entity-specific fixed effects
+        - TimeEffects: Time-specific fixed effects
+        - FixedEffects: Alias for EntityEffects
+    - Example: "y ~ x1 + x2 + EntityEffects"
 
 * data : (pandas.DataFrame)
     Panel data with MultiIndex (entity, time) or regular DataFrame with
@@ -260,13 +264,9 @@ This function streamlines the process of fitting linearmodels panel models by:
 * kwargs_fit : (dict, default={})
     Additional arguments passed to the model's fit method.
     Example: {'cov_type': 'robust'}
-
-## Returns
-
-(ModelLinearmodels)
-    A fitted model wrapped in the ModelLinearmodels class for compatibility
-    with marginaleffects.
-
+"""
+    + DocsModels.docstring_fit_returns("Linearmodels")
+    + """
 ## Examples
 
 ```python
@@ -290,5 +290,6 @@ The fitted model includes additional attributes:
 - formula_engine: Set to "linearmodels"
 - model: The fitted linearmodels model object (PanelEffectsResults)
 """
+)
 
 fit_linearmodels.__doc__ = docs_linearmodels
