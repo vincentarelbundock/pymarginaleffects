@@ -34,3 +34,5 @@ coverage:
 qmd_local:
 	uv pip install -e . && python marginaleffects/docs.py
 
+inject_docs:
+	python marginaleffects/evaluate_docs.py
