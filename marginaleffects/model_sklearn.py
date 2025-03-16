@@ -141,6 +141,6 @@ predictions(model)
 ```
 """
     + DocsModels.docstring_notes("sklearn")
-)   
+)
 
 fit_sklearn.__doc__ = docs_sklearn
