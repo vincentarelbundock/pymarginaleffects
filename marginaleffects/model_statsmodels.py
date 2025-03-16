@@ -178,10 +178,11 @@ print(comparisons(model_robust))
 ## Notes
 
 The fitted model includes additional attributes:
-- data: The processed data after listwise deletion
-- formula: The original formula string
-- formula_engine: Set to "statsmodels"
-- model: The fitted statsmodels model object
+
+- `data`: The processed data after listwise deletion
+- `formula`: The original formula string
+- `formula_engine`: Set to "statsmodels"
+- `model`: The fitted statsmodels model object
 """
 )
 
