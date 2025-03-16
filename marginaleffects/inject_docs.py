@@ -83,7 +83,7 @@ if __name__ == "__main__":
         func = getattr(marginaleffects, func)
         func_to_file[func] = {"module_name": func.__module__ + "." + func.__name__}
         # the value of each item looks like: marginaleffects.comparisons.avg_comparisons
-        # we want to extract the file name from the value
+        # we want to extract the file and the function name from the value
         file_name = func_to_file[func]["module_name"].split(".")[-2]
         func_name = func_to_file[func]["module_name"].split(".")[-1]
         func_to_file[func]["file_name"] = file_name
