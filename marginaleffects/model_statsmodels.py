@@ -146,6 +146,7 @@ This function streamlines the process of fitting statsmodels models by:
 `kwargs_fit`: (dict, default={}) Additional arguments passed to the model's fit method.
 
 * Example: `{'cov_type': 'HC3'}`
+
 """
     + DocsModels.docstring_fit_returns("Statsmodels")
     + """
@@ -172,6 +173,7 @@ print(comparisons(model_robust))
 ```
 """
     + DocsModels.docstring_notes("statsmodels")
+
 )
 
 fit_statsmodels.__doc__ = docs_statsmodels

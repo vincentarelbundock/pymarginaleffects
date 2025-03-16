@@ -234,6 +234,7 @@ docs_linearmodels = (
 Fit a linearmodels model with output that is compatible with pymarginaleffects.
 
 This function streamlines the process of fitting linearmodels panel models by:
+
 1. Parsing panel effects from the formula
 2. Handling missing values
 3. Creating model matrices
@@ -279,7 +280,6 @@ model_robust = fit_linearmodels(
 
 predictions(model_robust)
 ```
-
 """
     + DocsModels.docstring_notes("linearmodels")
 )
