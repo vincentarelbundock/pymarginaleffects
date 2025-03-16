@@ -200,13 +200,13 @@ A Polars DataFrame with (some of) the following columns:
 
 class DocsDetails:
     docstring_tost = """
-## Two-One-Sided Test (TOST) of Equivalence
+### Two-One-Sided Test (TOST) of Equivalence
 
 The `equivalence` argument specifies the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. The first element specifies the lower bound, and the second element specifies the upper bound. If `None`, equivalence tests are not performed.
 """
 
     docstring_order_of_operations = """
-## Order of operations. 
+### Order of operations. 
 
 Behind the scenes, the arguments of `marginaleffects` functions are evaluated in this order:
 
