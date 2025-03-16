@@ -2,8 +2,7 @@ import re
 import numpy as np
 import polars as pl
 import patsy
-
-from marginaleffects.docs import DocsModels
+from .docs import DocsModels
 from .model_abstract import ModelAbstract
 from . import formulaic_utils as fml
 from .utils import validate_types, ingest

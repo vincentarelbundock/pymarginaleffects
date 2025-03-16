@@ -4,8 +4,7 @@ import pandas as pd
 import narwhals as nw
 from typing import Any, Dict
 import polars as pl
-
-from marginaleffects.docs import DocsModels
+from .docs import DocsModels
 from .utils import ingest
 from .model_abstract import ModelAbstract
 from .formulaic_utils import (

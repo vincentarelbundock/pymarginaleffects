@@ -1,9 +1,7 @@
 import numpy as np
 import warnings
 import polars as pl
-
-from marginaleffects.docs import DocsModels
-
+from .docs import DocsModels
 from .utils import ingest
 from .formulaic_utils import listwise_deletion, model_matrices, get_variables
 from .model_abstract import ModelAbstract
