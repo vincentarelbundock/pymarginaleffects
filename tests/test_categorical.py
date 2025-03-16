@@ -1,7 +1,9 @@
+import marginaleffects
 from marginaleffects import *
 import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
+from tests.helpers import mtcars
 import pytest
 
 
@@ -52,3 +54,11 @@ def test_avg_predictions_raises_categorical_error():
     mod = smf.ols("mpg ~ hp + C(gear)", data=mtcars.to_pandas()).fit()
     with pytest.raises(Exception, match=".*Categorical.*"):
         avg_predictions(mod, by="gear")
+
+
+def test_issue185():
+    dat = marginaleffects.utils.ingest(mtcars)
+    dat = dat.with_columns(pl.col("gear").cast(pl.String))
+    mod = smf.ols("mpg ~ C(gear)", data=dat.to_pandas()).fit()
+    p = avg_comparisons(mod, by="gear")
+    assert p.shape[0] == 6
