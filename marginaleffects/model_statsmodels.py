@@ -173,7 +173,6 @@ print(comparisons(model_robust))
 ```
 """
     + DocsModels.docstring_notes("statsmodels")
-
 )
 
 fit_statsmodels.__doc__ = docs_statsmodels
