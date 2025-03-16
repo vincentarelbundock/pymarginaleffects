@@ -6,11 +6,11 @@ def inject_docstring_to_func(func_dict: dict):
     Injects the evaluated docstring into the function right after
     the function signature.
     """
-    # Read the current content of model_sklearn.py
+    # Read the current content of the file
     with open(f"marginaleffects/{func_dict['file_name']}.py", "r") as f:
         lines = f.readlines()
 
-    # Find the line with the fit_sklearn function definition
+    # Find the line with the function definition
     for i, line in enumerate(lines):
         if line.strip().startswith(f"def {func_dict['func_name']}("):
             # Find the line with the closing parenthesis and return type
