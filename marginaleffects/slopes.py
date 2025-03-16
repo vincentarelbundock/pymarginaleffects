@@ -98,7 +98,7 @@ def slopes(
     - numpy.ndarray: Each column is a vector of weights. The output is the dot product between these vectors of weights and the vectors of estimates. e.g. `hypothesis=np.array([[1, 1, 2], [2, 2, 3]]).T`
     - See the Examples section and the vignette: https://marginaleffects.com/chapters/hypothesis.html
 
-    `equivalence`: (list) List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
+    `equivalence`: (list, optional) List of 2 numeric float values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
 
     `wts`: (str, optional) Column name of weights to use for marginalization. Must be a column in `newdata`.
 
@@ -262,7 +262,7 @@ def avg_slopes(
     - numpy.ndarray: Each column is a vector of weights. The output is the dot product between these vectors of weights and the vectors of estimates. e.g. `hypothesis=np.array([[1, 1, 2], [2, 2, 3]]).T`
     - See the Examples section and the vignette: https://marginaleffects.com/chapters/hypothesis.html
 
-    `equivalence`: (list) List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
+    `equivalence`: (list, optional) List of 2 numeric float values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
 
     `wts`: (str, optional) Column name of weights to use for marginalization. Must be a column in `newdata`.
 

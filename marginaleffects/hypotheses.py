@@ -74,7 +74,7 @@ def hypotheses(
         - Heteroskedasticity-consistent: `"HC0"`, `"HC1"`, `"HC2"`, `"HC3"`.
     - np.ndarray: A custom square covariance matrix.
 
-    `equivalence`: (list) List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
+    `equivalence`: (list) List of 2 numerical float values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
 
     `eps_vcov`: (float) optional custom value for the finite difference approximation of the jacobian matrix. By default, the function uses the square root of the machine epsilon.
 
@@ -196,6 +196,13 @@ To learn more, visit the package website: <https://marginaleffects.com/>
 
 ## Examples
 ```py
+from marginaleffects import *
+
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+data = get_dataset("thornton")
+model = smf.ols("outcome ~ distance + incentive", data=data).fit()
+
 # When `hypothesis` is `None`, `hypotheses()` returns a DataFrame of parameters
 hypotheses(model)
 
@@ -203,16 +210,16 @@ hypotheses(model)
 hypotheses(model, hypothesis = 3)
 
 # Test of equality between coefficients
-hypotheses(model, hypothesis="param1 = param2")
+hypotheses(model, hypothesis="distance = incentive")
 
 # Non-linear function
-hypotheses(model, hypothesis="exp(param1 + param2) = 0.1")
+hypotheses(model, hypothesis="(distance + incentive) = 0.1")
 
 # Robust standard errors
-hypotheses(model, hypothesis="param1 = param2", vcov="HC3")
+hypotheses(model, hypothesis="distance = incentive", vcov="HC3")
 
 # Equivalence, non-inferiority, and non-superiority tests
-hypotheses(model, equivalence=(0, 10))
+hypotheses(model, equivalence=(0.0, 10.0))
 ```
 ## Warnings
 * Warning #1: Tests are conducted directly on the scale defined by the `type` argument. For some models, it can make sense to conduct hypothesis or equivalence tests on the `"link"` scale instead of the `"response"` scale which is often the default.

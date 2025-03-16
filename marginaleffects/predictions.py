@@ -142,7 +142,7 @@ def predictions(
         - Heteroskedasticity-consistent: `"HC0"`, `"HC1"`, `"HC2"`, `"HC3"`.
     - np.ndarray: A custom square covariance matrix.
 
-    `equivalence`: (list) List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
+    `equivalence`: (list, optional) List of 2 numeric float values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
 
     `conf_level`: (float, default=0.95) Numeric value specifying the confidence level for the confidence intervals.
 
@@ -420,7 +420,7 @@ def avg_predictions(
         - Heteroskedasticity-consistent: `"HC0"`, `"HC1"`, `"HC2"`, `"HC3"`.
     - np.ndarray: A custom square covariance matrix.
 
-    `equivalence`: (list) List of 2 numeric values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
+    `equivalence`: (list, optional) List of 2 numeric float values specifying the bounds used for the two-one-sided test (TOST) of equivalence, and for the non-inferiority and non-superiority tests. See the Details section below.
 
     `conf_level`: (float, default=0.95) Numeric value specifying the confidence level for the confidence intervals.
 
