@@ -1,10 +1,13 @@
 # Development
 
+Breaking change:
+
+* `hypothesis="reference"` and friends are no longer available. Use the formula syntax instead: `hypothesis=difference~reference`
+
 New functions: 
 
 * `get_dataset()`
 * `fit_sklearn()`, `fit_statsmodels()`, `fit_linearmodels()`
-
 
 New:
 

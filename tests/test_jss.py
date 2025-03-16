@@ -54,7 +54,7 @@ def test_hypotheses(impartiality_model):
     assert isinstance(h, pl.DataFrame)
     assert h.shape[0] == 1
 
-    avg_predictions(impartiality_model, by="democracy", hypothesis="revpairwise")
+    avg_predictions(impartiality_model, by="democracy", hypothesis="~revpairwise")
 
     p = predictions(impartiality_model, by="democracy", hypothesis="b1 = b0 * 2")
     assert isinstance(p, pl.DataFrame)
@@ -104,35 +104,35 @@ def test_hypotheses(impartiality_model):
     "h, label",
     [
         (
-            "reference",
+            "~reference",
             {
-                "democracy": "Democracy - Autocracy",
+                "democracy": "(Democracy) - (Autocracy)",
                 "continent": ["Americas - Africa", "Asia - Africa", "Europe - Africa"],
             },
         ),
         (
-            "revreference",
+            "~revreference",
             {
-                "democracy": "Autocracy - Democracy",
+                "democracy": "(Autocracy) - (Democracy)",
                 "continent": ["Africa - Americas", "Africa - Asia", "Africa - Europe"],
             },
         ),
         (
-            "sequential",
+            "~sequential",
             {
                 "democracy": "Democracy - Autocracy",
                 "continent": ["Americas - Africa", "Asia - Americas", "Europe - Asia"],
             },
         ),
         (
-            "revsequential",
+            "~revsequential",
             {
                 "democracy": "Autocracy - Democracy",
                 "continent": ["Africa - Americas", "Americas - Asia", "Asia - Europe"],
             },
         ),
         (
-            "pairwise",
+            "~pairwise",
             {
                 "democracy": "Autocracy - Democracy",
                 "continent": [
@@ -146,7 +146,7 @@ def test_hypotheses(impartiality_model):
             },
         ),
         (
-            "revpairwise",
+            "~revpairwise",
             {
                 "democracy": "Democracy - Autocracy",
                 "continent": [
@@ -198,7 +198,7 @@ def test_misc(impartiality_model):
         impartiality_model,
         by="democracy",
         variables={"equal": [30, 90]},
-        hypothesis="pairwise",
+        hypothesis="~pairwise",
     )
     assert isinstance(cmp, pl.DataFrame)
     assert cmp.shape[0] == 1
@@ -249,7 +249,7 @@ def test_titanic():
             model=mod_tit,
         ),
         by="Woman",
-        hypothesis="revpairwise",
+        hypothesis="~revpairwise",
     )
     assert isinstance(p, pl.DataFrame)
     assert p.shape[0] == 1

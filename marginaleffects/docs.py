@@ -13,7 +13,16 @@ class DocsParameters:
 - "dyex": dY/dX / X
 """
     docstring_hypothesis = """
-`hypothesis`: (str, int, float, numpy array) Specifies a hypothesis test or custom contrast using a number, formula, string equation, `np.ndarrar` or a function. 
+`hypothesis`: (str, int, float, numpy array) Specifies a hypothesis test or custom contrast
+
+* Number to specify the null hypothesis.
+* Numpy array with a number of rows equal to the number of estimates.
+* String equation with an equal sign and estimate number in b0, b1, b2, etc. format. 
+    - "b0 = b1"
+    - "b0 - (b1 + b2) = 0"
+* Two-side formula like "ratio ~ reference"
+    - Left-hand side: "ratio", "difference"
+    - Right-hand side: 'reference', 'sequential', 'pairwise', 'revreference', 'revsequential', 'revpairwise'
 
 - int, float: The null hypothesis used in the computation of Z and p-values (before applying transform) 
 - str: 
