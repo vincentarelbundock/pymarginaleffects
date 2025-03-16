@@ -58,3 +58,18 @@ def test_predictions_pairwise():
     assert np.isclose(p[0] - p[1], q[0])
     assert np.isclose(p[0] - p[2], q[1])
     assert np.isclose(p[1] - p[2], q[2])
+
+
+def test_comparisons_by():
+    mtcars = get_dataset("mtcars", "datasets").to_pandas()
+    mod = smf.ols("mpg ~ hp * C(cyl)", data=mtcars).fit()
+    q = avg_comparisons(mod, hypothesis="ratio~sequential")
+    assert q.shape[0] == 2
+
+    q = avg_comparisons(
+        mod, variables="hp", by="cyl", hypothesis="difference~revpairwise"
+    )
+    assert q["estimate"][0] < 0
+    assert q["estimate"][1] < 0
+    assert q["estimate"][2] > 0
+    assert q.shape[0] == 3

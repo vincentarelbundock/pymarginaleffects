@@ -1,6 +1,7 @@
 from formulaic import Formula
 import numpy as np
 import polars as pl
+from itertools import chain
 
 
 def reference_ratio_comparison(x):
@@ -223,12 +224,21 @@ def parse_hypothesis_formula(hypothesis):
 
     # right-hand side
     if hasattr(formula, "rhs"):
-        rhs = list(formula.rhs.required_variables)
-        # rhs = [list(x.required_variables) for x in formula.rhs]
-        # rhs = list(chain(*rhs))
-        rhs_ok = ["pairwise", "reference", "sequential"]
+        if hasattr(formula.rhs, "required_variables"):
+            rhs = [formula.rhs.required_variables]
+        else:
+            rhs = [list(x.required_variables) for x in formula.rhs]
+        rhs = list(chain(*rhs))
+        rhs_ok = [
+            "pairwise",
+            "reference",
+            "sequential",
+            "revpairwise",
+            "revreference",
+            "revsequential",
+        ]
         rhs = rhs[0]
-        assert lhs in rhs_ok, msg
+        assert rhs in rhs_ok, msg
     else:
         rhs = list(formula.required_variables)[0]
 
