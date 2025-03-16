@@ -198,10 +198,11 @@ docs_predictions = (
 
 `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
     
-* predictions(): unit-level (conditional) estimates.
-* avg_predictions(): average (marginal) estimates.
+* `predictions()`: unit-level (conditional) estimates.
+* `avg_predictions()`: average (marginal) estimates.
 
 See the package website and vignette for examples:
+
 - https://marginaleffects.com/chapters/predictions.html
 - https://marginaleffects.com
 
