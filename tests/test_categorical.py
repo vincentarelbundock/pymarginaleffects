@@ -2,10 +2,16 @@ from marginaleffects import *
 import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
+import pytest
 
 
 hiv = get_dataset("thornton").to_pandas()
-mtcars = get_dataset("mtcars", "datasets").to_pandas()
+mtcars = (
+    get_dataset("mtcars", "datasets")
+    .sort("gear")
+    .with_columns(pl.col("gear").cast(pl.String).cast(pl.Categorical))
+    .to_pandas()
+)
 
 
 def test_avg_predictions_by_cat():
@@ -39,3 +45,10 @@ def test_hiv_avg_slopes():
     s = avg_slopes(mod)
     assert s.shape[0] == 3
     assert all(s["contrast"] == ["18 to 35 - <18", ">35 - <18", "dY/dX"])
+
+
+def test_avg_predictions_raises_categorical_error():
+    mtcars = get_dataset("mtcars", "datasets")
+    mod = smf.ols("mpg ~ hp + C(gear)", data=mtcars.to_pandas()).fit()
+    with pytest.raises(Exception, match=".*Categorical.*"):
+        avg_predictions(mod, by="gear")

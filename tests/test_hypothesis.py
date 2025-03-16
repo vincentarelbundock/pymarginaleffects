@@ -1,6 +1,7 @@
 import numpy as np
 import statsmodels.formula.api as smf
 from marginaleffects import *
+import polars as pl
 
 mtcars = get_dataset("mtcars", "datasets")
 mod = smf.ols("mpg ~ hp + cyl", data=mtcars).fit()
@@ -61,7 +62,12 @@ def test_predictions_pairwise():
 
 
 def test_comparisons_by():
-    mtcars = get_dataset("mtcars", "datasets").to_pandas()
+    mtcars = (
+        get_dataset("mtcars", "datasets")
+        .sort("cyl")
+        .with_columns(pl.col("cyl").cast(pl.String))
+        .to_pandas()
+    )
     mod = smf.ols("mpg ~ hp * C(cyl)", data=mtcars).fit()
     q = avg_comparisons(mod, hypothesis="ratio~sequential")
     assert q.shape[0] == 2
