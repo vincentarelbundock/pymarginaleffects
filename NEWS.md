@@ -2,7 +2,7 @@
 
 Breaking change:
 
-* `hypothesis="reference"` and friends are no longer available. Use the formula syntax instead: `hypothesis=difference~reference`
+* `hypothesis="reference"` and friends are deprecated. Use the formula syntax instead: `hypothesis=difference~reference`
 
 New functions: 
 
