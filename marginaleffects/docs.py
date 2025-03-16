@@ -209,9 +209,15 @@ A Polars DataFrame with (some of) the following columns:
 
 class DocsModels:
     docstring_formula = """
-* formula : (str)
+`formula`: (str)
     Model formula 
-    Example: "outcome ~ distance + incentive"
+
+* Example: "outcome ~ distance + incentive"
+"""
+    docstring_kwargs_engine = """
+`kwargs_engine`: (dict, default={}) Additional arguments passed to the model initialization.
+
+* Example: `{'weights': weights_array}`
 """
 
     def docstring_fit_returns(x):

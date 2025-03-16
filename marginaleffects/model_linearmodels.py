@@ -219,7 +219,7 @@ def fit_linearmodels(
     out = initialized_engine.fit(**kwargs_fit)
 
     out.data = d
-    out.formula = formula
+    out.formula = linearmodels_formula
     out.formula_engine = "linearmodels"
     out.initialize_engine = initialized_engine
     out.fit_engine = "linearmodels"
@@ -247,36 +247,37 @@ This function streamlines the process of fitting linearmodels panel models by:
     - EntityEffects: Entity-specific fixed effects
     - TimeEffects: Time-specific fixed effects
     - FixedEffects: Alias for EntityEffects
-- Example: "y ~ x1 + x2 + EntityEffects"
+- Example: `"y ~ x1 + x2 + EntityEffects"`
 
-`data : (pandas.DataFrame) Panel data with MultiIndex (entity, time) or regular DataFrame with entity and time columns.
+`data` : (pandas.DataFrame) Panel data with MultiIndex (entity, time) or regular DataFrame with entity and time columns.
 
 `engine`: (callable) linearmodels model class (e.g., PanelOLS, BetweenOLS, FirstDifferenceOLS)
 
 `kwargs_engine`: (dict, default={}) Additional arguments passed to the model initialization.
 
-* Example: {'weights': weights_array}
+* Example: `{'weights': weights_array}`
 
 `kwargs_fit`: (dict, default={}) Additional arguments passed to the model's fit method.
 
-* Example: {'cov_type': 'robust'}
+* Example: `{'cov_type': 'robust'}`
 """
     + DocsModels.docstring_fit_returns("Linearmodels")
     + """
 ## Examples
 
 ```python
-import pandas as pd
 from linearmodels.panel import PanelOLS
 from linearmodels.panel import generate_panel_data
-from marginaleffects import fit_linearmodels, get_dataset
+from marginaleffects import *
 data = generate_panel_data()
 model_robust = fit_linearmodels(
-    formula="y ~ x1 + major",
+    formula="y ~ x1 + EntityEffects",
     data=data.data,
     engine=PanelOLS,
     kwargs_fit={'cov_type': 'robust'}
 )
+
+predictions(model_robust)
 ```
 
 ## Notes

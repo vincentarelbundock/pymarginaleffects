@@ -116,11 +116,9 @@ This function streamlines the process of fitting sklearn models by:
 `data`: (pandas.DataFrame) Dataframe with the response variable and predictors.
 
 `engine`: (callable) sklearn model class (e.g., LinearRegression, LogisticRegression)
-
-`kwargs_engine`: (dict, default={}) Additional arguments passed to the model initialization.
-
-- Example: {'weights': weights_array}
-
+"""
+    + DocsModels.docstring_kwargs_engine
+    + """
 `kwargs_fit` : (dict, default={}) Additional arguments passed to the model's fit method. 
 """
     + DocsModels.docstring_fit_returns("Sklearn")
@@ -128,9 +126,8 @@ This function streamlines the process of fitting sklearn models by:
 ## Examples
 
 ```python
-import pandas as pd
 from sklearn.linear_model import LinearRegression
-from marginaleffects import fit_sklearn, get_dataset
+from marginaleffects import *
 
 data = get_dataset()
 
@@ -139,6 +136,8 @@ model = fit_sklearn(
     data=data,
     engine=LinearRegression,
 )
+
+predictions(model)
 ```
 
 ## Notes
