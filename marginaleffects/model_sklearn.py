@@ -139,16 +139,8 @@ model = fit_sklearn(
 
 predictions(model)
 ```
-
-## Notes
-
-The fitted model includes additional attributes:
-
-- `data`: The processed data after listwise deletion
-- `formula`: The original formula string
-- `formula_engine`: Set to "sklearn"
-- `model`: The fitted sklearn model object
 """
-)
+    + DocsModels.docstring_notes("sklearn")
+)   
 
 fit_sklearn.__doc__ = docs_sklearn

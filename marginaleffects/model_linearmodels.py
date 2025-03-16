@@ -280,14 +280,8 @@ model_robust = fit_linearmodels(
 predictions(model_robust)
 ```
 
-## Notes
-
-The fitted model includes additional attributes:
-- data: The processed data after listwise deletion
-- formula: The original formula string
-- formula_engine: Set to "linearmodels"
-- model: The fitted linearmodels model object (PanelEffectsResults)
 """
+    + DocsModels.docstring_notes("linearmodels")
 )
 
 fit_linearmodels.__doc__ = docs_linearmodels
