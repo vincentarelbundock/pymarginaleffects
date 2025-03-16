@@ -168,8 +168,8 @@ def test_hypotheses(impartiality_model):
                 "continent": [
                     "(Americas) - (Africa)",
                     "(Asia) - (Africa)",
-                    "(Europe) - (Africa)",
                     "(Asia) - (Americas)",
+                    "(Europe) - (Africa)",
                     "(Europe) - (Americas)",
                     "(Europe) - (Asia)",
                 ],
