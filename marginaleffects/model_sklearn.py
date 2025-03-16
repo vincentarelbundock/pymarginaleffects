@@ -103,6 +103,7 @@ docs_sklearn = (
 Fit a sklearn model with output that is compatible with pymarginaleffects.
 
 This function streamlines the process of fitting sklearn models by:
+
 1. Parsing the formula
 2. Handling missing values
 3. Creating model matrices
@@ -112,20 +113,15 @@ This function streamlines the process of fitting sklearn models by:
 """
     + DocsModels.docstring_formula
     + """
-* data : (pandas.DataFrame)
-    Dataframe with the response variable and predictors.
+`data`: (pandas.DataFrame) Dataframe with the response variable and predictors.
 
-* engine : (callable)
-    sklearn model class (e.g., LinearRegression, LogisticRegression)
+`engine`: (callable) sklearn model class (e.g., LinearRegression, LogisticRegression)
 
-* kwargs_engine : (dict, default={})
-    Additional arguments passed to the model initialization.
-    Example: {'weights': weights_array}
+`kwargs_engine`: (dict, default={}) Additional arguments passed to the model initialization.
 
-* kwargs_fit : (dict, default={})
-    Additional arguments passed to the model's fit method.
-    Example: {'cov_type': 'robust'}
+- Example: {'weights': weights_array}
 
+`kwargs_fit` : (dict, default={}) Additional arguments passed to the model's fit method. 
 """
     + DocsModels.docstring_fit_returns("Sklearn")
     + """
@@ -138,8 +134,7 @@ from marginaleffects import fit_sklearn, get_dataset
 
 data = get_dataset()
 
-# Model with robust standard errors
-model_robust = fit_sklearn(
+model = fit_sklearn(
     formula="outcome ~ distance + incentive",
     data=data,
     engine=LinearRegression,
@@ -149,10 +144,11 @@ model_robust = fit_sklearn(
 ## Notes
 
 The fitted model includes additional attributes:
-- data: The processed data after listwise deletion
-- formula: The original formula string
-- formula_engine: Set to "sklearn"
-- model: The fitted sklearn model object
+
+- `data`: The processed data after listwise deletion
+- `formula`: The original formula string
+- `formula_engine`: Set to "sklearn"
+- `model`: The fitted sklearn model object
 """
 )
 

@@ -137,19 +137,18 @@ This function streamlines the process of fitting statsmodels models by:
 """
     + DocsModels.docstring_formula
     + """
-* data : (pandas.DataFrame)
-    Dataframe with the response variable and predictors.
 
-* engine : (callable)
-    statsmodels model class (e.g., OLS, Logit)
+`data`: (pandas.DataFrame) Dataframe with the response variable and predictors.
 
-* kwargs_engine : (dict, default={})
-    Additional arguments passed to the model initialization.
-    Example: {'weights': weights_array}
+`engine`: (callable) statsmodels model class (e.g., OLS, Logit)
 
-* kwargs_fit : (dict, default={})
-    Additional arguments passed to the model's fit method.
-    Example: {'cov_type': 'HC3'}
+`kwargs_engine`: (dict, default={}) Additional arguments passed to the model initialization.
+
+* Example: {'weights': weights_array}
+
+`kwargs_fit`: (dict, default={}) Additional arguments passed to the model's fit method.
+
+* Example: {'cov_type': 'HC3'}
 
 """
     + DocsModels.docstring_fit_returns("Statsmodels")
