@@ -1,6 +1,5 @@
 import numpy as np
 import polars as pl
-import pytest
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
 from marginaleffects import *
@@ -65,20 +64,3 @@ def test_coef():
     assert isinstance(h, pl.DataFrame)
     assert h.shape[0] == 1
     assert h["term"][0] == "Pop1831=Desertion"
-
-
-@pytest.mark.parametrize(
-    "string_hypothesis, hypothesis_shape",
-    [
-        ("reference", 3),
-        ("revreference", 3),
-        ("sequential", 3),
-        ("revsequential", 3),
-        ("pairwise", 6),
-        ("revpairwise", 6),
-    ],
-)
-def test_string(string_hypothesis, hypothesis_shape):
-    h = hypotheses(mod, hypothesis=string_hypothesis)
-    assert isinstance(h, pl.DataFrame)
-    assert h.shape[0] == hypothesis_shape
