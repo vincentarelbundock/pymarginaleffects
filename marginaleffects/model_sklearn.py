@@ -190,7 +190,7 @@ This function streamlines the process of fitting sklearn models by:
 from sklearn.linear_model import LinearRegression
 from marginaleffects import *
 
-data = get_dataset()
+data = get_dataset("thornton")
 
 model = fit_sklearn(
     formula="outcome ~ distance + incentive",

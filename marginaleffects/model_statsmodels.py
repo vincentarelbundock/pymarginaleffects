@@ -225,7 +225,7 @@ from marginaleffects import fit_statsmodels, get_dataset, predictions, slopes, c
 
 import statsmodels.api as sm
 
-data = get_dataset()
+data = get_dataset("thornton")
 
 # Model with robust standard errors
 model_robust = fit_statsmodels(
@@ -235,9 +235,9 @@ model_robust = fit_statsmodels(
     kwargs_fit={"cov_type": "HC3"}
 )
 
-print(predictions(model_robust))
-print(slopes(model_robust))
-print(comparisons(model_robust))
+predictions(model_robust)
+slopes(model_robust)
+comparisons(model_robust)
 ```
 """
     + DocsModels.docstring_notes("statsmodels")
