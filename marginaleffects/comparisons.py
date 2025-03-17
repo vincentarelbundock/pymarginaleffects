@@ -180,14 +180,26 @@ def comparisons(
 
     ## Examples
     ```py
-    comparisons(model, variables=None, newdata=None, comparison="difference",
-        transform=None, equivalence=None, by=False, cross=False,
-        type="response", hypothesis=0, conf_level=0.95)
+    from marginaleffects import *
 
-    avg_comparisons(model, variables=None, newdata=None, comparison="difference",
-        transform=None, equivalence=None, by=False, cross=False,
-        type="response", hypothesis=0, conf_level=0.95)
+    import statsmodels.api as sm
+    import statsmodels.formula.api as smf
+    data = get_dataset("thornton")
+    model = smf.ols("outcome ~ distance + incentive", data=data).fit()
+
+    comparisons(model)
+
+    avg_comparisons(model)
+
+    comparisons(model, hypothesis=0)
+
+    avg_comparisons(model, hypothesis=0)
+
+    comparisons(model, by="agecat")
+
+    avg_comparisons(model, by="agecat")
     ```
+
     ## Details
 
     ### Two-One-Sided Test (TOST) of Equivalence
@@ -595,14 +607,26 @@ def avg_comparisons(
 
     ## Examples
     ```py
-    comparisons(model, variables=None, newdata=None, comparison="difference",
-        transform=None, equivalence=None, by=False, cross=False,
-        type="response", hypothesis=0, conf_level=0.95)
+    from marginaleffects import *
 
-    avg_comparisons(model, variables=None, newdata=None, comparison="difference",
-        transform=None, equivalence=None, by=False, cross=False,
-        type="response", hypothesis=0, conf_level=0.95)
+    import statsmodels.api as sm
+    import statsmodels.formula.api as smf
+    data = get_dataset("thornton")
+    model = smf.ols("outcome ~ distance + incentive", data=data).fit()
+
+    comparisons(model)
+
+    avg_comparisons(model)
+
+    comparisons(model, hypothesis=0)
+
+    avg_comparisons(model, hypothesis=0)
+
+    comparisons(model, by="agecat")
+
+    avg_comparisons(model, by="agecat")
     ```
+
     ## Details
 
     ### Two-One-Sided Test (TOST) of Equivalence
@@ -687,17 +711,17 @@ import statsmodels.formula.api as smf
 data = get_dataset("thornton")
 model = smf.ols("outcome ~ distance + incentive", data=data).fit()
 
-print(comparisons(model))
+comparisons(model)
 
-print(avg_comparisons(model))
+avg_comparisons(model)
 
-print(comparisons(model, hypothesis=0))
+comparisons(model, hypothesis=0)
 
-print(avg_comparisons(model, hypothesis=0))
+avg_comparisons(model, hypothesis=0)
 
-print(comparisons(model, by="agecat"))
+comparisons(model, by="agecat")
 
-print(avg_comparisons(model, by="agecat"))
+avg_comparisons(model, by="agecat")
 ```
 
 ## Details

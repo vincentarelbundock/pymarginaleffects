@@ -123,6 +123,37 @@ def slopes(
     - `pred_high`: the upper prediction interval bound.
 
 
+    ## Examples
+    ```py
+    from marginaleffects import *
+    import statsmodels.api as sm
+    import statsmodels.formula.api as smf
+    import numpy as np
+
+    data = get_dataset("thornton")
+
+    # Create the squared distance term
+    data = data.with_columns(distance_sq = data['distance'] ** 2)
+
+    # Fit GLM with interactions and squared term
+    mod = smf.logit("outcome ~ incentive * distance * distance_sq", data=data).fit()
+
+    # Print summary
+    mod.summary()
+
+    # Slopes are computed for each regressor and at each observation
+    slopes(mod)
+
+    # Slopes are computed for each regressor and averaged over the observations
+    avg_slopes(mod)
+
+    # Slopes are computed with respect to the `distance` regressor at each observation
+    slopes(mod, variables = "distance")
+
+    # Slopes are computed with respect to the `distance` regressor and averaged over the observations
+    avg_slopes(mod, variables = "distance")
+    ```
+
     ## Details
 
     ### Two-One-Sided Test (TOST) of Equivalence
@@ -287,6 +318,37 @@ def avg_slopes(
     - `pred_high`: the upper prediction interval bound.
 
 
+    ## Examples
+    ```py
+    from marginaleffects import *
+    import statsmodels.api as sm
+    import statsmodels.formula.api as smf
+    import numpy as np
+
+    data = get_dataset("thornton")
+
+    # Create the squared distance term
+    data = data.with_columns(distance_sq = data['distance'] ** 2)
+
+    # Fit GLM with interactions and squared term
+    mod = smf.logit("outcome ~ incentive * distance * distance_sq", data=data).fit()
+
+    # Print summary
+    mod.summary()
+
+    # Slopes are computed for each regressor and at each observation
+    slopes(mod)
+
+    # Slopes are computed for each regressor and averaged over the observations
+    avg_slopes(mod)
+
+    # Slopes are computed with respect to the `distance` regressor at each observation
+    slopes(mod, variables = "distance")
+
+    # Slopes are computed with respect to the `distance` regressor and averaged over the observations
+    avg_slopes(mod, variables = "distance")
+    ```
+
     ## Details
 
     ### Two-One-Sided Test (TOST) of Equivalence
@@ -381,19 +443,19 @@ data = data.with_columns(distance_sq = data['distance'] ** 2)
 mod = smf.logit("outcome ~ incentive * distance * distance_sq", data=data).fit()
 
 # Print summary
-print(mod.summary())
+mod.summary()
 
 # Slopes are computed for each regressor and at each observation
-print(slopes(mod))
+slopes(mod)
 
 # Slopes are computed for each regressor and averaged over the observations
-print(avg_slopes(mod))
+avg_slopes(mod)
 
 # Slopes are computed with respect to the `distance` regressor at each observation
-print(slopes(mod, variables = "distance"))
+slopes(mod, variables = "distance")
 
 # Slopes are computed with respect to the `distance` regressor and averaged over the observations
-print(avg_slopes(mod, variables = "distance"))
+avg_slopes(mod, variables = "distance")
 ```
 
 ## Details

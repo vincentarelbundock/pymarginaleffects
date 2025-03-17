@@ -165,6 +165,29 @@ def predictions(
     - `pred_high`: the upper prediction interval bound.
 
 
+    ## Examples
+    ```py
+    from marginaleffects import *
+
+    import statsmodels.api as sm
+    import statsmodels.formula.api as smf
+    data = get_dataset("thornton")
+
+    mod = smf.ols("outcome ~ incentive + distance", data).fit()
+
+    predictions(mod)
+
+    avg_predictions(mod)
+
+    predictions(mod, by = "village")
+
+    avg_predictions(mod, by = "village")
+
+    predictions(mod, hypothesis = 3)
+
+    avg_predictions(mod, hypothesis = 3)
+    ```
+
     ## Details
 
     ### Two-One-Sided Test (TOST) of Equivalence
@@ -443,6 +466,29 @@ def avg_predictions(
     - `pred_high`: the upper prediction interval bound.
 
 
+    ## Examples
+    ```py
+    from marginaleffects import *
+
+    import statsmodels.api as sm
+    import statsmodels.formula.api as smf
+    data = get_dataset("thornton")
+
+    mod = smf.ols("outcome ~ incentive + distance", data).fit()
+
+    predictions(mod)
+
+    avg_predictions(mod)
+
+    predictions(mod, by = "village")
+
+    avg_predictions(mod, by = "village")
+
+    predictions(mod, hypothesis = 3)
+
+    avg_predictions(mod, hypothesis = 3)
+    ```
+
     ## Details
 
     ### Two-One-Sided Test (TOST) of Equivalence
@@ -519,17 +565,17 @@ data = get_dataset("thornton")
 
 mod = smf.ols("outcome ~ incentive + distance", data).fit()
 
-print(predictions(mod))
+predictions(mod)
 
-print(avg_predictions(mod))
+avg_predictions(mod)
 
-print(predictions(mod, by = "village"))
+predictions(mod, by = "village")
 
-print(avg_predictions(mod, by = "village"))
+avg_predictions(mod, by = "village")
 
-print(predictions(mod, hypothesis = 3))
+predictions(mod, hypothesis = 3)
 
-print(avg_predictions(mod, hypothesis = 3))
+avg_predictions(mod, hypothesis = 3)
 ```
 
 ## Details
