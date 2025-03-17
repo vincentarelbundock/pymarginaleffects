@@ -509,6 +509,29 @@ See the package website and vignette for examples:
     + DocsParameters.docstring_eps_vcov
     + docstring_returns
     + """ 
+## Examples
+```py
+from marginaleffects import *
+
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+data = get_dataset("thornton")
+
+mod = smf.ols("outcome ~ incentive + distance", data).fit()
+
+print(predictions(mod))
+
+print(avg_predictions(mod))
+
+print(predictions(mod, by = "village"))
+
+print(avg_predictions(mod, by = "village"))
+
+print(predictions(mod, hypothesis = 3))
+
+print(avg_predictions(mod, hypothesis = 3))
+```
+
 ## Details
 """
     + DocsDetails.docstring_tost

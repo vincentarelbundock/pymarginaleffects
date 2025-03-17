@@ -699,6 +699,7 @@ print(comparisons(model, by="agecat"))
 
 print(avg_comparisons(model, by="agecat"))
 ```
+
 ## Details
 """
     + DocsDetails.docstring_tost
