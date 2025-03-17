@@ -250,21 +250,23 @@ datagrid.__doc__ = """
     import polars as pl
     import statsmodels.formula.api as smf
     from marginaleffects import *
-    mtcars = pl.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/datasets/mtcars.csv")
+    data = get_dataset("thornton")
 
+    print(data)  
     # The output only has 2 rows, and all the variables except `hp` are at their mean or mode.
-    datagrid(newdata = mtcars, hp = [100, 110])
+    print(datagrid(newdata = data, village = [43, 11]))
 
     # We get the same result by feeding a model instead of a DataFrame
-    mod = smf.ols("mpg ~ hp * qsec", mtcars).fit()
-    datagrid(model = mod, hp = [100, 110])
+    mod = smf.ols("outcome ~ incentive + distance", data).fit()
+    print(datagrid(model = mod, village = [43, 11]))
 
     # Use in `marginaleffects` to compute "Typical Marginal Effects". When used in `slopes()` or `predictions()` we do not need to specify the `model` or `newdata` arguments.
-    nd = datagrid(mod, hp = [100, 110])
-    slopes(mod, newdata = nd)
+    nd = datagrid(mod, village = [43, 11])
+    print(slopes(mod, newdata = nd))
 
-    # The full dataset is duplicated with each observation given counterfactual values of 100 and 110 for the `hp` variable. The original `mtcars` includes 32 rows, so the resulting dataset includes 64 rows.
-    dg = datagrid(newdata = mtcars, hp = [100, 110], grid_type = "counterfactual")
+    # The full dataset is duplicated with each observation given counterfactual values of 43 and 11 for the `village` variable. 
+    # The original `thornton` includes 2884 rows, so the resulting dataset includes 5768 rows.
+    dg = datagrid(newdata = data, village = [43, 11], grid_type = "counterfactual")
     print(dg.shape)
     ```
     """
