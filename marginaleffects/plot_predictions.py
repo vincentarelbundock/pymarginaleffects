@@ -149,4 +149,19 @@ plot_predictions.__doc__ = (
     + DocsParameters.docstring_newdata_plot("predictions")
     + DocsParameters.docstring_wts
     + DocsParameters.docstring_transform
+    +
+"""
+## Examples
+```py
+from marginaleffects import *
+
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+data = get_dataset("thornton")
+
+mod = smf.ols("outcome ~ incentive + distance", data).fit()
+
+plot_predictions(mod, condition = ["distance", "incentive"])
+```
+"""
 )
