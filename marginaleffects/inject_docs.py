@@ -1,7 +1,7 @@
 import marginaleffects
 
 
-def inject_docstring_to_func(func_dict: dict):
+def inject_docstring_to_func(func_dict: dict, minimal_docstring: bool = True):
     """
     Injects the evaluated docstring into the function right after
     the function signature.
@@ -24,7 +24,11 @@ def inject_docstring_to_func(func_dict: dict):
         raise ValueError(f"Could not find {func_dict['func_name']} function definition")
 
     # Get the docstring with proper indentation
-    docstring = f'    """{get_minimal_docstring(func_dict)}"""'
+    docstring = (
+        f'    """{get_minimal_docstring(func_dict)}"""'
+        if minimal_docstring
+        else f'    """{func_dict["docs"]}"""'
+    )
     docstring_lines = docstring.split("\n")
 
     # Insert the docstring lines after the function definition
@@ -113,12 +117,12 @@ def get_minimal_docstring(func_dict: dict):
     return minimal_docstring
 
 
-def inject_docstrings_to_all_functions():
+def inject_docstrings_to_all_functions(minimal_docstring: bool = True):
     func_to_file = get_func_to_file()
     for func in func_to_file:
-        print(func_to_file[func])
+        # print(func_to_file[func]) # for debugging
         clean_func_docstring(func_to_file[func])
-        inject_docstring_to_func(func_to_file[func])
+        inject_docstring_to_func(func_to_file[func], minimal_docstring)
 
 
 def clean_all_docstrings():
@@ -128,5 +132,4 @@ def clean_all_docstrings():
 
 
 if __name__ == "__main__":
-    inject_docstrings_to_all_functions()
-    # clean_all_docstrings()
+    inject_docstrings_to_all_functions(minimal_docstring=True)
