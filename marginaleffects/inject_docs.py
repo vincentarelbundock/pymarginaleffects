@@ -24,7 +24,7 @@ def inject_docstring_to_func(func_dict: dict):
         raise ValueError(f"Could not find {func_dict['func_name']} function definition")
 
     # Get the docstring with proper indentation
-    docstring = f'    """{docs}"""'
+    docstring = f'    """{get_minimal_docstring(func_dict)}"""'
     docstring_lines = docstring.split("\n")
 
     # Insert the docstring lines after the function definition
@@ -75,22 +75,58 @@ def clean_func_docstring(func_dict: dict):
     print(f"Successfully cleaned docstring from {func_dict['file_name']}.py")
 
 
-if __name__ == "__main__":
+def get_func_to_file():
     # create a dictionary mapping function names to file names
     func_to_file = {}
     for func in marginaleffects.__all__:
         # get function from marginaleffects package
         func = getattr(marginaleffects, func)
-        func_to_file[func] = {"module_name": func.__module__ + "." + func.__name__}
+        func_to_file[func] = {
+            "module_name": func.__module__ + "." + func.__name__,
+            "docs": func.__doc__,
+        }
         # the value of each item looks like: marginaleffects.comparisons.avg_comparisons
         # we want to extract the file and the function name from the value
         file_name = func_to_file[func]["module_name"].split(".")[-2]
         func_name = func_to_file[func]["module_name"].split(".")[-1]
         func_to_file[func]["file_name"] = file_name
         func_to_file[func]["func_name"] = func_name
+    return func_to_file
 
+
+def get_minimal_docstring(func_dict: dict):
+    complete_docstring = func_dict["docs"]
+    # Split the docstring into lines and remove empty lines
+    lines = [line.strip() for line in complete_docstring.split("\n") if line.strip()]
+
+    # Get the first hashtag line
+    hashtag_line = next((line for line in lines if line.startswith("#")), "")
+
+    # Get the first paragraph (first non-empty line after the hashtag)
+    first_paragraph = next(
+        (line for line in lines if line and not line.startswith("#")), ""
+    )
+
+    # Combine them into minimal docstring
+    minimal_docstring = f"{hashtag_line}\n\n{first_paragraph}\n\nFor more information, visit the website: https://marginaleffects.com/\n\nOr type: `help({func_dict['func_name']})`"
+
+    return minimal_docstring
+
+
+def inject_docstrings_to_all_functions():
+    func_to_file = get_func_to_file()
     for func in func_to_file:
         print(func_to_file[func])
-        docs = func.__doc__
         clean_func_docstring(func_to_file[func])
         inject_docstring_to_func(func_to_file[func])
+
+
+def clean_all_docstrings():
+    func_to_file = get_func_to_file()
+    for func in func_to_file:
+        clean_func_docstring(func_to_file[func])
+
+
+if __name__ == "__main__":
+    inject_docstrings_to_all_functions()
+    # clean_all_docstrings()

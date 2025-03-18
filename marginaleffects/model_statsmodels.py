@@ -110,74 +110,13 @@ class ModelStatsmodels(ModelAbstract):
 def fit_statsmodels(
     formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
 ):
-    """
-    # `fit_statsmodels()`
+    """# `fit_statsmodels()`
 
     Fit a statsmodels model with output that is compatible with pymarginaleffects.
 
-    This function streamlines the process of fitting statsmodels models by:
-    1. Parsing the formula
-    2. Handling missing values
-    3. Creating model matrices
-    4. Fitting the model with specified options
+    For more information, visit the website: https://marginaleffects.com/
 
-    ## Parameters
-
-    `formula`: (str)
-        Model formula
-
-    * Example: "outcome ~ distance + incentive"
-
-    `data`: (pandas.DataFrame) Dataframe with the response variable and predictors.
-
-    `engine`: (callable) statsmodels model class (e.g., OLS, Logit)
-
-    `kwargs_engine`: (dict, default={}) Additional arguments passed to the model initialization.
-
-    * Example: `{'weights': weights_array}`
-
-    `kwargs_fit`: (dict, default={}) Additional arguments passed to the model's fit method.
-
-    * Example: `{'cov_type': 'HC3'}`
-
-
-    ## Returns
-
-    (ModelStatsmodels)
-        A fitted model wrapped in the ModelStatsmodels class for compatibility
-        with marginaleffects.
-
-    ## Examples
-
-    ```python
-    from marginaleffects import fit_statsmodels, get_dataset, predictions, slopes, comparisons
-
-    import statsmodels.api as sm
-
-    data = get_dataset("thornton")
-
-    # Model with robust standard errors
-    model_robust = fit_statsmodels(
-        formula="outcome ~ distance + incentive",
-        data=data,
-        engine=sm.OLS,
-        kwargs_fit={"cov_type": "HC3"}
-    )
-
-    predictions(model_robust)
-    slopes(model_robust)
-    comparisons(model_robust)
-    ```
-
-    ## Notes
-
-    The fitted model includes additional attributes:
-
-    - `data`: The processed data after listwise deletion
-    - `formula`: The original formula string
-    - `formula_engine`: Set to "statsmodels"
-    - `model`: The fitted statsmodels model object
-    """
+    Or type: `help(fit_statsmodels)`"""
     d = fml.listwise_deletion(formula, data=data)
     y, X = fml.model_matrices(formula, d)
     mod = engine(endog=y, exog=X, **kwargs_engine)
