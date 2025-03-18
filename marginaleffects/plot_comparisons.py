@@ -23,13 +23,13 @@ def plot_comparisons(
     transform=None,
     eps=1e-4,
 ):
-    """# `plot_comparisons()`
-
+    """
     Plot comparisons on the y-axis against values of one or more predictors (x-axis, colors/shapes, and facets).
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(plot_comparisons)`"""
+    Or type: `help(plot_comparisons)`
+    """
     model = sanitize_model(model)
 
     assert not (not by and newdata is not None), (

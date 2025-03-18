@@ -22,13 +22,13 @@ def hypotheses(
     joint=False,
     joint_test="f",
 ):
-    """# `hypotheses()`
-
+    """
     (Non-)Linear Tests for Null Hypotheses, Joint Hypotheses, Equivalence, Non Superiority, and Non Inferiority.
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(hypotheses)`"""
+    Or type: `help(hypotheses)`
+    """
     model = sanitize_model(model)
 
     if joint:

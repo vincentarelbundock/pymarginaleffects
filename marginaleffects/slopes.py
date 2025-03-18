@@ -16,13 +16,13 @@ def slopes(
     eps=1e-4,
     eps_vcov=None,
 ):
-    """# `slopes()`
-
+    """
     `slopes()` and `avg_slopes()` estimate unit-level (conditional) partial derivative of the regression equation with respect to a regressor of interest.
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(slopes)`"""
+    Or type: `help(slopes)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -62,13 +62,13 @@ def avg_slopes(
     eps=1e-4,
     eps_vcov=None,
 ):
-    """# `slopes()`
-
+    """
     `slopes()` and `avg_slopes()` estimate unit-level (conditional) partial derivative of the regression equation with respect to a regressor of interest.
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(avg_slopes)`"""
+    Or type: `help(avg_slopes)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 

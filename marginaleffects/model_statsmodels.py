@@ -110,13 +110,13 @@ class ModelStatsmodels(ModelAbstract):
 def fit_statsmodels(
     formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
 ):
-    """# `fit_statsmodels()`
-
+    """
     Fit a statsmodels model with output that is compatible with pymarginaleffects.
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(fit_statsmodels)`"""
+    Or type: `help(fit_statsmodels)`
+    """
     d = fml.listwise_deletion(formula, data=data)
     y, X = fml.model_matrices(formula, d)
     mod = engine(endog=y, exog=X, **kwargs_engine)

@@ -39,13 +39,13 @@ def predictions(
     wts=None,
     eps_vcov=None,
 ):
-    """# `predictions()`
-
+    """
     `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(predictions)`"""
+    Or type: `help(predictions)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -180,13 +180,13 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
-    """# `predictions()`
-
+    """
     `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(avg_predictions)`"""
+    Or type: `help(avg_predictions)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 

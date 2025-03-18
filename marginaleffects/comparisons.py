@@ -45,13 +45,13 @@ def comparisons(
     eps=1e-4,
     eps_vcov=None,
 ):
-    """# `comparisons()`
-
+    """
     `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, average treatment effect (on the treated or untreated), etc.
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(comparisons)`"""
+    Or type: `help(comparisons)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -306,13 +306,13 @@ def avg_comparisons(
     transform=None,
     eps=1e-4,
 ):
-    """# `comparisons()`
-
+    """
     `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, average treatment effect (on the treated or untreated), etc.
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(avg_comparisons)`"""
+    Or type: `help(avg_comparisons)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 

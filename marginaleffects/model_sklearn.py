@@ -82,13 +82,13 @@ class ModelSklearn(ModelAbstract):
 def fit_sklearn(
     formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
 ) -> ModelSklearn:
-    """# `fit_sklearn()`
-
+    """
     Fit a sklearn model with output that is compatible with pymarginaleffects.
 
     For more information, visit the website: https://marginaleffects.com/
 
-    Or type: `help(fit_sklearn)`"""
+    Or type: `help(fit_sklearn)`
+    """
     d = listwise_deletion(formula, data=data)
     y, X = model_matrices(formula, d)
     # formulaic returns a matrix when the response is character or categorical

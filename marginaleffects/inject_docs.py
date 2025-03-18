@@ -100,7 +100,7 @@ def get_minimal_docstring(func_dict: dict):
     lines = [line.strip() for line in complete_docstring.split("\n") if line.strip()]
 
     # Get the first hashtag line
-    hashtag_line = next((line for line in lines if line.startswith("#")), "")
+    # hashtag_line = next((line for line in lines if line.startswith("#")), "")
 
     # Get the first paragraph (first non-empty line after the hashtag)
     first_paragraph = next(
@@ -108,7 +108,7 @@ def get_minimal_docstring(func_dict: dict):
     )
 
     # Combine them into minimal docstring
-    minimal_docstring = f"{hashtag_line}\n\n{first_paragraph}\n\nFor more information, visit the website: https://marginaleffects.com/\n\nOr type: `help({func_dict['func_name']})`"
+    minimal_docstring = f"\n{first_paragraph}\n\nFor more information, visit the website: https://marginaleffects.com/\n\nOr type: `help({func_dict['func_name']})`\n"
 
     return minimal_docstring
 
