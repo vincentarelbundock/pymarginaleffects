@@ -39,6 +39,13 @@ def predictions(
     wts=None,
     eps_vcov=None,
 ):
+    """
+    `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
+
+    For more information, visit the website: https://marginaleffects.com/
+
+    Or type: `help(predictions)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -173,6 +180,13 @@ def avg_predictions(
     transform=None,
     wts=None,
 ):
+    """
+    `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
+
+    For more information, visit the website: https://marginaleffects.com/
+
+    Or type: `help(avg_predictions)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -221,6 +235,29 @@ See the package website and vignette for examples:
     + DocsParameters.docstring_eps_vcov
     + docstring_returns
     + """ 
+## Examples
+```py
+from marginaleffects import *
+
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+data = get_dataset("thornton")
+
+mod = smf.ols("outcome ~ incentive + distance", data).fit()
+
+predictions(mod)
+
+avg_predictions(mod)
+
+predictions(mod, by = "village")
+
+avg_predictions(mod, by = "village")
+
+predictions(mod, hypothesis = 3)
+
+avg_predictions(mod, hypothesis = 3)
+```
+
 ## Details
 """
     + DocsDetails.docstring_tost

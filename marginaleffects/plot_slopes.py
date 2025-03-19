@@ -20,6 +20,13 @@ def plot_slopes(
     eps=1e-4,
     eps_vcov=None,
 ):
+    """
+    Plot slopes on the y-axis against values of one or more predictors (x-axis, colors/shapes, and facets).
+
+    For more information, visit the website: https://marginaleffects.com/
+
+    Or type: `help(plot_slopes)`
+    """
     model = sanitize_model(model)
 
     assert variables, "The `variables` argument must be supplied."

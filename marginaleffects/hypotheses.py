@@ -23,7 +23,7 @@ def hypotheses(
     joint_test="f",
 ):
     """
-    (Non-)Linear Tests for Null Hypotheses, Joint Hypotheses, Equivalence, Non Superiority, and Non Inferiority
+    (Non-)Linear Tests for Null Hypotheses, Joint Hypotheses, Equivalence, Non Superiority, and Non Inferiority.
 
     For more information, visit the website: https://marginaleffects.com/
 
@@ -103,6 +103,13 @@ To learn more, visit the package website: <https://marginaleffects.com/>
 
 ## Examples
 ```py
+from marginaleffects import *
+
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+data = get_dataset("thornton")
+model = smf.ols("outcome ~ distance + incentive", data=data).fit()
+
 # When `hypothesis` is `None`, `hypotheses()` returns a DataFrame of parameters
 hypotheses(model)
 
@@ -110,16 +117,16 @@ hypotheses(model)
 hypotheses(model, hypothesis = 3)
 
 # Test of equality between coefficients
-hypotheses(model, hypothesis="param1 = param2")
+hypotheses(model, hypothesis="distance = incentive")
 
 # Non-linear function
-hypotheses(model, hypothesis="exp(param1 + param2) = 0.1")
+hypotheses(model, hypothesis="(distance + incentive) = 0.1")
 
 # Robust standard errors
-hypotheses(model, hypothesis="param1 = param2", vcov="HC3")
+hypotheses(model, hypothesis="distance = incentive", vcov="HC3")
 
 # Equivalence, non-inferiority, and non-superiority tests
-hypotheses(model, equivalence=(0, 10))
+hypotheses(model, equivalence=(0.0, 10.0))
 ```
 ## Warnings
 * Warning #1: Tests are conducted directly on the scale defined by the `type` argument. For some models, it can make sense to conduct hypothesis or equivalence tests on the `"link"` scale instead of the `"response"` scale which is often the default.

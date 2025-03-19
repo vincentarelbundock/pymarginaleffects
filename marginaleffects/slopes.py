@@ -16,6 +16,13 @@ def slopes(
     eps=1e-4,
     eps_vcov=None,
 ):
+    """
+    `slopes()` and `avg_slopes()` estimate unit-level (conditional) partial derivative of the regression equation with respect to a regressor of interest.
+
+    For more information, visit the website: https://marginaleffects.com/
+
+    Or type: `help(slopes)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -55,6 +62,13 @@ def avg_slopes(
     eps=1e-4,
     eps_vcov=None,
 ):
+    """
+    `slopes()` and `avg_slopes()` estimate unit-level (conditional) partial derivative of the regression equation with respect to a regressor of interest.
+
+    For more information, visit the website: https://marginaleffects.com/
+
+    Or type: `help(avg_slopes)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -115,6 +129,37 @@ See the package website and vignette for examples:
     + DocsParameters.docstring_eps_vcov
     + docstring_returns
     + """ 
+## Examples
+```py
+from marginaleffects import *
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import numpy as np
+
+data = get_dataset("thornton")
+
+# Create the squared distance term
+data = data.with_columns(distance_sq = data['distance'] ** 2)
+
+# Fit GLM with interactions and squared term
+mod = smf.logit("outcome ~ incentive * distance * distance_sq", data=data).fit()
+
+# Print summary
+mod.summary()
+
+# Slopes are computed for each regressor and at each observation
+slopes(mod)
+
+# Slopes are computed for each regressor and averaged over the observations
+avg_slopes(mod)
+
+# Slopes are computed with respect to the `distance` regressor at each observation
+slopes(mod, variables = "distance")
+
+# Slopes are computed with respect to the `distance` regressor and averaged over the observations
+avg_slopes(mod, variables = "distance")
+```
+
 ## Details
 """
     + DocsDetails.docstring_tost

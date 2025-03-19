@@ -45,6 +45,13 @@ def comparisons(
     eps=1e-4,
     eps_vcov=None,
 ):
+    """
+    `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, average treatment effect (on the treated or untreated), etc.
+
+    For more information, visit the website: https://marginaleffects.com/
+
+    Or type: `help(comparisons)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -299,6 +306,13 @@ def avg_comparisons(
     transform=None,
     eps=1e-4,
 ):
+    """
+    `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, average treatment effect (on the treated or untreated), etc.
+
+    For more information, visit the website: https://marginaleffects.com/
+
+    Or type: `help(avg_comparisons)`
+    """
     if callable(newdata):
         newdata = newdata(model)
 
@@ -358,14 +372,26 @@ See the package website and vignette for examples:
     + """ 
 ## Examples
 ```py
-comparisons(model, variables=None, newdata=None, comparison="difference",
-    transform=None, equivalence=None, by=False, cross=False,
-    type="response", hypothesis=0, conf_level=0.95)
+from marginaleffects import *
 
-avg_comparisons(model, variables=None, newdata=None, comparison="difference",
-    transform=None, equivalence=None, by=False, cross=False,
-    type="response", hypothesis=0, conf_level=0.95)
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+data = get_dataset("thornton")
+model = smf.ols("outcome ~ distance + incentive", data=data).fit()
+
+comparisons(model)
+
+avg_comparisons(model)
+
+comparisons(model, hypothesis=0)
+
+avg_comparisons(model, hypothesis=0)
+
+comparisons(model, by="agecat")
+
+avg_comparisons(model, by="agecat")
 ```
+
 ## Details
 """
     + DocsDetails.docstring_tost
