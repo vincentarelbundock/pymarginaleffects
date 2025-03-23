@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import scipy.stats as stats
 import polars as pl
@@ -19,6 +20,11 @@ def joint_hypotheses(obj, joint_index=None, joint_test="f", hypothesis=0):
 
     if isinstance(joint_index, bool):
         joint_index = range(len(theta_hat))
+    # if joint_index is a string, use grep to find the indices
+    elif isinstance(joint_index, str):
+        joint_index = [
+            i for i in range(len(var_names)) if re.search(joint_index, var_names[i])
+        ]
     else:
         if not isinstance(joint_index, list):
             joint_index = [joint_index]
