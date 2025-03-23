@@ -14,6 +14,7 @@ New:
 * `datagrid()` gets new arguments: `FUN_other`, `FUN_binary`, `FUN_numeric`, `FUN_character`
 * `variables` is available in `avg_predictions()`
 * `variables` accepts strings and list of strings in `predictions()`
+* Regex supported in `joint_index` argument of `hypotheses()`. Issue #191.
 
 Bugs:
 
