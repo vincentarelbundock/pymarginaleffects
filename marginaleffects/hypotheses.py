@@ -91,6 +91,7 @@ To learn more, visit the package website: <https://marginaleffects.com/>
 * joint: (bool, str, List[str], default = `False`) Specifies the joint test of statistical significance. The null hypothesis value can be set using the hypothesis argument.
     - `False`: Hypothesis are not tested jointly
     - `True`: Hypothesis are tested jointly
+    - str: A regular expression to match parameters to be tested jointly.
     - List[str]: Parameter names to be tested jointly as displayed by `mod.model.data.param_names`
     - List[int]: Parameter positions to test jointly where positions refer to the order specified by `mod.model.data.param_names`
     
@@ -127,6 +128,15 @@ hypotheses(model, hypothesis="distance = incentive", vcov="HC3")
 
 # Equivalence, non-inferiority, and non-superiority tests
 hypotheses(model, equivalence=(0.0, 10.0))
+
+# Joint hypothesis tests
+hypotheses(model, joint=["distance", "incentive"])
+
+# Joint hypothesis tests with a regular expression
+hypotheses(model, joint="distance|incentive")
+
+# Joint hypothesis tests with a regular expression
+hypotheses(model, joint="i$") # matches `incentive` and `distance` columns
 ```
 ## Warnings
 * Warning #1: Tests are conducted directly on the scale defined by the `type` argument. For some models, it can make sense to conduct hypothesis or equivalence tests on the `"link"` scale instead of the `"response"` scale which is often the default.
