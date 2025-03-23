@@ -62,11 +62,11 @@ def plot_common(model, dt, y_label, var_list, gray=False):
         else:
             p = p + geom_line()
 
-    # if len(var_list) == 3:
-    #     p = p + facet_wrap(f"~ {var_list[2]}")
+    if len(var_list) == 3:
+        p = p + facet_wrap(f"~ {var_list[2]}")
 
-    # elif len(var_list) == 4:
-    #     p = p + facet_grid(f"{var_list[3]} ~ {var_list[2]}", scales="free")
+    elif len(var_list) == 4:
+        p = p + facet_grid(f"{var_list[3]} ~ {var_list[2]}", scales="free")
 
     p = p + labs(y=y_label)
 
