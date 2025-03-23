@@ -22,6 +22,7 @@ def plot_comparisons(
     equivalence=None,
     transform=None,
     eps=1e-4,
+    gray=False,
 ):
     """
     Plot comparisons on the y-axis against values of one or more predictors (x-axis, colors/shapes, and facets).
@@ -96,7 +97,7 @@ def plot_comparisons(
     if not draw:
         return dt
 
-    return plot_common(model, dt, "Comparison", var_list)
+    return plot_common(model, dt, "Comparison", var_list, gray=gray)
 
 
 plot_comparisons.__doc__ = (
@@ -110,9 +111,10 @@ plot_comparisons.__doc__ = (
     + DocsParameters.docstring_model
     + DocsParameters.docstring_variables_plot("contrast")
     + DocsParameters.docstring_newdata_plot("comparisons")
-    + DocsParameters.docstring_condition
-    + DocsParameters.docstring_by_plot
+    + DocsParameters.docstring_condition("comparisons")
+    + DocsParameters.docstring_by_plot("comparisons")
     + DocsParameters.docstring_wts
     + DocsParameters.docstring_transform
     + DocsParameters.docstring_draw
+    + DocsParameters.docstring_gray
 )

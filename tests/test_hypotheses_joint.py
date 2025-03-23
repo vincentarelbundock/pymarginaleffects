@@ -53,12 +53,13 @@ def test_hypotheses_joint_2(kwargs, expected_file):
     [
         ({"joint": "hp|wt"}, "test_hypotheses_joint_01.csv"),
         ({"joint": "^..$"}, "test_hypotheses_joint_01.csv"),
-        ({"joint": "p$", "joint_test": "chisq"}, "test_hypotheses_joint_02.csv"), # matches hp and disp
+        (
+            {"joint": "p$", "joint_test": "chisq"},
+            "test_hypotheses_joint_02.csv",
+        ),  # matches hp and disp
     ],
 )
 def test_hypotheses_joint_regex(kwargs, expected_file):
     hypo_py = hypotheses(mod, **kwargs)
-    hypo_r = pl.read_csv(f"tests/r/{expected_file}").rename(
-        {"p.value": "p_value"}
-    )
+    hypo_r = pl.read_csv(f"tests/r/{expected_file}").rename({"p.value": "p_value"})
     assert_frame_equal(hypo_py, hypo_r)
