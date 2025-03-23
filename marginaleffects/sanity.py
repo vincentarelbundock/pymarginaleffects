@@ -309,8 +309,12 @@ def get_one_variable_hi_lo(
         elif isinstance(value, (int, float)):
             if comparison not in elasticities:
                 lab = f"+{value}"
-            hi = newdata[variable] + value / 2
-            lo = newdata[variable] - value / 2
+            # forward
+            hi = newdata[variable] + value
+            lo = newdata[variable]
+            # # centered
+            # hi = newdata[variable] + value / 2
+            # lo = newdata[variable] - value / 2
 
         elif callable(value):
             tmp = value(newdata[variable])
