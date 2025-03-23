@@ -1,3 +1,4 @@
+import pytest
 import polars as pl
 from polars.testing import assert_series_equal
 import statsmodels.formula.api as smf
@@ -67,26 +68,6 @@ def issue_59():
     assert p.shape[1] > 20
 
 
-def test_issue_83():
-    diamonds83 = diamonds.with_columns(
-        cut_ideal_null=pl.when(pl.col("cut") == "Ideal")
-        .then(pl.lit(None))
-        .otherwise(pl.col("cut"))
-    )
-
-    model = smf.ols("price ~ cut_ideal_null", diamonds83.to_pandas()).fit()
-
-    newdata = diamonds.slice(0, 20)
-    newdata = newdata.with_columns(
-        cut_ideal_null=pl.when(pl.col("cut") == "Ideal")
-        .then(pl.lit("Premium"))
-        .otherwise(pl.col("cut"))
-    )
-
-    p = predictions(model, newdata=newdata)
-    assert p.shape[0] == newdata.shape[0]
-
-
 def test_issue_95():
     model = smf.ols("price ~ cut + clarity + color", diamonds.to_pandas()).fit()
 
@@ -122,3 +103,29 @@ def test_issue161():
     p3 = predictions(mod, variables="cyl")
     assert p2["estimate"][0] != p1["estimate"][0]
     assert p2["estimate"][0] == p3["estimate"].mean()
+
+
+def test_issue83():
+    diamonds = pl.read_csv(
+        "https://vincentarelbundock.github.io/Rdatasets/csv/ggplot2/diamonds.csv"
+    )
+    diamonds83 = diamonds.with_columns(
+        cut_ideal_null=pl.when(pl.col("cut") == "Ideal")
+        .then(pl.lit(None))
+        .otherwise(pl.col("cut"))
+    )
+    model = smf.ols("price ~ cut_ideal_null", diamonds83.to_pandas()).fit()
+    newdata = diamonds.slice(0, 20).with_columns(
+        cut_ideal_null=pl.when(pl.col("cut") == "Ideal")
+        .then(pl.lit("Premium"))
+        .otherwise(pl.col("cut"))
+    )
+
+    with pytest.raises(ValueError, match="missing value"):
+        predictions(model, newdata=diamonds83.head())
+
+    with pytest.raises(ValueError, match="levels not in"):
+        predictions(model, newdata=newdata)
+
+    p = predictions(model, newdata=diamonds83.head().drop_nulls())
+    assert p is not None
