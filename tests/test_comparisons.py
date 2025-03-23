@@ -206,12 +206,18 @@ def test_issue193():
     mod = smf.logit(
         "outcome ~ incentive * (agecat + distance)", data=dat.to_pandas()
     ).fit()
-    mod.summary()
     grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
     g_treatment = grid.with_columns(pl.lit(1).alias("incentive"))
     g_control = grid.with_columns(pl.lit(0).alias("incentive"))
     p_treatment = mod.predict(g_treatment.to_pandas())
     p_control = mod.predict(g_control.to_pandas())
     cmp1 = (p_treatment - p_control).to_list()
+
+    # This should work with and without specifying Enum levels
+    cmp2 = comparisons(mod, variables="incentive", newdata=grid, vcov=False)
+    assert cmp2["estimate"].is_in(cmp1).all()
+
+    # This should work with and without specifying Enum levels
+    grid = grid.with_columns(pl.col("agecat").cast(pl.Enum(["<18", "18 to 35", ">35"])))
     cmp2 = comparisons(mod, variables="incentive", newdata=grid, vcov=False)
     assert cmp2["estimate"].is_in(cmp1).all()

@@ -19,7 +19,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, ingest, upcast
+from .utils import get_pad, sort_columns, upcast
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 
@@ -165,9 +165,9 @@ def comparisons(
         nd_X = nd
     else:
         fml = re.sub(r".*~", "", model.formula)
-        hi_X = patsy.dmatrix(fml, ingest(hi).to_pandas())
-        lo_X = patsy.dmatrix(fml, ingest(lo).to_pandas())
-        nd_X = patsy.dmatrix(fml, ingest(nd).to_pandas())
+        hi_X = patsy.dmatrix(fml, hi.to_pandas())
+        lo_X = patsy.dmatrix(fml, lo.to_pandas())
+        nd_X = patsy.dmatrix(fml, nd.to_pandas())
 
     # unpad
     if pad.shape[0] >= 0:

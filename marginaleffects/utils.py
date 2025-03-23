@@ -120,7 +120,6 @@ def get_type_dictionary(formula=None, modeldata=None):
         t_b = [pl.Boolean]
         if modeldata[v].dtype in t_i:
             if modeldata[v].is_in([0, 1]).all():
-                out[v] = "boolean"
                 out[v] = "binary"
             else:
                 out[v] = "integer"
