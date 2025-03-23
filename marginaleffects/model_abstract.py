@@ -94,6 +94,14 @@ class ModelAbstract(ABC):
                 self.data = self.data.with_columns(pl.col(c).cast(pl.Categorical))
                 self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
 
+        for c in self.data.columns:
+            if self.data[c].dtype in [pl.Utf8, pl.String]:
+                catvals = self.data[c].unique().sort()
+                self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
+            elif self.data[c].dtype in [pl.Categorical]:
+                catvals = self.data[c].cat.get_categories()
+                self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
+
     @abstractmethod
     def get_predict(self):
         pass
