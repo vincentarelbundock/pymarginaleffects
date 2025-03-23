@@ -50,7 +50,7 @@ def dt_on_condition(model, condition):
                 modeldata, key, value, key == first_key
             )
 
-        elif variable_type in ["boolean", "character", "binary"]:
+        elif variable_type in ["binary", "boolean", "character", "binary"]:
             # get specified names of the condition
             # here is the BUG, we take the values of "species" back from the model
             to_datagrid[key] = (

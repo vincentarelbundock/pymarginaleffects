@@ -125,7 +125,6 @@ def sanitize_newdata(model, newdata, wts, by=[]):
         out.datagrid_explicit = datagrid_explicit
 
     out = upcast(out, modeldata)
-
     return out
 
 
