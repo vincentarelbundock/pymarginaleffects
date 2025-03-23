@@ -120,15 +120,18 @@ def get_type_dictionary(formula=None, modeldata=None):
         t_b = [pl.Boolean]
         if modeldata[v].dtype in t_i:
             if modeldata[v].is_in([0, 1]).all():
-                out[v] = "boolean"
+                out[v] = "binary"
             else:
                 out[v] = "integer"
+        elif modeldata[v].dtype in t_n:
+            if modeldata[v].is_in([0, 1]).all():
+                out[v] = "binary"
+            else:
+                out[v] = "numeric"
         elif modeldata[v].dtype in t_c:
             out[v] = "character"
         elif modeldata[v].dtype in t_b:
             out[v] = "boolean"
-        elif modeldata[v].dtype in t_n:
-            out[v] = "numeric"
         else:
             out[v] = "unknown"
     return out
@@ -241,9 +244,21 @@ def upcast(df, reference):
             good = reference[col].dtype
             bad = df[col].dtype
             if good != bad:
+                # numeric
                 if good in numtypes and bad in numtypes:
                     idx = max(numtypes.index(good), numtypes.index(bad))
                     df = df.with_columns(pl.col(col).cast(numtypes[idx]))
+
+                # # this breaks all the tests, espcially those from slopes
+                # # probably because of upcasting?
+                # # string & cat
+                # if good in [pl.Categorical, pl.Enum]:
+                #     categories = reference[col].cat.get_categories()
+                #     df = df.with_columns(pl.col(col).cast(pl.Enum(categories)))
+                #     reference = reference.with_columns(
+                #         pl.col(col).cast(pl.Enum(categories))
+                #     )
+
                 else:
                     df = df.with_columns(pl.col(col).cast(good))
 

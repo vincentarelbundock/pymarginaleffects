@@ -634,7 +634,7 @@ requires-dist = [
     { name = "formulaic", specifier = ">=1.0.2" },
     { name = "linearmodels", marker = "extra == 'test'", specifier = ">=6.1" },
     { name = "matplotlib", marker = "extra == 'test'", specifier = ">=3.7.1" },
-    { name = "narwhals", specifier = ">=1.10.0" },
+    { name = "narwhals", specifier = ">=1.31.0" },
     { name = "numpy", specifier = ">=2.0.0" },
     { name = "pandas", marker = "extra == 'test'", specifier = ">=2.2.2" },
     { name = "patsy", specifier = ">=0.5.6" },

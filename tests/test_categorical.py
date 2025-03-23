@@ -46,7 +46,7 @@ def test_hiv_avg_slopes():
     mod = smf.ols("outcome ~ incentive + agecat", data=hiv).fit()
     s = avg_slopes(mod)
     assert s.shape[0] == 3
-    assert all(s["contrast"] == ["18 to 35 - <18", ">35 - <18", "dY/dX"])
+    assert all(s["contrast"] == ["18 to 35 - <18", ">35 - <18", "1 - 0"])
 
 
 def test_avg_predictions_raises_categorical_error():
