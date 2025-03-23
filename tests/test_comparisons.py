@@ -189,3 +189,13 @@ def test_lift():
     assert cmp2.shape[0] == 1
     with pytest.raises(AssertionError):
         comparisons(mod, comparison="liftr")
+
+
+def test_issue192():
+    dat = get_dataset("thornton")
+    mod = smf.logit(
+        "outcome ~ incentive * (agecat + distance)", data=dat.to_pandas()
+    ).fit()
+    grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
+    cmp = comparisons(mod, variables="incentive", newdata=grid)
+    print(cmp)

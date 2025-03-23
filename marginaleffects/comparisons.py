@@ -133,7 +133,8 @@ def comparisons(
     else:
         for i, v in enumerate(pad):
             pad[i] = upcast(v, pad[i - 1])
-        pad = pl.concat(pad).unique()
+        pad = pl.concat(pad, how="diagonal").unique()
+        pad = pad.with_columns(pl.lit(-1).alias("rowid"))
 
     # manipulated data must have at least the same precision as the modeldata
     lo = upcast(lo, modeldata)
@@ -150,6 +151,8 @@ def comparisons(
     hi = pl.concat([pad, hi], how="diagonal")
     lo = pl.concat([pad, lo], how="diagonal")
 
+    # response cannot be NULL
+
     # Use the `nd`, `lo`, and `hi` to make counterfactual predictions.
     # data frame -> Patsy -> design matrix -> predict()
     # It is expensive to convert data frames to design matrices, so we do it
@@ -161,12 +164,13 @@ def comparisons(
         lo_X = lo
         nd_X = nd
     else:
-        y, hi_X = patsy.dmatrices(model.formula, ingest(hi).to_pandas())
-        y, lo_X = patsy.dmatrices(model.formula, ingest(lo).to_pandas())
-        y, nd_X = patsy.dmatrices(model.formula, ingest(nd).to_pandas())
+        fml = re.sub(r".*~", "", model.formula)
+        hi_X = patsy.dmatrix(fml, ingest(hi).to_pandas())
+        lo_X = patsy.dmatrix(fml, ingest(lo).to_pandas())
+        nd_X = patsy.dmatrix(fml, ingest(nd).to_pandas())
 
     # unpad
-    if pad.shape[0] > 0:
+    if pad.shape[0] >= 0:
         nd_X = nd_X[pad.shape[0] :]
         hi_X = hi_X[pad.shape[0] :]
         lo_X = lo_X[pad.shape[0] :]

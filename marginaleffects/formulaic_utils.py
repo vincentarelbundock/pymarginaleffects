@@ -71,8 +71,9 @@ def listwise_deletion(formula: str, data: "IntoFrame"):
     0  1   1   1
     3  4   4   4
     """
-    variables = get_variables(formula)
     data = nw.from_native(data)
+    variables = get_variables(formula)
+    variables = [x for x in variables if x in data.columns]
     return data.drop_nulls(subset=variables).to_native()
 
 
