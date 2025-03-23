@@ -199,3 +199,19 @@ def test_issue192():
     grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
     cmp = comparisons(mod, variables="incentive", newdata=grid)
     print(cmp)
+
+
+def test_issue193():
+    dat = get_dataset("thornton")
+    mod = smf.logit(
+        "outcome ~ incentive * (agecat + distance)", data=dat.to_pandas()
+    ).fit()
+    mod.summary()
+    grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
+    g_treatment = grid.with_columns(pl.lit(1).alias("incentive"))
+    g_control = grid.with_columns(pl.lit(0).alias("incentive"))
+    p_treatment = mod.predict(g_treatment.to_pandas())
+    p_control = mod.predict(g_control.to_pandas())
+    cmp1 = (p_treatment - p_control).to_list()
+    cmp2 = comparisons(mod, variables="incentive", newdata=grid, vcov=False)
+    assert cmp2["estimate"].is_in(cmp1).all()
