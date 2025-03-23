@@ -41,7 +41,7 @@ def ingest(df: ArrowStreamExportable):
     except ImportError:
         raise ValueError("Please install pandas to handle Pandas DataFrame as input.")
 
-    return nw.from_arrow(df, native_namespace=pl).to_native()
+    return nw.from_arrow(df, backend=pl).to_native()
 
 
 def sort_columns(df, by=None, newdata=None):
