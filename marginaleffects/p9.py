@@ -13,7 +13,7 @@ from plotnine import (
 import polars as pl
 
 
-def plot_common(model, dt, y_label, var_list):
+def plot_common(model, dt, y_label, var_list, gray=False):
     discrete = model.variables_type[var_list[0]] not in ["numeric", "integer"]
     interval = "conf_low" in dt.columns
 
@@ -39,7 +39,8 @@ def plot_common(model, dt, y_label, var_list):
         if interval:
             if len(var_list) > 1:
                 p = p + geom_pointrange(
-                    aes(color=var_list[1]), position=position_dodge(width=0.1)
+                    aes(shape=var_list[1]) if gray else aes(color=var_list[1]),
+                    position=position_dodge(width=0.1),
                 )
             else:
                 p = p + geom_pointrange()
@@ -48,19 +49,24 @@ def plot_common(model, dt, y_label, var_list):
     else:
         if interval:
             if len(var_list) > 1:
-                p = p + geom_ribbon(aes(fill=var_list[1]), alpha=0.2)
+                p = p + geom_ribbon(
+                    aes(linetype=var_list[1]) if gray else aes(fill=var_list[1]),
+                    alpha=0.2,
+                )
             else:
                 p = p + geom_ribbon(alpha=0.2)
         if len(var_list) > 1:
-            p = p + geom_line(aes(color=var_list[1]))
+            p = p + geom_line(
+                aes(linetype=var_list[1]) if gray else aes(color=var_list[1])
+            )
         else:
             p = p + geom_line()
 
-    if len(var_list) == 3:
-        p = p + facet_wrap(f"~ {var_list[2]}")
+    # if len(var_list) == 3:
+    #     p = p + facet_wrap(f"~ {var_list[2]}")
 
-    elif len(var_list) == 4:
-        p = p + facet_grid(f"{var_list[3]} ~ {var_list[2]}", scales="free")
+    # elif len(var_list) == 4:
+    #     p = p + facet_grid(f"{var_list[3]} ~ {var_list[2]}", scales="free")
 
     p = p + labs(y=y_label)
 
