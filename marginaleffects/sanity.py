@@ -251,9 +251,14 @@ def get_one_variable_hi_lo(
         return [out]
 
     if vartype == "binary":
-        hi = clean(1)
-        lo = clean(0)
-        lab = lab.format(hi="1", lo="0")
+        # allows 0 - 1 when manually specified
+        if isinstance(value, list) and len(value) == 2:
+            hi = clean(value[1])
+            lo = clean(value[0])
+        else:
+            hi = clean(1)
+            lo = clean(0)
+        lab = lab.format(hi=str(hi[0]), lo=str(lo[0]))
         out = HiLo(
             variable=variable, hi=hi, lo=lo, lab=lab, comparison=comparison, pad=None
         )

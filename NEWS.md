@@ -15,6 +15,7 @@ New:
 * `variables` is available in `avg_predictions()`
 * `variables` accepts strings and list of strings in `predictions()`
 * Regex supported in `joint_index` argument of `hypotheses()`. Issue #191.
+* `comparisons()` allows reverse binary contrast by manually specifying `variables`. Issue #197.
 
 Bugs:
 
