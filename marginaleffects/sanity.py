@@ -310,8 +310,8 @@ def get_one_variable_hi_lo(
                 lo = np.percentile(modeldata[variable], 25)
                 lab = lab.format(hi="Q3", lo="Q1")
             elif value == "minmax":
-                hi = np.max(modeldata[variable])
-                lo = np.min(modeldata[variable])
+                hi = modeldata[variable].max()
+                lo = modeldata[variable].min()
                 lab = lab.format(hi="Max", lo="Min")
             else:
                 raise ValueError(msg)
