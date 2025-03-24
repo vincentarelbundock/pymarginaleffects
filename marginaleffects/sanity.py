@@ -268,7 +268,7 @@ def get_one_variable_hi_lo(
         if isinstance(value, list) and len(value) == 2:
             hi = clean([value[1]])
             lo = clean([value[0]])
-            lab = lab.format(hi=hi, lo=lo)
+            lab = lab.format(hi=value[1], lo=value[0])
             out = HiLo(
                 variable=variable,
                 hi=hi,
@@ -306,12 +306,12 @@ def get_one_variable_hi_lo(
                 lo = newdata[variable] - value
                 lab = lab.format(hi="(x+sd)", lo="(x-sd)")
             elif value == "iqr":
-                hi = np.percentile(newdata[variable], 75)
-                lo = np.percentile(newdata[variable], 25)
+                hi = np.percentile(modeldata[variable], 75)
+                lo = np.percentile(modeldata[variable], 25)
                 lab = lab.format(hi="Q3", lo="Q1")
             elif value == "minmax":
-                hi = np.max(newdata[variable])
-                lo = np.min(newdata[variable])
+                hi = np.max(modeldata[variable])
+                lo = np.min(modeldata[variable])
                 lab = lab.format(hi="Max", lo="Min")
             else:
                 raise ValueError(msg)

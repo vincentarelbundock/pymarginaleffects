@@ -21,6 +21,7 @@ Bugs:
 
 * `datagrid(grid_type='balanced')` takes unique values of binary and categorical variables. Issue #156.
 * `datagrid(grid_type='balanced')` does not return duplicates based on response. Issue 169.
+* `comparisons(mod, variables="iqr")` and `minmax` now work. Issue #198.
 
 # 0.0.14
 

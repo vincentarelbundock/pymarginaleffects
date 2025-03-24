@@ -233,3 +233,13 @@ def test_issue197():
     assert (cmp["estimate"] > 0).all()
     cmp = comparisons(mod, variables="incentive", newdata=grid)
     assert (cmp["estimate"] > 0).all()
+
+
+def test_issue198():
+    mod = smf.logit(
+        "outcome ~ incentive * (agecat + distance)", data=hiv.to_pandas()
+    ).fit()
+    grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
+    cmp = comparisons(mod, variables={"distance": "iqr"}, newdata=grid)
+    assert (cmp["std_error"] > 0).all()
+    assert (cmp["estimate"] < 0).all()
