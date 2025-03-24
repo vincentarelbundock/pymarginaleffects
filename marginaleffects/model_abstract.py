@@ -90,16 +90,16 @@ class ModelAbstract(ABC):
                 if self.data[c].dtype.is_numeric():
                     msg = f"Variable {c} is numeric. It should be String, Categorical, or Enum."
                     raise ValueError(msg)
-                catvals = self.data[c].unique().sort()
+                catvals = self.data[c].unique().sort().drop_nulls()
                 self.data = self.data.with_columns(pl.col(c).cast(pl.Categorical))
                 self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
 
         for c in self.data.columns:
             if self.data[c].dtype in [pl.Utf8, pl.String]:
-                catvals = self.data[c].unique().sort()
+                catvals = self.data[c].unique().sort().drop_nulls()
                 self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
             elif self.data[c].dtype in [pl.Categorical]:
-                catvals = self.data[c].cat.get_categories()
+                catvals = self.data[c].cat.get_categories().drop_nulls()
                 self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
 
     @abstractmethod

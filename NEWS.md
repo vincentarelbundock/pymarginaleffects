@@ -1,3 +1,9 @@
+# Development
+
+Bugs:
+
+* Allow predictors with missing values with `newdata=None`
+
 # 0.1.0
 
 Breaking change:

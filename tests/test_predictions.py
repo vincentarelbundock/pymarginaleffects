@@ -129,3 +129,15 @@ def test_issue83():
 
     p = predictions(model, newdata=diamonds83.head().drop_nulls())
     assert p is not None
+
+
+def test_missing_predictors():
+    penguins = get_dataset("penguins", "palmerpenguins").drop_nulls(subset="species")
+    penguins.select("species", "body_mass_g", "flipper_length_mm").group_by(
+        "species"
+    ).mean()
+    fit = smf.ols(
+        "flipper_length_mm ~ body_mass_g * species", data=penguins.to_pandas()
+    ).fit()
+    p = avg_predictions(fit, by="species")
+    assert p.height == 3
