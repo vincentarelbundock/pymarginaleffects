@@ -99,10 +99,18 @@ def datagrid(
         def FUN_other(x):
             return x.mode()[0]
 
+    if model is not None:
+        modeldata = model.data
+    else:
+        modeldata = newdata
+
     out = {}
     for key, value in kwargs.items():
         if value is not None:
-            out[key] = pl.DataFrame({key: value})
+            if callable(value):
+                out[key] = pl.DataFrame({key: value(modeldata[key])})
+            else:
+                out[key] = pl.DataFrame({key: value})
 
     # Balanced grid should not be built with combiations of response variable, otherwise we get a
     # duplicated rows on `grid_type="balanced"` and other types.

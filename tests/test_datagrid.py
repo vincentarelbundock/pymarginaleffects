@@ -2,7 +2,7 @@ import numpy as np
 import polars as pl
 
 from marginaleffects import *
-from statsmodels.formula.api import logit
+from statsmodels.formula.api import logit, ols
 
 mtcars = get_dataset("mtcars", "datasets")
 
@@ -94,3 +94,13 @@ def test_issue_169():
     mod = logit("outcome ~ incentive + agecat + distance", data=dat.to_pandas()).fit()
     p = predictions(mod, newdata="balanced")
     assert p.shape[0] == 6
+
+
+def test_callable():
+    mod = ols("hp ~ mpg * cyl", data=mtcars.to_pandas()).fit()
+
+    def fivenum(x):
+        [x.quantile(q) for q in [0, 0.25, 0.5, 0.75, 1]]
+
+    p = predictions(mod, newdata=datagrid(mpg=fivenum))
+    assert p.height == 5

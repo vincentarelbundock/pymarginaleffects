@@ -116,9 +116,6 @@ class ModelLinearmodels(ModelAbstract):
     def get_coef_names(self):
         return np.array(self.model.params.index.to_numpy())
 
-    def get_modeldata(self):
-        return self._pd_to_pl(self.data)
-
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
             if vcov is True:

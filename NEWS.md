@@ -4,6 +4,10 @@ Bugs:
 
 * Allow predictors with missing values with `newdata=None`
 
+New:
+
+* `datagrid()` accepts functions: `datagrid(x = np.mean, y = lambda x: np.quantile(x, [0, .4]))`
+
 # 0.1.0
 
 Breaking change:
