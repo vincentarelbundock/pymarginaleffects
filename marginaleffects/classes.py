@@ -93,6 +93,14 @@ class MarginaleffectsDataFrame(pl.DataFrame):
                 tmp.with_columns(
                     pl.col(col).map_batches(fmt, return_dtype=pl.Utf8).alias(col)
                 )
+
+        if "Term" in tmp.columns and len(tmp["Term"].unique()) == 1:
+            tmp = tmp.drop("Term")
+
+        if "Contrast" in tmp.columns and len(tmp["Contrast"].unique()) == 1:
+            tmp = tmp.drop("Contrast")
+
         out += tmp.__str__()
-        out = out + f"\n\nColumns: {', '.join(self.columns)}\n"
+        ## we no longer print the column names
+        # out = out + f"\n\nColumns: {', '.join(self.columns)}\n"
         return out
