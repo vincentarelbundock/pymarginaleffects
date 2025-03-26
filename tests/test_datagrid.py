@@ -100,7 +100,7 @@ def test_callable():
     mod = ols("hp ~ mpg * cyl", data=mtcars.to_pandas()).fit()
 
     def fivenum(x):
-        [x.quantile(q) for q in [0, 0.25, 0.5, 0.75, 1]]
+        return np.quantile(x, [0, 0.25, 0.5, 0.75, 1])
 
     p = predictions(mod, newdata=datagrid(mpg=fivenum))
     assert p.height == 5
