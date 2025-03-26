@@ -22,23 +22,9 @@ class ModelSklearn(ModelAbstract):
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):
             exog = newdata
+            y = None
         else:
-            try:
-                import formulaic
-
-                if isinstance(newdata, formulaic.ModelMatrix):
-                    exog = newdata.to_numpy()
-                else:
-                    if isinstance(newdata, pl.DataFrame):
-                        nd = newdata.to_pandas()
-                    else:
-                        nd = newdata
-                    y, exog = formulaic.model_matrix(self.model.formula, nd)
-                    exog = exog.to_numpy()
-            except ImportError:
-                raise ImportError(
-                    "The formulaic package is required to use this feature."
-                )
+            y, exog = self.polars_to_numpy(newdata)
 
         try:
             with warnings.catch_warnings():
@@ -89,18 +75,39 @@ def fit_sklearn(
 
     Or type: `help(fit_sklearn)`
     """
-    d = listwise_deletion(formula, data=data)
-    y, X = model_matrices(formula, d)
-    # formulaic returns a matrix when the response is character or categorical
-    if y.ndim == 2:
-        y = d[get_variables(formula)[0]]
-    y = np.ravel(y)
+    if isinstance(formula, str) and "~" in formula:
+        d = listwise_deletion(formula, data=data)
+
+        def polars_to_numpy(data):
+            y, X = model_matrices(formula, d)
+            # formulaic returns a matrix when the response is character or categorical
+            if y.ndim == 2:
+                y = d[get_variables(formula)[0]]
+            y = np.ravel(y)
+            return y, X
+
+    elif callable(formula):
+        d = data
+
+        def polars_to_numpy(data):
+            y, X = formula(data)
+            return y, X
+
+    else:
+        raise ValueError(
+            "The formula must be a string with a response variable and predictors separated by a tilde, or a function that accepts a Polars data frame and returns y and X matrices."
+        )
+
+    y, X = polars_to_numpy(data)
+
     out = engine(**kwargs_engine).fit(X=X, y=y, **kwargs_fit)
     out.data = d
     out.formula = formula
     out.formula_engine = "formulaic"
     out.fit_engine = "sklearn"
-    return ModelSklearn(out)
+    out = ModelSklearn(out)
+    out.polars_to_numpy = polars_to_numpy
+    return out
 
 
 docs_sklearn = (
