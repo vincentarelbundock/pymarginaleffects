@@ -44,7 +44,7 @@ class ModelStatsmodels(ModelAbstract):
                 raise ValueError(f"The model object has no {lab} attribute.")
         else:
             raise ValueError(
-                '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".'
+                '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the `statsmodels` model object such as "cov_HC3".'
             )
 
         if V is not None:
