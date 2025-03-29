@@ -34,7 +34,7 @@ class ModelAbstract(ModelValidation, ABC):
         elif isinstance(formula, str):
             out = fml.parse_variables(self.formula)
         else:
-            out = self.data.columns
+            out = None
         return out
 
     def find_response(self):
