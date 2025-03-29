@@ -9,13 +9,13 @@ class ModelPyfixest(ModelAbstract):
     def __init__(self, model):
         self.data = ingest(model._data)
         self.formula = model._fml
+        self.vault = {}
         super().__init__(model)
         if hasattr(self.model, "_fixef"):
             if self.model._fixef is not None:
                 fe = self.model._fixef.split("+")
                 for f in fe:
                     self.variables_type[f] = "character"
-        self.vault = {}
 
     def get_coef(self):
         return np.array(self.model._beta_hat)

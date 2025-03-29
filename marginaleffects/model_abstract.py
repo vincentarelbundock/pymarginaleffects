@@ -22,10 +22,19 @@ class ModelAbstract(ModelValidation, ABC):
         return self.vault.get("coef", None)
 
     def get_coefnames(self):
-        return None
+        return self.vault.get("coefnames", None)
 
-    def find_variables(self, variables=None, newdata=None):
-        out = fml.get_variables(self.formula)
+    def get_formula(self):
+        return self.formula
+
+    def find_variables(self):
+        formula = self.get_formula()
+        if "variables" in self.vault:
+            out = self.vault.get("variables")
+        elif isinstance(formula, str):
+            out = fml.parse_variables(self.formula)
+        else:
+            out = self.data.columns
         return out
 
     def find_response(self):

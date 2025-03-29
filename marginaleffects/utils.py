@@ -103,7 +103,7 @@ def get_type_dictionary(formula=None, modeldata=None):
     if formula is None:
         variables = modeldata.columns
     else:
-        variables = fml.get_variables(formula)
+        variables = fml.parse_variables(formula)
     for v in variables:
         t_i = [
             pl.Int8,

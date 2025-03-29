@@ -8,12 +8,12 @@ from formulaic.parser.algos.tokenize import tokenize
 __all__ = ["listwise_deletion", "model_matrices"]
 
 
-def get_variables_categorical(fml: str) -> list[str]:
+def parse_variables_categorical(fml: str) -> list[str]:
     return re.findall(r"C\((.*?)\)", fml)
 
 
 # @validate_types
-def get_variables(formula: str) -> list[str]:
+def parse_variables(formula: str) -> list[str]:
     """
     Extract all variables (column names) from a formula string.
 
@@ -72,7 +72,7 @@ def listwise_deletion(formula: str, data: "IntoFrame"):
     3  4   4   4
     """
     data = nw.from_native(data)
-    variables = get_variables(formula)
+    variables = parse_variables(formula)
     variables = [x for x in variables if x in data.columns]
     return data.drop_nulls(subset=variables).to_native()
 
