@@ -23,11 +23,12 @@ class ModelStatsmodels(ModelAbstract):
         else:
             self.formula_engine = "patsy"
             self.design_info_patsy = model.model.data.design_info
+        self.vault = {}
 
     def get_coef(self):
         return np.array(self.model.params)
 
-    def find_coef(self):
+    def get_coefnames(self):
         return np.array(self.model.params.index.to_numpy())
 
     def get_vcov(self, vcov=True):

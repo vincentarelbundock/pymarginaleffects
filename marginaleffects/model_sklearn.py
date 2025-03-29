@@ -9,14 +9,9 @@ from .model_abstract import ModelAbstract
 
 class ModelSklearn(ModelAbstract):
     def __init__(self, model):
-        if not hasattr(model, "data"):
-            raise ValueError("Model must have a 'data' attribute")
-        else:
-            self.data = ingest(model.data)
-        if not hasattr(model, "formula"):
-            raise ValueError("Model must have a 'formula' attribute")
-        else:
-            self.formula = model.formula
+        self.vault = {}
+        self.data = ingest(model.data)
+        self.formula = model.formula
         super().__init__(model)
 
     def get_predict(self, params, newdata: pl.DataFrame):

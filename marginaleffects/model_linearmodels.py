@@ -78,6 +78,7 @@ class ModelLinearmodels(ModelAbstract):
 
         self.initialized_engine = model.initialize_engine
         super().__init__(model)
+        self.vault = {}
 
     def _to_pandas(self, df):
         """

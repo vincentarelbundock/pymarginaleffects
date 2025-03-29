@@ -15,11 +15,12 @@ class ModelPyfixest(ModelAbstract):
                 fe = self.model._fixef.split("+")
                 for f in fe:
                     self.variables_type[f] = "character"
+        self.vault = {}
 
     def get_coef(self):
         return np.array(self.model._beta_hat)
 
-    def find_coef(self):
+    def get_coefnames(self):
         return np.array(self.model._coefnames)
 
     def get_vcov(self, vcov=True):
