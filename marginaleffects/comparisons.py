@@ -116,7 +116,7 @@ def comparisons(
     vars = list(set(vars))
     for v in vars:
         if v in modeldata.columns:
-            if model.variables_type[v] not in ["numeric", "integer"]:
+            if model.get_variable_type(v) not in ["numeric", "integer"]:
                 pad.append(get_pad(newdata, v, modeldata[v].unique()))
 
     # nd, hi, and lo are lists of data frames, since the user could have

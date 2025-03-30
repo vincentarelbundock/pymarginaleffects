@@ -11,8 +11,8 @@ class ModelValidation:
         self.validate_response_name()
         self.validate_formula()
         self.validate_modeldata()
-        self.variables_type = get_type_dictionary(
-            self.get_formula(), self.get_modeldata()
+        self.vault.update(
+            variables_type=get_type_dictionary(self.get_formula(), self.get_modeldata())
         )
 
     def validate_coef(self):
