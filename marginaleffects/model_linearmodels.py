@@ -1,4 +1,5 @@
 import re
+from .utils import get_type_dictionary
 import numpy as np
 import pandas as pd
 import narwhals as nw
@@ -79,6 +80,11 @@ class ModelLinearmodels(ModelAbstract):
         self.initialized_engine = model.initialize_engine
         super().__init__(model)
         self.vault = {}
+        self.validate_coef()
+        self.validate_response_name()
+        self.validate_formula()
+        self.validate_modeldata()
+        self.variables_type = get_type_dictionary(self.formula, self.data)
 
     def _to_pandas(self, df):
         """

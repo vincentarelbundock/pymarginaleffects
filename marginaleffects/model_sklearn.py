@@ -1,4 +1,5 @@
 import numpy as np
+from .utils import get_type_dictionary
 import warnings
 import polars as pl
 from .docs import DocsModels
@@ -10,9 +11,15 @@ from .model_abstract import ModelAbstract
 class ModelSklearn(ModelAbstract):
     def __init__(self, model):
         self.vault = {}
+        self.model = model
         self.data = ingest(model.data)
+        self.formula_engine = "formulaic"
         self.formula = model.formula
-        super().__init__(model)
+        self.validate_coef()
+        self.validate_response_name()
+        self.validate_formula()
+        self.validate_modeldata()
+        self.variables_type = get_type_dictionary(self.formula, self.data)
 
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):

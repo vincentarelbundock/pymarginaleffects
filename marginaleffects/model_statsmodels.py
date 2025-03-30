@@ -1,4 +1,5 @@
 import re
+from .utils import get_type_dictionary
 import numpy as np
 import polars as pl
 import patsy
@@ -24,6 +25,11 @@ class ModelStatsmodels(ModelAbstract):
             self.formula_engine = "patsy"
             self.design_info_patsy = model.model.data.design_info
         self.vault = {}
+        self.validate_coef()
+        self.validate_response_name()
+        self.validate_formula()
+        self.validate_modeldata()
+        self.variables_type = get_type_dictionary(self.formula, self.data)
 
     def get_coef(self):
         return np.array(self.model.params)
