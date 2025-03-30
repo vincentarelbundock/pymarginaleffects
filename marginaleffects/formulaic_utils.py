@@ -33,6 +33,9 @@ def parse_variables(formula: str) -> list[str]:
     ['y', 'x1', 'x2']
     """
 
+    if not isinstance(formula, str):
+        return []
+
     fml = formulaic.Formula(formula)
     return list(fml.required_variables)
 
@@ -71,9 +74,13 @@ def listwise_deletion(formula: str, data: "IntoFrame"):
     3  4   4   4
     """
     data = nw.from_native(data)
-    variables = parse_variables(formula)
-    variables = [x for x in variables if x in data.columns]
-    return data.drop_nulls(subset=variables).to_native()
+    if callable(formula) or not formula:
+        out = data.drop_nulls().to_native()
+    else:
+        variables = parse_variables(formula)
+        variables = [x for x in variables if x in data.columns]
+        out = data.drop_nulls(subset=variables).to_native()
+    return out
 
 
 def model_matrices(formula: str, data: "IntoFrame", formula_engine: str = "formulaic"):
@@ -129,8 +136,11 @@ def model_matrices(formula: str, data: "IntoFrame", formula_engine: str = "formu
 
         if isinstance(formula, str):
             formula = formula.split("~")[1].strip()
+            exog = patsy.dmatrix(formula, data.to_pandas())
 
-        exog = patsy.dmatrix(formula, data.to_pandas())
+        elif callable(formula):
+            endog, exog = formula(data)
+
         return None, exog
 
 

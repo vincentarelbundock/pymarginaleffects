@@ -42,12 +42,14 @@ def sanitize_newdata(model, newdata, wts, by=[]):
 
     if isinstance(newdata, pl.DataFrame):
         predictors = model.find_predictors()
-        predictors = newdata.select(predictors)
-        any_missing = any(predictors.select(pl.all().is_null().any()).row(0))
-        if any_missing:
-            raise ValueError(
-                "Please supply a data frame with no missing value to the `newdata` argument."
-            )
+        # sklearn without known predictor names
+        if predictors is not None:
+            predictors = newdata.select(predictors)
+            any_missing = any(predictors.select(pl.all().is_null().any()).row(0))
+            if any_missing:
+                raise ValueError(
+                    "Please supply a data frame with no missing value to the `newdata` argument."
+                )
 
     # if newdata is a string, then we need to treat `by` as unique entries.
     args = {"model": model}
@@ -80,12 +82,8 @@ def sanitize_newdata(model, newdata, wts, by=[]):
             raise e
 
     # user-supplied newdata may include missing values
-    if (
-        model is not None
-        and hasattr(model, "formula")
-        and isinstance(out, pl.DataFrame)
-    ):
-        out = listwise_deletion(model.formula, out)
+    if model is not None and isinstance(out, pl.DataFrame):
+        out = listwise_deletion(model.get_formula(), out)
 
     reserved_names = {
         "rowid",

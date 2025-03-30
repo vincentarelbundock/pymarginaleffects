@@ -74,7 +74,7 @@ class ModelSklearn(ModelAbstract):
 
 # @validate_types
 def fit_sklearn(
-    formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
+    formula, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
 ) -> ModelSklearn:
     """
     Fit a sklearn model with output that is compatible with pymarginaleffects.
@@ -85,12 +85,20 @@ def fit_sklearn(
     """
 
     d = listwise_deletion(formula, data=data)
-    y, X = model_matrices(formula, d)
-    # formulaic returns a matrix when the response is character or categorical
-    if y.ndim == 2:
-        y = d[parse_variables(formula)[0]]
-    y = np.ravel(y)
+
+    if isinstance(formula, str):
+        d = listwise_deletion(formula, data=data)
+        y, X = model_matrices(formula, d)
+        # formulaic returns a matrix when the response is character or categorical
+        if y.ndim == 2:
+            y = d[parse_variables(formula)[0]]
+        y = np.ravel(y)
+
+    elif callable(formula):
+        y, X = formula(d)
+
     engine_running = engine(**kwargs_engine).fit(X=X, y=y, **kwargs_fit)
+
     vault = {
         "formula": formula,
         "modeldata": ingest(d),

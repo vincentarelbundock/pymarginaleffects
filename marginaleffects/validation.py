@@ -23,15 +23,23 @@ class ModelValidation:
 
     def validate_response_name(self):
         response_name = self.find_response()
-        if not isinstance(response_name, str):
+        if not isinstance(response_name, str) and response_name is not None:
             raise ValueError("response_name must be a string")
         self.response_name = response_name
 
     def validate_formula(self):
         formula = self.get_formula()
 
-        if not isinstance(formula, str):
-            raise ValueError("formula must be a string")
+        if not formula:
+            return
+
+        if not callable(formula) and not isinstance(formula, str):
+            raise ValueError(
+                "formula must be a string or a pre-processing function that returns `y` and `X` matrices."
+            )
+
+        if callable(formula):
+            return
 
         if "~" not in formula:
             raise ValueError(
@@ -49,9 +57,12 @@ class ModelValidation:
 
     def validate_modeldata(self):
         modeldata = self.get_modeldata()
-
         if not isinstance(modeldata, pl.DataFrame):
             raise ValueError("data attribute must be a Polars DataFrame")
+
+        formula = self.get_formula()
+        if callable(formula):
+            return
 
         # there can be no missing values in the formula variables
         original_row_count = modeldata.shape[0]

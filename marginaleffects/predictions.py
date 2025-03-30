@@ -122,10 +122,15 @@ def predictions(
         if hasattr(model, "design_info_patsy"):
             f = model.design_info_patsy
         else:
-            f = model.formula
-        endog, exog = model_matrices(
-            f, newdata, formula_engine=model.get_formula_engine()
-        )
+            f = model.get_formula()
+
+        if callable(f):
+            endog, exog = f(newdata)
+
+        else:
+            endog, exog = model_matrices(
+                f, newdata, formula_engine=model.get_formula_engine()
+            )
 
     # estimands
     def inner(x):
