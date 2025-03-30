@@ -19,14 +19,13 @@ class ModelLinearmodels(ModelAbstract):
         super().__init__(model)
         if not hasattr(model, "data"):
             raise ValueError("Model must have a 'data' attribute")
-        else:
-            self.multiindex_names = list(model.data.index.names)
         if not hasattr(model, "formula"):
             raise ValueError("Model must have a 'formula' attribute")
         formula, _ = parse_linearmodels_formula(model.formula)
         cache = {
             "modeldata": ingest(model.data),
             "formula": formula,
+            "multiindex": list(model.data.index.names),
         }
         self.vault.update(cache)
 
@@ -44,7 +43,7 @@ class ModelLinearmodels(ModelAbstract):
         ----------
         df : nw.IntoFrame
             DataFrame containing the original index variables as columns.
-            Must include all columns specified in self.multiindex_names.
+            Must include all columns specified in self.vault['multiindex'].
 
         Returns
         -------
@@ -57,12 +56,14 @@ class ModelLinearmodels(ModelAbstract):
             If any of the required index columns are missing from the input DataFrame.
         """
 
-        if not set(self.multiindex_names).issubset(nw.from_native(df).columns):
+        multiindex = self.vault.get("multiindex")
+        if not set(multiindex).issubset(nw.from_native(df).columns):
+            multiindex_str = ",".join(multiindex)
             raise ValueError(
-                f"The DataFrame must contain the original multiindex ({','.join(self.multiindex_names)}) as columns."
+                f"The DataFrame must contain the original multiindex ({multiindex_str}) as columns."
             )
 
-        return nw.from_native(df).to_pandas().set_index(self.multiindex_names)
+        return nw.from_native(df).to_pandas().set_index(multiindex)
 
     def get_coef(self):
         return np.array(self.model.params)
