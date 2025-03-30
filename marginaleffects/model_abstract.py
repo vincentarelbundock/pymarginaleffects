@@ -6,7 +6,6 @@ from . import formulaic_utils as fml
 class ModelAbstract(ModelValidation, ABC):
     def __init__(self, model):
         self.model = model
-        self.formula_engine = "formulaic"
         self.vault = {}
 
     def get_modeldata(self):
@@ -27,6 +26,9 @@ class ModelAbstract(ModelValidation, ABC):
 
     def get_formula(self):
         return self.vault.get("formula", None)
+
+    def get_formula_engine(self):
+        return self.vault.get("formula_engine", "formulaic")
 
     def find_variables(self):
         if "variable_names" in self.vault:

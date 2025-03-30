@@ -25,6 +25,7 @@ class ModelLinearmodels(ModelAbstract):
         cache = {
             "modeldata": ingest(model.data),
             "formula": formula,
+            "formula_engine": "linearmodels",
             "multiindex": list(model.data.index.names),
         }
         self.vault.update(cache)
@@ -261,7 +262,6 @@ def fit_linearmodels(
 
     out.data = d
     out.formula = linearmodels_formula
-    out.formula_engine = "linearmodels"
     out.initialize_engine = initialized_engine
     out.fit_engine = "linearmodels"
 

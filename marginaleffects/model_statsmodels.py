@@ -10,18 +10,15 @@ from .utils import validate_types, ingest
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
         super().__init__(model)
-        if hasattr(model, "formula"):
-            self.formula_engine = "formulaic"
-        else:
-            self.formula_engine = "patsy"
-            self.design_info_patsy = model.model.data.design_info
-
         cache = {
             "coef": np.array(self.model.params),
             "coefnames": np.array(self.model.params.index.to_numpy()),
             "formula": model.model.formula,
             "modeldata": ingest(model.model.data.frame),
         }
+        if not hasattr(model, "formula"):
+            cache["formula_engine"] = "patsy"
+            cache["design_info_patsy"] = model.model.data.design_info
         self.vault.update(cache)
         self.validation()
 
@@ -107,7 +104,6 @@ def fit_statsmodels(
     mod = mod.fit(**kwargs_fit)
     mod.data = d
     mod.formula = formula
-    mod.formula_engine = "formulaic"
     mod.fit_engine = "statsmodels"
     return ModelStatsmodels(mod)
 

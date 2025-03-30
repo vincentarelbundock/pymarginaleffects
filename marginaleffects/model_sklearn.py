@@ -15,7 +15,6 @@ class ModelSklearn(ModelAbstract):
             "formula": model.formula,
         }
         self.vault.update(cache)
-        self.formula_engine = "formulaic"
         self.validation()
 
     def get_predict(self, params, newdata: pl.DataFrame):
@@ -97,7 +96,6 @@ def fit_sklearn(
     out = engine(**kwargs_engine).fit(X=X, y=y, **kwargs_fit)
     out.data = d
     out.formula = formula
-    out.formula_engine = "formulaic"
     out.fit_engine = "sklearn"
     return ModelSklearn(out)
 

@@ -123,7 +123,9 @@ def predictions(
             f = model.design_info_patsy
         else:
             f = model.formula
-        endog, exog = model_matrices(f, newdata, formula_engine=model.formula_engine)
+        endog, exog = model_matrices(
+            f, newdata, formula_engine=model.get_formula_engine()
+        )
 
     # estimands
     def inner(x):
