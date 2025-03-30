@@ -37,6 +37,13 @@ class ModelAbstract(ModelValidation, ABC):
     def get_package(self):
         return self.vault.get("package", "unknown")
 
+    def get_variable_type(self, name=None):
+        variables = self.variables_type
+        if isinstance(name, str) and name in variables:
+            return variables[name]
+        else:
+            return variables
+
     def find_variables(self):
         if "variable_names" in self.vault:
             return self.vault.get("variable_names")

@@ -120,7 +120,7 @@ def datagrid(
             out[col] = pl.DataFrame({col: newdata[col].mode()[0]})
 
     if model is not None:
-        variables_type = model.variables_type
+        variables_type = model.get_variable_type()
     else:
         variables_type = ut.get_type_dictionary(formula=None, modeldata=newdata)
 

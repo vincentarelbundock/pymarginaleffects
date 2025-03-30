@@ -43,7 +43,7 @@ def dt_on_condition(model, condition):
     )
 
     for key, value in to_datagrid.items():
-        variable_type = model.variables_type[key]
+        variable_type = model.get_variable_type(key)
 
         if variable_type in ["numeric", "integer"]:
             to_datagrid[key] = condition_numeric(
@@ -97,7 +97,7 @@ def plot_labels(model, dt, condition):
         return dt
 
     for k, v in condition.items():
-        if model.variables_type[k] in ["numeric", "integer"]:
+        if model.get_variable_type(k) in ["numeric", "integer"]:
             # upgrade this to use match-case when python 3.9 reaches end-of-life
             if condition[k] == "threenum":
                 lab = ["-SD", "Mean", "+SD"]

@@ -208,7 +208,7 @@ def get_one_variable_hi_lo(
     model, variable, value, newdata, comparison, eps, by, wts=None, modeldata=None
 ):
     msg = "`value` must be a numeric, a list of length two, or 'sd'"
-    vartype = model.variables_type[variable]
+    vartype = model.get_variable_type(variable)
 
     def clean(k):
         return clean_global(k, newdata.shape[0])
