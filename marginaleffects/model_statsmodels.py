@@ -50,7 +50,7 @@ class ModelStatsmodels(ModelAbstract):
 
         if V is not None:
             V = np.array(V)
-            if V.shape != (len(self.coef), len(self.coef)):
+            if V.shape != (len(self.get_coef()), len(self.get_coef())):
                 raise ValueError(
                     "vcov must be a square numpy array with dimensions equal to the length of self.coef"
                 )
