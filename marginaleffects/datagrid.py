@@ -100,7 +100,7 @@ def datagrid(
             return x.mode()[0]
 
     if model is not None:
-        modeldata = model.data
+        modeldata = model.get_modeldata()
     else:
         modeldata = newdata
 
@@ -153,7 +153,7 @@ def datagridcf(model=None, newdata=None, **kwargs):
     model = sanitize_model(model)
 
     if newdata is None:
-        newdata = model.data
+        newdata = model.get_modeldata()
 
     if "rowid" not in newdata.columns:
         newdata = newdata.with_columns(

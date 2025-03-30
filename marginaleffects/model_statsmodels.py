@@ -12,7 +12,6 @@ class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
         super().__init__(model)
         self.formula = model.model.formula
-        self.data = ingest(model.model.data.frame)
         if hasattr(model, "formula"):
             self.formula_engine = "formulaic"
         else:
@@ -21,6 +20,7 @@ class ModelStatsmodels(ModelAbstract):
         cache = {
             "coef": np.array(self.model.params),
             "coefnames": np.array(self.model.params.index.to_numpy()),
+            "modeldata": ingest(model.model.data.frame),
         }
         self.vault.update(cache)
         self.validation()
@@ -53,7 +53,7 @@ class ModelStatsmodels(ModelAbstract):
 
     def find_predictors(self):
         formula = self.formula
-        columns = self.data.columns
+        columns = self.get_modeldata().columns
         order = {}
         for var in columns:
             match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])

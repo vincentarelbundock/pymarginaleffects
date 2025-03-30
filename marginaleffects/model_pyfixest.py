@@ -33,9 +33,10 @@ class ModelPyfixest(ModelAbstract):
         return V
 
     def find_predictors(self):
+        modeldata = self.get_modeldata()
         variables = self.model._coefnames
         variables = [re.sub(r"\[.*\]", "", x) for x in variables]
-        variables = [x for x in variables if x in self.data.columns]
+        variables = [x for x in variables if x in modeldata.columns]
         variables = pl.Series(variables).unique().to_list()
         return variables
 

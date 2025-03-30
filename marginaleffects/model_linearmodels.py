@@ -107,7 +107,7 @@ class ModelLinearmodels(ModelAbstract):
 
     def find_predictors(self):
         formula = self.formula
-        columns = self.data.columns
+        columns = self.get_modeldata().columns
         order = {}
         for var in columns:
             match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])

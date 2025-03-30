@@ -59,7 +59,7 @@ def comparisons(
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)
-    modeldata = model.data
+    modeldata = model.get_modeldata()
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     # For each variable in `variables`, this will return two values that we want

@@ -11,7 +11,7 @@ class ModelValidation:
         self.validate_response_name()
         self.validate_formula()
         self.validate_modeldata()
-        self.variables_type = get_type_dictionary(self.formula, self.data)
+        self.variables_type = get_type_dictionary(self.formula, self.get_modeldata())
 
     def validate_coef(self):
         coef = self.get_coef()
@@ -44,30 +44,36 @@ class ModelValidation:
         self.formula = formula
 
     def validate_modeldata(self):
-        if not isinstance(self.data, pl.DataFrame):
+        modeldata = self.get_modeldata()
+
+        if not isinstance(modeldata, pl.DataFrame):
             raise ValueError("data attribute must be a Polars DataFrame")
 
         # there can be no missing values in the formula variables
-        original_row_count = self.data.shape[0]
-        self.data = fml.listwise_deletion(self.formula, self.data)
-        if self.data.shape[0] != original_row_count:
+        original_row_count = modeldata.shape[0]
+        modeldata = fml.listwise_deletion(self.formula, modeldata)
+        if modeldata.shape[0] != original_row_count:
             warnings.warn("Dropping rows with missing observations.", UserWarning)
 
         # categorical variables must be encoded as such
         catvars = fml.parse_variables_categorical(self.formula)
         for c in catvars:
-            if self.data[c].dtype not in [pl.Enum, pl.Categorical]:
-                if self.data[c].dtype.is_numeric():
+            if modeldata[c].dtype not in [pl.Enum, pl.Categorical]:
+                if modeldata[c].dtype.is_numeric():
                     msg = f"Variable {c} is numeric. It should be String, Categorical, or Enum."
                     raise ValueError(msg)
-                catvals = self.data[c].unique().sort().drop_nulls()
-                self.data = self.data.with_columns(pl.col(c).cast(pl.Categorical))
-                self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
+                catvals = modeldata[c].unique().sort().drop_nulls()
+                modeldata = modeldata.with_columns(pl.col(c).cast(pl.Categorical))
+                modeldata = modeldata.with_columns(pl.col(c).cast(pl.Enum(catvals)))
 
-        for c in self.data.columns:
-            if self.data[c].dtype in [pl.Utf8, pl.String]:
-                catvals = self.data[c].unique().sort().drop_nulls()
-                self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
-            elif self.data[c].dtype in [pl.Categorical]:
-                catvals = self.data[c].cat.get_categories().drop_nulls()
-                self.data = self.data.with_columns(pl.col(c).cast(pl.Enum(catvals)))
+        for c in modeldata.columns:
+            if modeldata[c].dtype in [pl.Utf8, pl.String]:
+                catvals = modeldata[c].unique().sort().drop_nulls()
+                modeldata = modeldata.with_columns(pl.col(c).cast(pl.Enum(catvals)))
+            elif modeldata[c].dtype in [pl.Categorical]:
+                catvals = modeldata[c].cat.get_categories().drop_nulls()
+                modeldata = modeldata.with_columns(pl.col(c).cast(pl.Enum(catvals)))
+
+        # TODO: remove duplication once we only rely on the vault
+        self.data = modeldata
+        self.vault.update(modeldata=modeldata)
