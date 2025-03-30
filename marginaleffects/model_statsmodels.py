@@ -10,14 +10,9 @@ from .utils import validate_types, ingest
 
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
-        self.model = model
-        self.vault = {}
-        if hasattr(model, "formula"):
-            self.formula = model.formula
-            self.data = ingest(model.data)
-        else:
-            self.formula = model.model.formula
-            self.data = ingest(model.model.data.frame)
+        super().__init__(model)
+        self.formula = model.model.formula
+        self.data = ingest(model.model.data.frame)
         if hasattr(model, "formula"):
             self.formula_engine = "formulaic"
         else:

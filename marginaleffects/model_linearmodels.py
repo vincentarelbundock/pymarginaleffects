@@ -16,7 +16,7 @@ from .formulaic_utils import (
 
 class ModelLinearmodels(ModelAbstract):
     def __init__(self, model):
-        self.model = model
+        super().__init__(model)
         if not hasattr(model, "data"):
             raise ValueError("Model must have a 'data' attribute")
         else:
@@ -28,7 +28,6 @@ class ModelLinearmodels(ModelAbstract):
             self.formula = model.formula
 
         self.initialized_engine = model.initialize_engine
-        self.vault = {}
         self.validation()
 
     def _to_pandas(self, df):

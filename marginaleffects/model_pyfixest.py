@@ -8,11 +8,10 @@ from .utils import ingest
 
 class ModelPyfixest(ModelAbstract):
     def __init__(self, model):
+        super().__init__(model)
         self.data = ingest(model._data)
         self.formula = model._fml
         self.variables_type = get_type_dictionary(self.formula, self.data)
-        self.vault = {}
-        self.model = model
         if hasattr(self.model, "_fixef"):
             if self.model._fixef is not None:
                 fe = self.model._fixef.split("+")

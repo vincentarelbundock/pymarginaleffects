@@ -9,8 +9,7 @@ from .model_abstract import ModelAbstract
 
 class ModelSklearn(ModelAbstract):
     def __init__(self, model):
-        self.vault = {}
-        self.model = model
+        super().__init__(model)
         self.data = ingest(model.data)
         self.formula_engine = "formulaic"
         self.formula = model.formula
