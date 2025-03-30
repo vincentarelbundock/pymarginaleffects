@@ -9,6 +9,15 @@ class ModelAbstract(ModelValidation, ABC):
         self.formula_engine = "formulaic"
         self.vault = {}
 
+    def get_modeldata(self):
+        if "modeldata" in self.vault:
+            out = self.vault.get("modeldata")
+        elif hasattr(self.model, "data"):
+            out = self.model.data
+        else:
+            out = None
+        return out
+
     def get_vcov(self, vcov=False):
         return self.vault.get("vcov", None)
 

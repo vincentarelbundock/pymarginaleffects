@@ -18,13 +18,12 @@ class ModelStatsmodels(ModelAbstract):
         else:
             self.formula_engine = "patsy"
             self.design_info_patsy = model.model.data.design_info
+        cache = {
+            "coef": np.array(self.model.params),
+            "coefnames": np.array(self.model.params.index.to_numpy()),
+        }
+        self.vault.update(cache)
         self.validation()
-
-    def get_coef(self):
-        return np.array(self.model.params)
-
-    def get_coefnames(self):
-        return np.array(self.model.params.index.to_numpy())
 
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
