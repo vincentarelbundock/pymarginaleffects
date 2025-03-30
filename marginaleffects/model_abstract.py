@@ -44,6 +44,9 @@ class ModelAbstract(ModelValidation, ABC):
         else:
             return variables
 
+    def set_variable_type(self, name, value):
+        self.variables_type[name] = value
+
     def find_variables(self):
         if "variable_names" in self.vault:
             return self.vault.get("variable_names")

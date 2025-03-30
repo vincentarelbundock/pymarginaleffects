@@ -1,5 +1,4 @@
 import re
-from .utils import get_type_dictionary
 import numpy as np
 import polars as pl
 from .model_abstract import ModelAbstract
@@ -10,19 +9,19 @@ class ModelPyfixest(ModelAbstract):
     def __init__(self, model, vault={}):
         formula = model._fml
         modeldata = ingest(model._data)
-        variables_type = get_type_dictionary(formula, modeldata)
+        cache = {
+            "modeldata": modeldata,
+            "formula": formula,
+        }
+        vault.update(cache)
+        super().__init__(model, vault)
+
+        # after super init & validation
         if hasattr(model, "_fixef"):
             if model._fixef is not None:
                 fe = model._fixef.split("+")
                 for f in fe:
-                    variables_type[f] = "character"
-        cache = {
-            "modeldata": modeldata,
-            "formula": formula,
-            "variables_type": variables_type,
-        }
-        vault.update(cache)
-        super().__init__(model, vault)
+                    self.set_variable_type(f, "character")
 
     def get_coef(self):
         return np.array(self.model._beta_hat)
