@@ -28,8 +28,6 @@ class ModelAbstract(ModelValidation, ABC):
     def get_formula(self):
         if "formula" in self.vault:
             out = self.vault.get("formula")
-        elif hasattr(self, "formula"):
-            out = self.get_formula()
         else:
             out = None
         return out
