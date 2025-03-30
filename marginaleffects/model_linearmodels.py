@@ -1,5 +1,4 @@
 import re
-from .utils import get_type_dictionary
 import numpy as np
 import pandas as pd
 import narwhals as nw
@@ -16,57 +15,8 @@ from .formulaic_utils import (
 
 
 class ModelLinearmodels(ModelAbstract):
-    """
-    Interface between linearmodels and marginaleffects for panel models.
-
-    This class handles the conversion between linearmodels' MultiIndex pandas
-    DataFrames and marginaleffects' polars DataFrames. It ensures proper data
-    structure handling and index preservation across the two frameworks.
-
-    Parameters
-    ----------
-    model : linearmodels.panel.results.PanelResults
-        A fitted linearmodels panel model. Must have 'data' and 'formula' attributes.
-
-
-    Attributes
-    ----------
-    multiindex_names : list[str]
-        Names of the MultiIndex levels from the original data.
-    data : polars.DataFrame
-        The model data converted to polars format.
-    formula : str
-        The model formula used in estimation.
-
-    Raises
-    ------
-    ValueError
-        If the model lacks required 'data' or 'formula' attributes.
-
-      Examples
-    --------
-    >>> import pandas as pd
-    >>> from linearmodels.panel import PanelOLS
-    >>> formula = "y ~ x1 + EntityEffects"
-    >>> model = fit_linearmodels(
-    ...     formula=formula,
-    ...     data=data,
-    ...     engine=PanelOLS,
-    ...     kwargs_fit={'cov_type': 'robust'}
-    ... )
-
-    Notes
-    -----
-    The class maintains the mapping between index variables in the original
-    pandas DataFrame and their column representation in polars, ensuring
-    consistent data manipulation across frameworks.
-
-    See Also
-    --------
-    fit_linearmodels : Helper function to create ModelLinearmodels instances
-    """
-
     def __init__(self, model):
+        self.model = model
         if not hasattr(model, "data"):
             raise ValueError("Model must have a 'data' attribute")
         else:
@@ -78,13 +28,8 @@ class ModelLinearmodels(ModelAbstract):
             self.formula = model.formula
 
         self.initialized_engine = model.initialize_engine
-        super().__init__(model)
         self.vault = {}
-        self.validate_coef()
-        self.validate_response_name()
-        self.validate_formula()
-        self.validate_modeldata()
-        self.variables_type = get_type_dictionary(self.formula, self.data)
+        self.validation()
 
     def _to_pandas(self, df):
         """

@@ -18,10 +18,7 @@ class ModelPyfixest(ModelAbstract):
                 fe = self.model._fixef.split("+")
                 for f in fe:
                     self.variables_type[f] = "character"
-        self.validate_coef()
-        self.validate_response_name()
-        self.validate_formula()
-        self.validate_modeldata()
+        self.validation()
 
     def get_coef(self):
         return np.array(self.model._beta_hat)

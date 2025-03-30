@@ -1,5 +1,4 @@
 import re
-from .utils import get_type_dictionary
 import numpy as np
 import polars as pl
 import patsy
@@ -11,25 +10,20 @@ from .utils import validate_types, ingest
 
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
+        self.model = model
+        self.vault = {}
         if hasattr(model, "formula"):
             self.formula = model.formula
             self.data = ingest(model.data)
         else:
             self.formula = model.model.formula
             self.data = ingest(model.model.data.frame)
-        super().__init__(model)
-        # after super()
         if hasattr(model, "formula"):
             self.formula_engine = "formulaic"
         else:
             self.formula_engine = "patsy"
             self.design_info_patsy = model.model.data.design_info
-        self.vault = {}
-        self.validate_coef()
-        self.validate_response_name()
-        self.validate_formula()
-        self.validate_modeldata()
-        self.variables_type = get_type_dictionary(self.formula, self.data)
+        self.validation()
 
     def get_coef(self):
         return np.array(self.model.params)

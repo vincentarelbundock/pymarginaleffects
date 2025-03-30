@@ -1,10 +1,18 @@
 import numpy as np
 import polars as pl
 import warnings
+from .utils import get_type_dictionary
 from . import formulaic_utils as fml
 
 
 class ModelValidation:
+    def validation(self):
+        self.validate_coef()
+        self.validate_response_name()
+        self.validate_formula()
+        self.validate_modeldata()
+        self.variables_type = get_type_dictionary(self.formula, self.data)
+
     def validate_coef(self):
         coef = self.get_coef()
         if not isinstance(coef, np.ndarray) and coef is not None:
