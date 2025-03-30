@@ -6,11 +6,11 @@ from typing import Any, Dict
 import polars as pl
 from .docs import DocsModels
 from .utils import ingest
+from formulaic.parser.algos.tokenize import tokenize
 from .model_abstract import ModelAbstract
 from .formulaic_utils import (
     listwise_deletion,
     model_matrices,
-    parse_linearmodels_formula,
 )
 
 
@@ -23,9 +23,10 @@ class ModelLinearmodels(ModelAbstract):
             self.multiindex_names = list(model.data.index.names)
         if not hasattr(model, "formula"):
             raise ValueError("Model must have a 'formula' attribute")
+        formula, _ = parse_linearmodels_formula(model.formula)
         cache = {
             "modeldata": ingest(model.data),
-            "formula": model.formula,
+            "formula": formula,
         }
         self.vault.update(cache)
 
@@ -152,6 +153,86 @@ class ModelLinearmodels(ModelAbstract):
 
     def get_df(self):
         return self.model.df_resid
+
+
+def parse_linearmodels_formula(formula: str):
+    """
+    Parse a formula as linearmodels would and extract panel effects specifications.
+
+    This function processes a formula containing potential EntityEffects, FixedEffects,
+    and TimeEffects terms. It removes these effect terms from the formula and converts
+    them into keyword arguments for linearmodels estimation functions.
+
+    Parameters
+    ----------
+    formula : str
+        A string representing a linearmodels formula (e.g., "y ~ x1 + x2 + EntityEffects").
+        The formula may contain special terms: EntityEffects, FixedEffects, and TimeEffects.
+
+    Returns
+    -------
+    tuple[str, dict[str, bool]]
+        A tuple containing:
+        - str: The cleaned formula with effects terms removed
+        - dict: Keyword arguments for panel effects with keys:
+            - 'entity_effects': True if EntityEffects or FixedEffects present
+            - 'time_effects': True if TimeEffects present
+
+    Raises
+    ------
+    ValueError
+        If both EntityEffects and FixedEffects are present in the formula.
+
+    Examples
+    --------
+    >>> formula = "y ~ x1 + FixedEffects"
+    >>> parse_linearmodels_formula(formula)
+    ('y ~ x1', {'entity_effects': True, 'time_effects': False})
+
+    Notes
+    -----
+    - EntityEffects and FixedEffects are treated as equivalent for entity effects
+    - The function assumes the first variable in the formula is the dependent variable
+    - The returned formula will be in the format "y ~ x1 + x2 + ..."
+    """
+
+    effects_tokens = {
+        "EntityEffects": False,
+        "FixedEffects": False,
+        "TimeEffects": False,
+    }
+    effects_kwargs = {"entity_effects": False, "time_effects": False}
+
+    # add + 0 to start of the rhs of the formula to remove intercept by default
+    # similar to linearmodels.model.panel.PanelFormulaParser
+    # adding + 1 of - 1 to the formula will add/remove intercept as expected
+    lhs, rhs = formula.split("~")
+    formula = f"{lhs.strip()} ~ 0 + {rhs.strip()}"
+    tokens = [token.token for token in tokenize(formula)]
+
+    for effect in effects_tokens.keys():
+        try:
+            idx = tokens.index(effect)
+            effects_tokens[effect] = True
+            _ = tokens.pop(idx)
+
+            # Check if previous token was a "+" and remove it
+            if idx > 0 and tokens[idx - 1] == "+":
+                _ = tokens.pop(idx - 1)
+        except ValueError:
+            pass
+
+    if effects_tokens["EntityEffects"] and effects_tokens["FixedEffects"]:
+        raise ValueError("Cannot use both FixedEffects and EntityEffects")
+
+    effects_kwargs["entity_effects"] = (
+        effects_tokens["EntityEffects"] or effects_tokens["FixedEffects"]
+    )
+    effects_kwargs["time_effects"] = effects_tokens["TimeEffects"]
+
+    cleaned_formula = " ".join(tokens)
+
+    return cleaned_formula, effects_kwargs
 
 
 # @validate_types
