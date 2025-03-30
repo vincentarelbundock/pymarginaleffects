@@ -81,7 +81,7 @@ class ModelLinearmodels(ModelAbstract):
                     f"Valid options are: {', '.join(supported_vcov)}"
                 )
 
-            V = self.get_engine_running().fit(cov_type=vcov).cov
+            V = self.fit(cov_type=vcov).cov
 
         if V is not None:
             V = np.array(V)
@@ -241,9 +241,7 @@ def fit_linearmodels(
 
     d = listwise_deletion(linearmodels_formula, data=data)
     y, X = model_matrices(linearmodels_formula, d, formula_engine="linearmodels")
-    engine_running = engine(dependent=y, exog=X, **kwargs_engine, **effects)
-
-    out = engine_running.fit(**kwargs_fit)
+    out = engine(dependent=y, exog=X, **kwargs_engine, **effects).fit(**kwargs_fit)
 
     vault = {
         "formula_engine": "linearmodels",
@@ -251,7 +249,6 @@ def fit_linearmodels(
         "formula": linearmodels_formula,
         "modeldata": ingest(d),
         "package": "linearmodels",
-        "engine_running": engine_running,
     }
 
     return ModelLinearmodels(out, vault)

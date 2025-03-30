@@ -9,14 +9,11 @@ from .model_abstract import ModelAbstract
 
 class ModelSklearn(ModelAbstract):
     def __init__(self, model, vault={}):
-        cache = {
-            "modeldata": ingest(model.data),
-            "formula": model.formula,
-        }
-        vault.update(cache)
         super().__init__(model, vault)
 
     def get_predict(self, params, newdata: pl.DataFrame):
+        engine = self.get_engine_running()
+
         if isinstance(newdata, np.ndarray):
             exog = newdata
         else:
@@ -40,14 +37,14 @@ class ModelSklearn(ModelAbstract):
         try:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*valid feature names.*")
-                p = self.model.predict_proba(exog)
+                p = engine.predict_proba(exog)
                 # only keep the second column for binary classification since it is redundant info
                 if p.shape[1] == 2:
                     p = p[:, 1]
         except (AttributeError, NotImplementedError):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*valid feature names.*")
-                p = self.model.predict(exog)
+                p = engine.predict(exog)
 
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
@@ -56,7 +53,7 @@ class ModelSklearn(ModelAbstract):
                 {"rowid": range(newdata.shape[0]), "estimate": np.ravel(p)}
             )
         elif p.ndim == 2:
-            colnames = {f"column_{i}": v for i, v in enumerate(self.model.classes_)}
+            colnames = {f"column_{i}": v for i, v in enumerate(engine.classes_)}
             p = (
                 pl.DataFrame(p)
                 .rename(colnames)
@@ -86,17 +83,21 @@ def fit_sklearn(
 
     Or type: `help(fit_sklearn)`
     """
+
     d = listwise_deletion(formula, data=data)
     y, X = model_matrices(formula, d)
     # formulaic returns a matrix when the response is character or categorical
     if y.ndim == 2:
         y = d[parse_variables(formula)[0]]
     y = np.ravel(y)
-    out = engine(**kwargs_engine).fit(X=X, y=y, **kwargs_fit)
-    out.data = d
-    out.formula = formula
-    out.fit_engine = "sklearn"
-    return ModelSklearn(out)
+    engine_running = engine(**kwargs_engine).fit(X=X, y=y, **kwargs_fit)
+    vault = {
+        "formula": formula,
+        "modeldata": ingest(d),
+        "package": "sklearn",
+        "engine_running": engine_running,
+    }
+    return ModelSklearn(engine_running, vault)
 
 
 docs_sklearn = (
