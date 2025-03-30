@@ -8,14 +8,13 @@ from .model_abstract import ModelAbstract
 
 
 class ModelSklearn(ModelAbstract):
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self, model, vault={}):
         cache = {
             "modeldata": ingest(model.data),
             "formula": model.formula,
         }
-        self.vault.update(cache)
-        self.validation()
+        vault.update(cache)
+        super().__init__(model, vault)
 
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):

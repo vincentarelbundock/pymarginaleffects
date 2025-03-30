@@ -8,12 +8,11 @@ from .utils import validate_types, ingest
 
 
 class ModelStatsmodels(ModelAbstract):
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self, model, vault={}):
         # cache is useful because it obviates the need to call methods many times
         cache = {
-            "coef": np.array(self.model.params),
-            "coefnames": np.array(self.model.params.index.to_numpy()),
+            "coef": np.array(model.params),
+            "coefnames": np.array(model.params.index.to_numpy()),
             "formula": model.model.formula,
             "modeldata": ingest(model.model.data.frame),
         }
@@ -23,8 +22,8 @@ class ModelStatsmodels(ModelAbstract):
         if not hasattr(model, "formula"):
             cache["formula_engine"] = "patsy"
             cache["design_info_patsy"] = model.model.data.design_info
-        self.vault.update(cache)
-        self.validation()
+        vault.update(cache)
+        super().__init__(model, vault)
 
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):

@@ -4,9 +4,10 @@ from . import formulaic_utils as fml
 
 
 class ModelAbstract(ModelValidation, ABC):
-    def __init__(self, model):
+    def __init__(self, model, vault):
         self.model = model
-        self.vault = {}
+        self.vault = vault
+        self.validation()
 
     def get_modeldata(self):
         if "modeldata" in self.vault:

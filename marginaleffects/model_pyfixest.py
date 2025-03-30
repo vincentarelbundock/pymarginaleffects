@@ -7,22 +7,22 @@ from .utils import ingest
 
 
 class ModelPyfixest(ModelAbstract):
-    def __init__(self, model):
-        super().__init__(model)
-        cache = {
-            "modeldata": ingest(model._data),
-            "formula": model._fml,
-        }
-        self.vault.update(cache)
-        self.variables_type = get_type_dictionary(
-            self.get_formula(), self.get_modeldata()
-        )
-        if hasattr(self.model, "_fixef"):
-            if self.model._fixef is not None:
-                fe = self.model._fixef.split("+")
+    def __init__(self, model, vault={}):
+        formula = model._fml
+        modeldata = ingest(model._data)
+        variables_type = get_type_dictionary(formula, modeldata)
+        if hasattr(model, "_fixef"):
+            if model._fixef is not None:
+                fe = model._fixef.split("+")
                 for f in fe:
-                    self.variables_type[f] = "character"
-        self.validation()
+                    variables_type[f] = "character"
+        cache = {
+            "modeldata": modeldata,
+            "formula": formula,
+            "variables_type": variables_type,
+        }
+        vault.update(cache)
+        super().__init__(model, vault)
 
     def get_coef(self):
         return np.array(self.model._beta_hat)
