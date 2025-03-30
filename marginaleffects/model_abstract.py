@@ -26,20 +26,20 @@ class ModelAbstract(ModelValidation, ABC):
         return self.vault.get("coefnames", None)
 
     def get_formula(self):
-        if "formula" in self.vault:
-            out = self.vault.get("formula")
-        else:
-            out = None
-        return out
+        return self.vault.get("formula", None)
 
     def find_variables(self):
-        formula = self.get_formula()
         if "variables" in self.vault:
-            out = self.vault.get("variables")
-        elif isinstance(formula, str):
+            return self.vault.get("variables")
+
+        formula = self.get_formula()
+        if isinstance(formula, str):
             out = fml.parse_variables(self.get_formula())
         else:
             out = None
+
+        self.vault.update(variables=out)
+
         return out
 
     def find_response(self):
