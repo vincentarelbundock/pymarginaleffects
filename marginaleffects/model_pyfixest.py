@@ -14,7 +14,9 @@ class ModelPyfixest(ModelAbstract):
             "modeldata": ingest(model._data),
         }
         self.vault.update(cache)
-        self.variables_type = get_type_dictionary(self.formula, self.get_modeldata())
+        self.variables_type = get_type_dictionary(
+            self.get_formula(), self.get_modeldata()
+        )
         if hasattr(self.model, "_fixef"):
             if self.model._fixef is not None:
                 fe = self.model._fixef.split("+")

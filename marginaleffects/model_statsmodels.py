@@ -52,7 +52,7 @@ class ModelStatsmodels(ModelAbstract):
         return V
 
     def find_predictors(self):
-        formula = self.formula
+        formula = self.get_formula()
         columns = self.get_modeldata().columns
         order = {}
         for var in columns:
@@ -66,7 +66,7 @@ class ModelStatsmodels(ModelAbstract):
         try:
             out = self.model.model.endog_names
         except AttributeError:
-            out = fml.variables(self.formula)[0]
+            out = fml.variables(self.get_formula())[0]
         return out
 
     def get_predict(self, params, newdata: pl.DataFrame):
@@ -76,7 +76,7 @@ class ModelStatsmodels(ModelAbstract):
             exog = newdata.to_numpy()
         else:
             newdata = newdata.to_pandas()
-            y, exog = patsy.dmatrices(self.formula, newdata)
+            y, exog = patsy.dmatrices(self.get_formula(), newdata)
         p = self.model.model.predict(params, exog)
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})

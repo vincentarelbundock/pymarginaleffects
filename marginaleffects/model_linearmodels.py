@@ -109,7 +109,7 @@ class ModelLinearmodels(ModelAbstract):
         return self.model.model.dependent.vars[0]
 
     def find_predictors(self):
-        formula = self.formula
+        formula = self.get_formula()
         columns = self.get_modeldata().columns
         order = {}
         for var in columns:
@@ -124,7 +124,9 @@ class ModelLinearmodels(ModelAbstract):
             exog = newdata
         else:
             y, exog = model_matrices(
-                self.formula, self._to_pandas(newdata), formula_engine="linearmodels"
+                self.get_formula(),
+                self._to_pandas(newdata),
+                formula_engine="linearmodels",
             )
 
         p = self.model.model.predict(params=params, exog=exog).predictions.values

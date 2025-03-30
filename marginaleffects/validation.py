@@ -11,7 +11,9 @@ class ModelValidation:
         self.validate_response_name()
         self.validate_formula()
         self.validate_modeldata()
-        self.variables_type = get_type_dictionary(self.formula, self.get_modeldata())
+        self.variables_type = get_type_dictionary(
+            self.get_formula(), self.get_modeldata()
+        )
 
     def validate_coef(self):
         coef = self.get_coef()
@@ -26,7 +28,7 @@ class ModelValidation:
         self.response_name = response_name
 
     def validate_formula(self):
-        formula = self.formula
+        formula = self.get_formula()
 
         if not isinstance(formula, str):
             raise ValueError("formula must be a string")
@@ -41,6 +43,8 @@ class ModelValidation:
                 "The formula cannot include scale( or center(. Please center your variables before fitting the model."
             )
 
+        # TODO: deduplicate once we only use the vault
+        self.vault.update(formula=formula)
         self.formula = formula
 
     def validate_modeldata(self):
@@ -51,12 +55,12 @@ class ModelValidation:
 
         # there can be no missing values in the formula variables
         original_row_count = modeldata.shape[0]
-        modeldata = fml.listwise_deletion(self.formula, modeldata)
+        modeldata = fml.listwise_deletion(self.get_formula(), modeldata)
         if modeldata.shape[0] != original_row_count:
             warnings.warn("Dropping rows with missing observations.", UserWarning)
 
         # categorical variables must be encoded as such
-        catvars = fml.parse_variables_categorical(self.formula)
+        catvars = fml.parse_variables_categorical(self.get_formula())
         for c in catvars:
             if modeldata[c].dtype not in [pl.Enum, pl.Categorical]:
                 if modeldata[c].dtype.is_numeric():
