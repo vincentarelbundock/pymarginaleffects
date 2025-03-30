@@ -10,7 +10,10 @@ from .model_abstract import ModelAbstract
 class ModelSklearn(ModelAbstract):
     def __init__(self, model):
         super().__init__(model)
-        self.data = ingest(model.data)
+        cache = {
+            "modeldata": ingest(model.data),
+        }
+        self.vault.update(cache)
         self.formula_engine = "formulaic"
         self.formula = model.formula
         self.validation()

@@ -21,11 +21,14 @@ class ModelLinearmodels(ModelAbstract):
             raise ValueError("Model must have a 'data' attribute")
         else:
             self.multiindex_names = list(model.data.index.names)
-            self.data = ingest(model.data)
         if not hasattr(model, "formula"):
             raise ValueError("Model must have a 'formula' attribute")
         else:
             self.formula = model.formula
+        cache = {
+            "modeldata": ingest(model.data),
+        }
+        self.vault.update(cache)
 
         self.initialized_engine = model.initialize_engine
         self.validation()

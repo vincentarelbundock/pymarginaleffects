@@ -50,7 +50,7 @@ def datagrid(
         model = sanitize_model(model)
 
     if newdata is None:
-        newdata = model.data
+        newdata = model.get_modeldata()
 
     if grid_type == "counterfactual":
         return datagridcf(model=model, newdata=newdata, **kwargs)

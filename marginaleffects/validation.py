@@ -74,6 +74,4 @@ class ModelValidation:
                 catvals = modeldata[c].cat.get_categories().drop_nulls()
                 modeldata = modeldata.with_columns(pl.col(c).cast(pl.Enum(catvals)))
 
-        # TODO: remove duplication once we only rely on the vault
-        self.data = modeldata
         self.vault.update(modeldata=modeldata)
