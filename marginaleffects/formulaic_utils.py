@@ -132,3 +132,12 @@ def model_matrices(formula: str, data: "IntoFrame", formula_engine: str = "formu
 
         exog = patsy.dmatrix(formula, data.to_pandas())
         return None, exog
+
+
+def extract_patsy_variable_names(formula, data):
+    order = {}
+    for var in data.columns:
+        match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
+        if match:
+            order[var] = match.start()
+    return sorted(order, key=lambda i: order[i])

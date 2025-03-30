@@ -1,4 +1,3 @@
-import re
 import numpy as np
 import polars as pl
 import patsy
@@ -52,15 +51,10 @@ class ModelStatsmodels(ModelAbstract):
         return V
 
     def find_predictors(self):
-        formula = self.get_formula()
-        columns = self.get_modeldata().columns
-        order = {}
-        for var in columns:
-            match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
-            if match:
-                order[var] = match.start()
-        variables = sorted(order, key=lambda i: order[i])
-        return variables
+        variables = fml.extract_patsy_variable_names(
+            self.get_formula(), self.get_modeldata()
+        )
+        return [v for v in variables if v not in self.find_response()]
 
     def find_response(self):
         try:
