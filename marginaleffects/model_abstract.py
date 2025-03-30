@@ -12,8 +12,6 @@ class ModelAbstract(ModelValidation, ABC):
     def get_modeldata(self):
         if "modeldata" in self.vault:
             out = self.vault.get("modeldata")
-        elif hasattr(self, "data"):
-            out = self.data
         else:
             out = None
         return out
