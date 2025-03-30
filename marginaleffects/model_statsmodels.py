@@ -98,10 +98,12 @@ def fit_statsmodels(
     y, X = fml.model_matrices(formula, d)
     mod = engine(endog=y, exog=X, **kwargs_engine)
     mod = mod.fit(**kwargs_fit)
-    mod.data = d
-    mod.formula = formula
-    mod.fit_engine = "statsmodels"
-    return ModelStatsmodels(mod)
+    vault = {
+        "modeldata": d,
+        "formula": formula,
+        "package": "statsmodels",
+    }
+    return ModelStatsmodels(mod, vault)
 
 
 docs_statsmodels = (

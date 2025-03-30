@@ -25,11 +25,17 @@ class ModelAbstract(ModelValidation, ABC):
     def get_coefnames(self):
         return self.vault.get("coefnames", None)
 
+    def get_engine_running(self):
+        return self.vault.get("engine_running", None)
+
     def get_formula(self):
         return self.vault.get("formula", None)
 
     def get_formula_engine(self):
         return self.vault.get("formula_engine", "formulaic")
+
+    def get_package(self):
+        return self.vault.get("package", "unknown")
 
     def find_variables(self):
         if "variable_names" in self.vault:

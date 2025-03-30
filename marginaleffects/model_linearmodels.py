@@ -16,19 +16,6 @@ from .formulaic_utils import (
 
 class ModelLinearmodels(ModelAbstract):
     def __init__(self, model, vault={}):
-        if not hasattr(model, "data"):
-            raise ValueError("Model must have a 'data' attribute")
-        if not hasattr(model, "formula"):
-            raise ValueError("Model must have a 'formula' attribute")
-        formula, _ = parse_linearmodels_formula(model.formula)
-        cache = {
-            "modeldata": ingest(model.data),
-            "formula": formula,
-            "formula_engine": "linearmodels",
-            "multiindex": list(model.data.index.names),
-        }
-        vault.update(cache)
-        self.initialized_engine = model.initialize_engine
         super().__init__(model, vault)
 
     def _to_pandas(self, df):
@@ -94,7 +81,7 @@ class ModelLinearmodels(ModelAbstract):
                     f"Valid options are: {', '.join(supported_vcov)}"
                 )
 
-            V = self.initialized_engine.fit(cov_type=vcov).cov
+            V = self.get_engine_running().fit(cov_type=vcov).cov
 
         if V is not None:
             V = np.array(V)
@@ -254,16 +241,20 @@ def fit_linearmodels(
 
     d = listwise_deletion(linearmodels_formula, data=data)
     y, X = model_matrices(linearmodels_formula, d, formula_engine="linearmodels")
-    initialized_engine = engine(dependent=y, exog=X, **kwargs_engine, **effects)
+    engine_running = engine(dependent=y, exog=X, **kwargs_engine, **effects)
 
-    out = initialized_engine.fit(**kwargs_fit)
+    out = engine_running.fit(**kwargs_fit)
 
-    out.data = d
-    out.formula = linearmodels_formula
-    out.initialize_engine = initialized_engine
-    out.fit_engine = "linearmodels"
+    vault = {
+        "formula_engine": "linearmodels",
+        "multiindex": list(d.index.names),
+        "formula": linearmodels_formula,
+        "modeldata": ingest(d),
+        "package": "linearmodels",
+        "engine_running": engine_running,
+    }
 
-    return ModelLinearmodels(out)
+    return ModelLinearmodels(out, vault)
 
 
 docs_linearmodels = (
