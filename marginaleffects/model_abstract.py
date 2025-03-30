@@ -29,8 +29,8 @@ class ModelAbstract(ModelValidation, ABC):
         return self.vault.get("formula", None)
 
     def find_variables(self):
-        if "variables" in self.vault:
-            return self.vault.get("variables")
+        if "variable_names" in self.vault:
+            return self.vault.get("variable_names")
 
         formula = self.get_formula()
         if isinstance(formula, str):
@@ -38,7 +38,7 @@ class ModelAbstract(ModelValidation, ABC):
         else:
             out = None
 
-        self.vault.update(variables=out)
+        self.vault.update(variable_names=out)
 
         return out
 

@@ -15,6 +15,7 @@ class ModelStatsmodels(ModelAbstract):
         else:
             self.formula_engine = "patsy"
             self.design_info_patsy = model.model.data.design_info
+
         cache = {
             "coef": np.array(self.model.params),
             "coefnames": np.array(self.model.params.index.to_numpy()),
@@ -50,18 +51,12 @@ class ModelStatsmodels(ModelAbstract):
 
         return V
 
-    def find_predictors(self):
+    def find_variables(self):
+        response = self.model.model.endog_names
         variables = fml.extract_patsy_variable_names(
             self.get_formula(), self.get_modeldata()
         )
-        return [v for v in variables if v not in self.find_response()]
-
-    def find_response(self):
-        try:
-            out = self.model.model.endog_names
-        except AttributeError:
-            out = fml.variables(self.get_formula())[0]
-        return out
+        return [response] + variables
 
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):
