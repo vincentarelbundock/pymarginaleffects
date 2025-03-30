@@ -10,12 +10,16 @@ from .utils import validate_types, ingest
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
         super().__init__(model)
+        # cache is useful because it obviates the need to call methods many times
         cache = {
             "coef": np.array(self.model.params),
             "coefnames": np.array(self.model.params.index.to_numpy()),
             "formula": model.model.formula,
             "modeldata": ingest(model.model.data.frame),
         }
+        cache["variable_names"] = [
+            model.model.endog_names
+        ] + fml.extract_patsy_variable_names(cache["formula"], cache["modeldata"])
         if not hasattr(model, "formula"):
             cache["formula_engine"] = "patsy"
             cache["design_info_patsy"] = model.model.data.design_info
@@ -47,13 +51,6 @@ class ModelStatsmodels(ModelAbstract):
                 )
 
         return V
-
-    def find_variables(self):
-        response = self.model.model.endog_names
-        variables = fml.extract_patsy_variable_names(
-            self.get_formula(), self.get_modeldata()
-        )
-        return [response] + variables
 
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):
