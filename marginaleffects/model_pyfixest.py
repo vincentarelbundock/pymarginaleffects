@@ -9,9 +9,9 @@ from .utils import ingest
 class ModelPyfixest(ModelAbstract):
     def __init__(self, model):
         super().__init__(model)
-        self.formula = model._fml
         cache = {
             "modeldata": ingest(model._data),
+            "formula": model._fml,
         }
         self.vault.update(cache)
         self.variables_type = get_type_dictionary(

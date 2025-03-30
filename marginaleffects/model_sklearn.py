@@ -12,10 +12,10 @@ class ModelSklearn(ModelAbstract):
         super().__init__(model)
         cache = {
             "modeldata": ingest(model.data),
+            "formula": model.formula,
         }
         self.vault.update(cache)
         self.formula_engine = "formulaic"
-        self.formula = model.formula
         self.validation()
 
     def get_predict(self, params, newdata: pl.DataFrame):

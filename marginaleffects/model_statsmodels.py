@@ -11,7 +11,6 @@ from .utils import validate_types, ingest
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model):
         super().__init__(model)
-        self.formula = model.model.formula
         if hasattr(model, "formula"):
             self.formula_engine = "formulaic"
         else:
@@ -20,6 +19,7 @@ class ModelStatsmodels(ModelAbstract):
         cache = {
             "coef": np.array(self.model.params),
             "coefnames": np.array(self.model.params.index.to_numpy()),
+            "formula": model.model.formula,
             "modeldata": ingest(model.model.data.frame),
         }
         self.vault.update(cache)

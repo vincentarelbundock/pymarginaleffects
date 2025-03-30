@@ -23,10 +23,9 @@ class ModelLinearmodels(ModelAbstract):
             self.multiindex_names = list(model.data.index.names)
         if not hasattr(model, "formula"):
             raise ValueError("Model must have a 'formula' attribute")
-        else:
-            self.formula = model.formula
         cache = {
             "modeldata": ingest(model.data),
+            "formula": model.formula,
         }
         self.vault.update(cache)
 

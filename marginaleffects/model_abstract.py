@@ -29,7 +29,7 @@ class ModelAbstract(ModelValidation, ABC):
         if "formula" in self.vault:
             out = self.vault.get("formula")
         elif hasattr(self, "formula"):
-            out = self.formula
+            out = self.get_formula()
         else:
             out = None
         return out
@@ -39,7 +39,7 @@ class ModelAbstract(ModelValidation, ABC):
         if "variables" in self.vault:
             out = self.vault.get("variables")
         elif isinstance(formula, str):
-            out = fml.parse_variables(self.formula)
+            out = fml.parse_variables(self.get_formula())
         else:
             out = None
         return out
