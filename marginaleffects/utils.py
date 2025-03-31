@@ -100,7 +100,7 @@ def get_pad(df, colname, uniqs):
 
 def get_type_dictionary(formula=None, modeldata=None):
     out = dict()
-    if formula is None:
+    if formula is None or callable(formula):
         variables = modeldata.columns
     else:
         variables = fml.parse_variables(formula)

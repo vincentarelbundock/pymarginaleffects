@@ -21,6 +21,7 @@ from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
 from .model_pyfixest import ModelPyfixest
+from .model_sklearn import ModelSklearn
 from .model_linearmodels import ModelLinearmodels
 
 from .docs import (
@@ -112,12 +113,13 @@ def comparisons(
     # character/categorical variables to include all unique levels. We add them
     # here but drop them after creating the design matrices.
     vars = model.find_variables()
-    vars = [re.sub(r"\[.*", "", x) for x in vars]
-    vars = list(set(vars))
-    for v in vars:
-        if v in modeldata.columns:
-            if model.get_variable_type(v) not in ["numeric", "integer"]:
-                pad.append(get_pad(newdata, v, modeldata[v].unique()))
+    if vars is not None:
+        vars = [re.sub(r"\[.*", "", x) for x in vars]
+        vars = list(set(vars))
+        for v in vars:
+            if v in modeldata.columns:
+                if model.get_variable_type(v) not in ["numeric", "integer"]:
+                    pad.append(get_pad(newdata, v, modeldata[v].unique()))
 
     # nd, hi, and lo are lists of data frames, since the user could have
     # requested many contrasts at the same time using the `variables` argument.
@@ -159,12 +161,12 @@ def comparisons(
     # only once and re-use the design matrices. Unfortunately, this is not
     # possible for PyFixest, since the `.predict()` method it supplies does not
     # accept matrices. So we special-case PyFixest.`
-    if isinstance(model, (ModelPyfixest, ModelLinearmodels)):
+    if isinstance(model, (ModelPyfixest, ModelLinearmodels, ModelSklearn)):
         hi_X = hi
         lo_X = lo
         nd_X = nd
     else:
-        fml = re.sub(r".*~", "", model.formula)
+        fml = re.sub(r".*~", "", model.get_formula())
         hi_X = patsy.dmatrix(fml, hi.to_pandas())
         lo_X = patsy.dmatrix(fml, lo.to_pandas())
         nd_X = patsy.dmatrix(fml, nd.to_pandas())

@@ -456,6 +456,10 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
 
     if variables is None:
         vlist = model.find_predictors()
+        if vlist is None:
+            raise ValueError(
+                "No predictors could be extracted from the model object. Please specify the `variables` argument."
+            )
         vlist.sort()
         for v in vlist:
             out.append(

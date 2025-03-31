@@ -7,7 +7,7 @@ data = wage_panel_pd
 
 # Fit two different types of models to test
 formula = "lwage ~ exper * hours * educ * married - 1"
-mod_linear = me.fit_sklearn(formula, data, engine=LinearRegression)
+mod_linear = me.fit_sklearn(formula, data, engine=LinearRegression())
 
 
 def test_predictions_linear():  # std_error is missing for some reason

@@ -7,6 +7,7 @@ Bugs:
 New:
 
 * `datagrid()` accepts functions: `datagrid(x = np.mean, y = lambda x: np.quantile(x, [0, .4]))`
+* Major refactor and improvement of the `fit_*()` functions.
 
 # 0.1.0
 
