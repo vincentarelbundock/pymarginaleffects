@@ -1,5 +1,11 @@
 # Development
 
+New:
+
+* `datagrid(grid_type="counterfactual")` now accepts lambda functions.
+
+# 0.1.1
+
 Bugs:
 
 * Allow predictors with missing values with `newdata=None`

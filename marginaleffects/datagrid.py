@@ -161,8 +161,19 @@ def datagridcf(model=None, newdata=None, **kwargs):
         )
     newdata = newdata.rename({"rowid": "rowidcf"})
 
+    if model is not None:
+        modeldata = model.get_modeldata()
+    else:
+        modeldata = newdata
+
     # Create dataframe from kwargs
-    dfs = [pl.DataFrame({k: v}) for k, v in kwargs.items()]
+    dfs = []
+    for key, value in kwargs.items():
+        if value is not None:
+            if callable(value):
+                dfs.append(pl.DataFrame({key: value(modeldata[key])}))
+            else:
+                dfs.append(pl.DataFrame({key: value}))
 
     # Perform cross join
     df_cross = reduce(lambda df1, df2: df1.join(df2, how="cross"), dfs)
