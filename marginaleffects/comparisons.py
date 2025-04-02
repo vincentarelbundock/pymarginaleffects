@@ -42,6 +42,7 @@ def comparisons(
     wts=None,
     hypothesis=None,
     equivalence=None,
+    cross=False,
     transform=None,
     eps=1e-4,
     eps_vcov=None,
@@ -84,30 +85,54 @@ def comparisons(
     hi = []
     lo = []
     nd = []
-    for v in variables:
-        nd.append(
-            newdata.with_columns(
-                pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias("contrast"),
+    if not cross:
+        for v in variables:
+            nd.append(
+                newdata.with_columns(
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias("contrast"),
+                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                )
+            )
+            hi.append(
+                newdata.with_columns(
+                    pl.lit(v.hi).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias("contrast"),
+                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                )
+            )
+            lo.append(
+                newdata.with_columns(
+                    pl.lit(v.lo).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias("contrast"),
+                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                )
+            )
+
+    else:
+        hi.append(newdata)
+        lo.append(newdata)
+        nd.append(newdata)
+        for i, v in enumerate(variables):
+            nd[0] = nd[0].with_columns(
+                pl.lit(i).alias("term"),
+                pl.lit(v.lab).alias(f"contrast_{v.variable}"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
-        )
-        hi.append(
-            newdata.with_columns(
+            hi[0] = hi[0].with_columns(
                 pl.lit(v.hi).alias(v.variable),
-                pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias("contrast"),
+                pl.lit(i).alias("term"),
+                pl.lit(v.lab).alias(f"contrast_{v.variable}"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
-        )
-        lo.append(
-            newdata.with_columns(
+            lo[0] = lo[0].with_columns(
                 pl.lit(v.lo).alias(v.variable),
-                pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias("contrast"),
+                pl.lit(i).alias("term"),
+                pl.lit(v.lab).alias(f"contrast_{v.variable}"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
-        )
 
     # Hack: We run into Patsy-related issues unless we "pad" the
     # character/categorical variables to include all unique levels. We add them
@@ -263,6 +288,10 @@ def comparisons(
             function=lambda x: applyfun(x, by=by, wts=wts)
         )
 
+        # not sure why we can't do this earlier
+        if cross:
+            tmp = tmp.with_columns(pl.lit("cross").alias("term"))
+
         tmp = get_hypothesis(tmp, hypothesis=hypothesis, by=by)
 
         return tmp
@@ -309,6 +338,7 @@ def avg_comparisons(
     wts=None,
     hypothesis=None,
     equivalence=None,
+    cross=False,
     transform=None,
     eps=1e-4,
 ):
@@ -333,6 +363,7 @@ def avg_comparisons(
         wts=wts,
         hypothesis=hypothesis,
         equivalence=equivalence,
+        cross=cross,
         transform=transform,
         eps=eps,
     )
@@ -371,6 +402,7 @@ See the package website and vignette for examples:
     + DocsParameters.docstring_wts
     + DocsParameters.docstring_vcov
     + DocsParameters.docstring_equivalence
+    + DocsParameters.docstring_cross
     + DocsParameters.docstring_conf_level
     + DocsParameters.docstring_eps
     + DocsParameters.docstring_eps_vcov

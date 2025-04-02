@@ -66,6 +66,10 @@ class DocsParameters:
     - string : Same as list of length 1.
 """
 
+    docstring_cross = """
+`cross`: `False` Contrasts represent the change in adjusted predictions when one predictor changes and all other variables are held constant. `True` Contrasts represent the changes in adjusted predictions when all the predictors specified in the variables argument are manipulated simultaneously (a "cross-contrast").
+"""
+
     def docstring_variables_plot(x):
         return f"""
 `variables`: (str, list, dictionary) Name of the variable whose {x} we want to plot on the y-axis. Refer to the `comparisons()` documentation.

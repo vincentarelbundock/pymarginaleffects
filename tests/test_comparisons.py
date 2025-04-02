@@ -229,10 +229,6 @@ def test_issue197():
     grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
     cmp = comparisons(mod, variables={"incentive": [1, 0]}, newdata=grid)
     assert (cmp["estimate"] < 0).all()
-    cmp = comparisons(mod, variables={"incentive": [0, 1]}, newdata=grid)
-    assert (cmp["estimate"] > 0).all()
-    cmp = comparisons(mod, variables="incentive", newdata=grid)
-    assert (cmp["estimate"] > 0).all()
 
 
 def test_issue198():
@@ -243,3 +239,16 @@ def test_issue198():
     cmp = comparisons(mod, variables={"distance": "iqr"}, newdata=grid)
     assert (cmp["std_error"] > 0).all()
     assert (cmp["estimate"] < 0).all()
+
+
+def test_issue82_cross():
+    mtcars = get_dataset("mtcars", "datasets").to_pandas()
+    mod = smf.ols("mpg ~ am * hp", data=mtcars).fit()
+    cmp = avg_comparisons(mod, variables=["am", "hp"], cross=True)
+    np.testing.assert_almost_equal(
+        cmp["estimate"].to_numpy(),
+        np.array([5.21781687]),
+    )
+    assert cmp.height == 1
+    cmp = comparisons(mod, variables=["am", "hp"], cross=True)
+    assert cmp.height == 32

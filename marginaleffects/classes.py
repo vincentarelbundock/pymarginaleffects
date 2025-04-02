@@ -24,8 +24,17 @@ class MarginaleffectsDataFrame(pl.DataFrame):
 
             self.print_head = print_head
 
+            # Split the dictionary into two parts and combine them into default_mapping.
+            # The first part only includes "term" and any column from `data` that start with "contrast".
+            # Any contrast key that starts with contrast_ should have a value in the form: "C: v", where v is the part of the key after the underscore.
+            contrast_columns = {
+                col: f"C: {col.split('_', 1)[1]}"
+                for col in data.columns
+                if col.startswith("contrast_")
+            }
             default_mapping = {
                 "term": "Term",
+                **contrast_columns,
                 "contrast": "Contrast",
                 "estimate": "Estimate",
                 "std_error": "Std.Error",
@@ -95,12 +104,23 @@ class MarginaleffectsDataFrame(pl.DataFrame):
                 )
 
         if "Term" in tmp.columns and len(tmp["Term"].unique()) == 1:
+            term_str = tmp["Term"].unique()
             tmp = tmp.drop("Term")
+        else:
+            term_str = None
 
         if "Contrast" in tmp.columns and len(tmp["Contrast"].unique()) == 1:
+            contrast_str = tmp["Contrast"].unique()
             tmp = tmp.drop("Contrast")
+        else:
+            contrast_str = None
 
         out += tmp.__str__()
+        if term_str is not None:
+            out += f"\nTerm: {term_str[0]}"
+        if contrast_str is not None:
+            out += f"\nContrast: {contrast_str[0]}"
+
         ## we no longer print the column names
         # out = out + f"\n\nColumns: {', '.join(self.columns)}\n"
         return out
