@@ -117,19 +117,19 @@ def comparisons(
         nd.append(newdata)
         for i, v in enumerate(variables):
             nd[0] = nd[0].with_columns(
-                pl.lit(i).alias("term"),
+                pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias(f"contrast_{v.variable}"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
             hi[0] = hi[0].with_columns(
                 pl.lit(v.hi).alias(v.variable),
-                pl.lit(i).alias("term"),
+                pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias(f"contrast_{v.variable}"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
             lo[0] = lo[0].with_columns(
                 pl.lit(v.lo).alias(v.variable),
-                pl.lit(i).alias("term"),
+                pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias(f"contrast_{v.variable}"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
@@ -258,6 +258,8 @@ def comparisons(
         else:
             by = ["term", "contrast"]
 
+        by = by + [x for x in tmp.columns if x.startswith("contrast_")]
+
         # apply a function to compare the predicted_hi and predicted_lo columns
         # ex: hi-lo, mean(hi-lo), hi/lo, mean(hi)/mean(lo), etc.
         def applyfun(x, by, wts=None):
@@ -288,10 +290,6 @@ def comparisons(
             function=lambda x: applyfun(x, by=by, wts=wts)
         )
 
-        # not sure why we can't do this earlier
-        if cross:
-            tmp = tmp.with_columns(pl.lit("cross").alias("term"))
-
         tmp = get_hypothesis(tmp, hypothesis=hypothesis, by=by)
 
         return tmp
@@ -319,6 +317,11 @@ def comparisons(
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
     out = sort_columns(out, by=by, newdata=newdata)
+
+    # not sure why we can't do this earlier. Might be related to this bug report
+    # https://github.com/pola-rs/polars/issues/14401
+    if cross:
+        out = out.with_columns(pl.lit("cross").alias("term"))
 
     # Wrap things up in a nice class
     out = MarginaleffectsDataFrame(

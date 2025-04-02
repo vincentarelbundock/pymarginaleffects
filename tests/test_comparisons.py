@@ -252,3 +252,14 @@ def test_issue82_cross():
     assert cmp.height == 1
     cmp = comparisons(mod, variables=["am", "hp"], cross=True)
     assert cmp.height == 32
+
+
+def test_issue_206():
+    dat = get_dataset("thornton")
+    dat = dat.to_pandas()
+    mod = smf.logit("outcome ~ incentive * (agecat + distance)", data=dat).fit()
+    cmp = avg_comparisons(
+        mod, variables=["incentive", "distance"], cross=True, by="agecat"
+    )
+    assert cmp.height == 3
+    assert (cmp["term"] == "cross").all()
