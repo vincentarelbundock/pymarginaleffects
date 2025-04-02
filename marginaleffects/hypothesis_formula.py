@@ -1,7 +1,7 @@
 from formulaic import Formula
+import formulaic
 import numpy as np
 import polars as pl
-from itertools import chain
 
 
 def reference_ratio_comparison(x):
@@ -208,45 +208,46 @@ def parse_hypothesis_formula(hypothesis):
     assert isinstance(hypothesis, str), "Input must be a string."
     assert "~" in hypothesis, "Input must contain a '~' symbol."
 
+    hypothesis = hypothesis.strip()
+    if hypothesis.startswith("~"):
+        hypothesis = "difference" + hypothesis
+
+    rhs_ok = [
+        "pairwise",
+        "reference",
+        "sequential",
+        "revpairwise",
+        "revreference",
+        "revsequential",
+    ]
+    lhs_ok = ["ratio", "difference"]
+
     # Parse the formula using formulaic
     formula = Formula(hypothesis)
 
     # left-hand side
-    if hasattr(formula, "lhs"):
-        lhs = list(formula.lhs.required_variables)
-        lhs_ok = ["ratio", "difference"]
-        msg = f"The left-hand side of the `hypothesis` formula must contain one of: {', '.join(lhs_ok)}."
-        assert len(lhs) == 1, msg
-        lhs = lhs[0]
-        assert lhs in lhs_ok, msg
-    else:
-        lhs = "difference"
+    lhs = list(formula.lhs.required_variables)
+    msg = f"The left-hand side of the `hypothesis` formula must contain one of: {', '.join(lhs_ok)}."
+    assert len(lhs) == 1, msg
+    lhs = lhs[0]
+    assert lhs in lhs_ok, msg
 
     # right-hand side
-    if hasattr(formula, "rhs"):
-        if hasattr(formula.rhs, "required_variables"):
-            rhs = [formula.rhs.required_variables]
-        else:
-            rhs = [list(x.required_variables) for x in formula.rhs]
-        rhs = list(chain(*rhs))
-        rhs_ok = [
-            "pairwise",
-            "reference",
-            "sequential",
-            "revpairwise",
-            "revreference",
-            "revsequential",
-        ]
-        rhs = rhs[0]
-        assert rhs in rhs_ok, msg
-    else:
-        rhs = list(formula.required_variables)[0]
+    if isinstance(formula.rhs, formulaic.formula.SimpleFormula):
+        rhs = list(formula.rhs.required_variables)[0]
+        by = None
+    elif isinstance(formula.rhs, tuple):
+        rhs = list(formula.rhs[0].required_variables)[0]
+        by = list(formula.rhs[1].required_variables)
 
-    return lhs, rhs
+    msg = f"The right-hand side of the `hypothesis` formula must be element of: {', '.join(rhs_ok)}."
+    assert rhs in rhs_ok, msg
+
+    return lhs, rhs, by
 
 
 def eval_hypothesis_formula(x, hypothesis, lab):
-    lhs, rhs = parse_hypothesis_formula(hypothesis)
+    lhs, rhs, by_hypothesis = parse_hypothesis_formula(hypothesis)
     if lhs == "ratio":
         if rhs == "reference":
             hyp_fun = reference_ratio_comparison
@@ -286,7 +287,21 @@ def eval_hypothesis_formula(x, hypothesis, lab):
             hyp_fun = revpairwise_difference_comparison
             lab_fun = revpairwise_difference_label
 
-    out = {"estimate": hyp_fun(x["estimate"])}
-    out["term"] = lab_fun(lab)
-    out = pl.DataFrame(out)
+    # out = x.with_columns(pl.Series(lab).alias("term"))
+    if not by_hypothesis:
+        out = pl.DataFrame(
+            {
+                "term": lab_fun(lab),
+                "estimate": hyp_fun(x["estimate"]),
+            }
+        )
+    else:
+        x = x.with_columns(pl.Series(lab).alias("term"))
+        out = x.group_by(*by_hypothesis).agg(
+            pl.col("estimate").map_batches(hyp_fun),
+            pl.col("term").map_batches(lambda x: pl.Series(lab_fun(x))),
+        )
+        out = out.explode(["estimate", "term"])
+        print(out)
+
     return out
