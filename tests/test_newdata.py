@@ -30,3 +30,11 @@ def test_predictions_padding():
     assert p.shape[0] == 5
     p = predictions(m, newdata="mean")
     assert p.shape[0] == 1
+
+
+def test_issue202_upcast_bug():
+    dat = get_dataset("interaction_02")
+    mod = smf.logit("Y ~ X * M", data=dat.to_pandas()).fit()
+    cmp = comparisons(mod, variables = "X",
+      newdata=datagrid(M = [dat['M'].min(), dat['M'].max()]))
+    assert cmp.height == 2
