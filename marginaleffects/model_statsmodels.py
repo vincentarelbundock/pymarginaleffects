@@ -11,7 +11,7 @@ class ModelStatsmodels(ModelAbstract):
     def __init__(self, model, vault={}):
         # cache is useful because it obviates the need to call methods many times
         cache = {
-            "coef": np.array(model.params),
+            "coef": np.array(model.params), # multinomial models are 2d
             "coefnames": np.array(model.params.index.to_numpy()),
             "formula": model.model.formula,
             "modeldata": ingest(model.model.data.frame),
@@ -44,7 +44,7 @@ class ModelStatsmodels(ModelAbstract):
 
         if V is not None:
             V = np.array(V)
-            if V.shape != (len(self.get_coef()), len(self.get_coef())):
+            if V.shape != (len(self.get_coef().ravel()), len(self.get_coef().ravel())):
                 raise ValueError(
                     "vcov must be a square numpy array with dimensions equal to the length of self.coef"
                 )

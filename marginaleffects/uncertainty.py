@@ -9,7 +9,7 @@ def get_jacobian(func, coefs, eps_vcov=None):
     # forward finite difference (faster)
     if coefs.ndim == 2:
         if isinstance(coefs, np.ndarray):
-            coefs_flat = coefs.flatten()
+            coefs_flat = coefs.flatten(order="F")
         else:
             coefs_flat = coefs.to_numpy().flatten()
         baseline = func(coefs)["estimate"].to_numpy()
@@ -21,7 +21,7 @@ def get_jacobian(func, coefs, eps_vcov=None):
                 h = max(abs(xi) * np.sqrt(np.finfo(float).eps), 1e-10)
             dx = np.copy(coefs_flat)
             dx[i] = dx[i] + h
-            tmp = dx.reshape(coefs.shape)
+            tmp = dx.reshape(coefs.shape, order="F")
             jac[:, i] = (func(tmp)["estimate"].to_numpy() - baseline) / h
         return jac
     else:
