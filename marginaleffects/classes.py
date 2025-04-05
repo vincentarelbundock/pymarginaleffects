@@ -34,6 +34,7 @@ class MarginaleffectsDataFrame(pl.DataFrame):
             }
             default_mapping = {
                 "term": "Term",
+                "group": "Group",
                 **contrast_columns,
                 "contrast": "Contrast",
                 "estimate": "Estimate",
