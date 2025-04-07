@@ -70,7 +70,7 @@ class ModelStatsmodels(ModelAbstract):
                 .with_columns(
                     pl.Series(range(p.shape[0]), dtype=pl.Int32).alias("rowid")
                 )
-                .melt(id_vars="rowid", variable_name="group", value_name="estimate")
+                .unpivot(index="rowid", variable_name="group", value_name="estimate")
             ).sort("group", "rowid")  # somehow very important for SEs
         else:
             raise ValueError(
