@@ -3,17 +3,6 @@ import statsmodels.formula.api as smf
 from marginaleffects import *
 from polars.testing import assert_series_equal
 
-import rpy2.robjects as ro
-from rpy2.robjects import pandas2ri
-
-
-def r2pl(script):
-    df = ro.r(script)
-    with (ro.default_converter + pandas2ri.converter).context():
-        out = ro.conversion.get_conversion().rpy2py(df)
-    return pl.DataFrame(out)
-
-
 dat = (
     get_dataset("penguins", "palmerpenguins")
     .drop_nulls(["species", "island", "bill_length_mm", "flipper_length_mm"])
@@ -25,20 +14,16 @@ mod = smf.mnlogit("island ~ bill_length_mm + flipper_length_mm", dat.to_pandas()
 
 
 def test_avg_predictions_01():
-    r_code = """
-    library(marginaleffects)
-    library(nnet)
-    dat = get_dataset("penguins", "palmerpenguins")
-    dat = dat[complete.cases(dat[c("species", "island", "bill_length_mm", "flipper_length_mm")]), ]
-    dat$island = factor(dat$island, levels = c("Biscoe", "Dream", "Torgersen"))
-    mod = multinom(island ~ bill_length_mm + flipper_length_mm, data = dat, trace=FALSE)
-    pred = avg_predictions(mod)
-    data.frame(pred)
-    """
-    r = r2pl(r_code)
+    known = pl.read_csv("tests/r/test_statsmodels_mnlogit_avg_predictions_01.csv")
     dict = {"0": "Biscoe", "1": "Dream", "2": "Torgersen"}
-    py = avg_predictions(mod).with_columns(pl.col("group").replace_strict(dict))
-    assert_series_equal(r["estimate"], py["estimate"], rtol=1e-2, check_names=False)
+    unknown = avg_predictions(mod)
+    unknown = unknown.with_columns(pl.col("group").replace_strict(dict))
+    assert_series_equal(
+        known["estimate"], unknown["estimate"], rtol=1e-2, check_names=False
+    )
+    assert_series_equal(
+        known["std.error"], unknown["std_error"], rtol=1e-2, check_names=False
+    )
 
 
 # def test_avg_comparisons_01():
