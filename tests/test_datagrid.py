@@ -109,8 +109,9 @@ def test_callable():
 def test_datagrid_counterfactual_lambda():
     mtcars = get_dataset("mtcars", "datasets")
     grid = datagrid(
-        am = lambda x: x.unique(),
-        cyl = np.unique,
-        newdata = mtcars,
-        grid_type = "counterfactual")
+        am=lambda x: x.unique(),
+        cyl=np.unique,
+        newdata=mtcars,
+        grid_type="counterfactual",
+    )
     assert grid.height == 32 * 2 * 3

@@ -35,6 +35,7 @@ def test_predictions_padding():
 def test_issue202_upcast_bug():
     dat = get_dataset("interaction_02")
     mod = smf.logit("Y ~ X * M", data=dat.to_pandas()).fit()
-    cmp = comparisons(mod, variables = "X",
-      newdata=datagrid(M = [dat['M'].min(), dat['M'].max()]))
+    cmp = comparisons(
+        mod, variables="X", newdata=datagrid(M=[dat["M"].min(), dat["M"].max()])
+    )
     assert cmp.height == 2
