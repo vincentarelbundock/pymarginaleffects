@@ -1,66 +1,90 @@
-# import polars as pl
-# import pytest
-# import statsmodels.formula.api as smf
-# from polars.testing import assert_series_equal
+import polars as pl
+import pytest
+import statsmodels.formula.api as smf
+from polars.testing import assert_series_equal
 
-# from marginaleffects import *
+from marginaleffects import *
 
-# @pytest.mark.skip(reason="TODO: check this")
-# dat = (
-#     pl.read_csv(
-#         "https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv",
-#         null_values="NA",
-#     )
-#     .drop_nulls(["species", "island", "bill_length_mm", "flipper_length_mm"])
-#     .with_columns(
-#         pl.col("island").cast(pl.Categorical, strict=False).cast(pl.Int8, strict=False),
-#         pl.col("flipper_length_mm").cast(pl.Float64),
-#     )
-# )
+import rpy2.robjects as robjects
 
-# mod = smf.mnlogit("island ~ bill_length_mm + flipper_length_mm", dat.to_pandas()).fit()
-# r = {"0": "Torgersen", "1": "Biscoe", "2": "Dream"}
-
-
-# @pytest.mark.skip(reason="statsmodels vcov is weird")
-# def test_predictions_01():
-#     unknown = predictions(mod).with_columns(pl.col("group").map_dict(r))
-#     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_predictions_01.csv")
-#     assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+# Define R code as a string
+r_code = """
+library(marginaleffects)
+library(nnet)
+dat = get_dataset("penguins", "palmerpenguins")
+dat = dat[complete.cases(dat[c("species", "island", "bill_length_mm", "flipper_length_mm")]), ]
+dat$island = factor(dat$island, levels = c("Biscoe", "Dream", "Torgersen"))
+mod = multinom(island ~ bill_length_mm + flipper_length_mm, data = dat, trace=FALSE)
+pred = predictions(mod)
+print(data.frame(pred))
+"""
+k = robjects.r(r_code)
 
 
-# @pytest.mark.skip(reason="statsmodels vcov is weird")
-# def test_predictions_02():
-#     unknown = predictions(mod, by="species")
-#     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_predictions_02.csv")
-#     assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+dat = (
+    get_dataset("penguins", "palmerpenguins")
+    .drop_nulls(["species", "island", "bill_length_mm", "flipper_length_mm"])
+    .with_columns(
+        pl.col("island").replace_strict({"Biscoe": 1, "Dream": 2, "Torgersen": 3})
+    )
+)
+
+mod = smf.mnlogit("island ~ bill_length_mm + flipper_length_mm", dat.to_pandas()).fit()
+r = {"0": "Biscoe", "1": "Dream", "2": "Torgersen"}
+
+pytest.skip(reason="Skipping tests in this file", allow_module_level=True)
 
 
-# @pytest.mark.skip(reason="statsmodels vcov is weird")
-# def test_comparisons_01():
-#     unknown = (
-#         comparisons(mod)
-#         .with_columns(pl.col("group").map_dict(r))
-#         .sort(["term", "group"])
-#     )
-#     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_01.csv").sort(
-#         ["term", "group"]
-#     )
-#     assert_series_equal(known["estimate"].head(), unknown["estimate"].head(), rtol=1e-1)
+def test_predictions_01():
+    unknown = (
+        predictions(mod)
+        .with_columns(
+            pl.col("group").replace_strict(r), (pl.col("rowid") + 1).alias("rowid")
+        )
+        .rename({"estimate": "estimate_py"})
+    )
 
-#     unknown = comparisons(mod)
-#     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_01.csv")
-#     assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+    known = pl.read_csv("tests/r/test_statsmodels_mnlogit_predictions_01.csv")
+    compare = known.join(unknown, on=["rowid", "group"], how="inner")
+    compare.select("std.error", "std_error").head()
+    compare.select("estimate", "estimate_py").tail()
+    assert_series_equal(
+        compare["estimate"], compare["estimate_py"], rtol=1e-2, check_names=False
+    )
+    assert_series_equal(
+        compare["std.error"], compare["std_error"], rtol=1e-1, check_names=False
+    )
 
 
-# @pytest.mark.skip(reason="statsmodels vcov is weird")
-# def test_comparisons_02():
-#     unknown = (
-#         comparisons(mod, by=["group", "species"])
-#         .with_columns(pl.col("group").map_dict(r))
-#         .sort(["term", "group", "species"])
-#     )
-#     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_02.csv").sort(
-#         ["term", "group", "species"]
-#     )
-#     assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+def test_predictions_02():
+    unknown = predictions(mod, by="species")
+    known = pl.read_csv("tests/r/test_statsmodels_mnlogit_predictions_02.csv")
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+
+
+def test_comparisons_01():
+    unknown = (
+        comparisons(mod)
+        .with_columns(pl.col("group").replace_strict(r))
+        .sort(["term", "group"])
+    )
+    known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_01.csv").sort(
+        ["term", "group"]
+    )
+    assert_series_equal(known["estimate"].head(), unknown["estimate"].head(), rtol=1e-1)
+
+    unknown = comparisons(mod)
+    known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_01.csv")
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+
+
+def test_comparisons_02():
+    unknown = (
+        comparisons(mod, by=["group", "species"])
+        .with_columns(pl.col("group").replace_strict(r))
+        .sort(["term", "group", "species"])
+    )
+    known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_02.csv").sort(
+        ["term", "group", "species"]
+    )
+    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)

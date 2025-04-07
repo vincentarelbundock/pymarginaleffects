@@ -24,6 +24,8 @@ exclude = ["qmd_files/*"]
 [project.optional-dependencies]
 test = [
     "duckdb >=1.1.2",
+    "rpy2",
+    "rpy2_arrow",
     "matplotlib >=3.7.1",
     "linearmodels >=6.1",
     "pandas >=2.2.2",

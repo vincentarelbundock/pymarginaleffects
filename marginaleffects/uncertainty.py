@@ -11,7 +11,7 @@ def get_jacobian(func, coefs, eps_vcov=None):
         if isinstance(coefs, np.ndarray):
             coefs_flat = coefs.flatten(order="F")
         else:
-            coefs_flat = coefs.to_numpy().flatten()
+            coefs_flat = coefs.to_numpy().flatten(order="F")
         baseline = func(coefs)["estimate"].to_numpy()
         jac = np.empty((baseline.shape[0], len(coefs_flat)), dtype=np.float64)
         for i, xi in enumerate(coefs_flat):

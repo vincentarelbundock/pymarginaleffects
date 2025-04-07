@@ -11,7 +11,7 @@ class ModelStatsmodels(ModelAbstract):
     def __init__(self, model, vault={}):
         # cache is useful because it obviates the need to call methods many times
         cache = {
-            "coef": np.array(model.params), # multinomial models are 2d
+            "coef": np.array(model.params),  # multinomial models are 2d
             "coefnames": np.array(model.params.index.to_numpy()),
             "formula": model.model.formula,
             "modeldata": ingest(model.model.data.frame),
@@ -71,7 +71,7 @@ class ModelStatsmodels(ModelAbstract):
                     pl.Series(range(p.shape[0]), dtype=pl.Int32).alias("rowid")
                 )
                 .melt(id_vars="rowid", variable_name="group", value_name="estimate")
-            )
+            ).sort("group", "rowid")  # somehow very important for SEs
         else:
             raise ValueError(
                 "The `predict()` method must return an array with 1 or 2 dimensions."
