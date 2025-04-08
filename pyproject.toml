@@ -1,18 +1,18 @@
 [project]
 name = "marginaleffects"
-version = "0.1.0"
+version = "0.1.1.4"
 license = "GPL-3.0-or-later"
 description = "Predictions, counterfactual comparisons, slopes, and hypothesis tests for statistical models."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "formulaic >=1.0.2",
-    "narwhals >=1.31.0",
+    "narwhals >=1.34.0",
     "numpy >=2.0.0",
-    "patsy >=0.5.6",
-    "polars >=1.7.0",
+    "patsy >=1.0.1",
+    "polars >=1.26.0",
     "pydantic >=2.10.3",
-    "plotnine >=0.13.6",
+    "plotnine >=0.14.5",
     "scipy >=1.14.1",
     "pyarrow>=19.0.1",
 ]
@@ -28,7 +28,7 @@ test = [
     "linearmodels >=6.1",
     "pandas >=2.2.2",
     "pyarrow >=17.0.0",
-    "pyfixest >=0.24.2",
+    "pyfixest >=0.28.0",
     "statsmodels >=0.14.0",
     "scikit-learn",
     "typing-extensions >=4.7.0",

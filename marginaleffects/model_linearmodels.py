@@ -6,78 +6,17 @@ from typing import Any, Dict
 import polars as pl
 from .docs import DocsModels
 from .utils import ingest
+from formulaic.parser.algos.tokenize import tokenize
 from .model_abstract import ModelAbstract
 from .formulaic_utils import (
     listwise_deletion,
     model_matrices,
-    parse_linearmodels_formula,
 )
 
 
 class ModelLinearmodels(ModelAbstract):
-    """
-    Interface between linearmodels and marginaleffects for panel models.
-
-    This class handles the conversion between linearmodels' MultiIndex pandas
-    DataFrames and marginaleffects' polars DataFrames. It ensures proper data
-    structure handling and index preservation across the two frameworks.
-
-    Parameters
-    ----------
-    model : linearmodels.panel.results.PanelResults
-        A fitted linearmodels panel model. Must have 'data' and 'formula' attributes.
-
-
-    Attributes
-    ----------
-    multiindex_names : list[str]
-        Names of the MultiIndex levels from the original data.
-    data : polars.DataFrame
-        The model data converted to polars format.
-    formula : str
-        The model formula used in estimation.
-
-    Raises
-    ------
-    ValueError
-        If the model lacks required 'data' or 'formula' attributes.
-
-      Examples
-    --------
-    >>> import pandas as pd
-    >>> from linearmodels.panel import PanelOLS
-    >>> formula = "y ~ x1 + EntityEffects"
-    >>> model = fit_linearmodels(
-    ...     formula=formula,
-    ...     data=data,
-    ...     engine=PanelOLS,
-    ...     kwargs_fit={'cov_type': 'robust'}
-    ... )
-
-    Notes
-    -----
-    The class maintains the mapping between index variables in the original
-    pandas DataFrame and their column representation in polars, ensuring
-    consistent data manipulation across frameworks.
-
-    See Also
-    --------
-    fit_linearmodels : Helper function to create ModelLinearmodels instances
-    """
-
-    def __init__(self, model):
-        if not hasattr(model, "data"):
-            raise ValueError("Model must have a 'data' attribute")
-        else:
-            self.multiindex_names = list(model.data.index.names)
-            self.data = ingest(model.data)
-        if not hasattr(model, "formula"):
-            raise ValueError("Model must have a 'formula' attribute")
-        else:
-            self.formula = model.formula
-
-        self.initialized_engine = model.initialize_engine
-        super().__init__(model)
+    def __init__(self, model, vault={}):
+        super().__init__(model, vault)
 
     def _to_pandas(self, df):
         """
@@ -90,7 +29,7 @@ class ModelLinearmodels(ModelAbstract):
         ----------
         df : nw.IntoFrame
             DataFrame containing the original index variables as columns.
-            Must include all columns specified in self.multiindex_names.
+            Must include all columns specified in self.vault['multiindex'].
 
         Returns
         -------
@@ -103,21 +42,20 @@ class ModelLinearmodels(ModelAbstract):
             If any of the required index columns are missing from the input DataFrame.
         """
 
-        if not set(self.multiindex_names).issubset(nw.from_native(df).columns):
+        multiindex = self.vault.get("multiindex")
+        if not set(multiindex).issubset(nw.from_native(df).columns):
+            multiindex_str = ",".join(multiindex)
             raise ValueError(
-                f"The DataFrame must contain the original multiindex ({','.join(self.multiindex_names)}) as columns."
+                f"The DataFrame must contain the original multiindex ({multiindex_str}) as columns."
             )
 
-        return nw.from_native(df).to_pandas().set_index(self.multiindex_names)
+        return nw.from_native(df).to_pandas().set_index(multiindex)
 
     def get_coef(self):
         return np.array(self.model.params)
 
     def get_coef_names(self):
         return np.array(self.model.params.index.to_numpy())
-
-    def get_modeldata(self):
-        return self._pd_to_pl(self.data)
 
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
@@ -143,7 +81,7 @@ class ModelLinearmodels(ModelAbstract):
                     f"Valid options are: {', '.join(supported_vcov)}"
                 )
 
-            V = self.initialized_engine.fit(cov_type=vcov).cov
+            V = self.fit(cov_type=vcov).cov
 
         if V is not None:
             V = np.array(V)
@@ -158,8 +96,8 @@ class ModelLinearmodels(ModelAbstract):
         return self.model.model.dependent.vars[0]
 
     def find_predictors(self):
-        formula = self.formula
-        columns = self.data.columns
+        formula = self.get_formula()
+        columns = self.get_modeldata().columns
         order = {}
         for var in columns:
             match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
@@ -173,7 +111,9 @@ class ModelLinearmodels(ModelAbstract):
             exog = newdata
         else:
             y, exog = model_matrices(
-                self.formula, self._to_pandas(newdata), formula_engine="linearmodels"
+                self.get_formula(),
+                self._to_pandas(newdata),
+                formula_engine="linearmodels",
             )
 
         p = self.model.model.predict(params=params, exog=exog).predictions.values
@@ -202,6 +142,86 @@ class ModelLinearmodels(ModelAbstract):
         return self.model.df_resid
 
 
+def parse_linearmodels_formula(formula: str):
+    """
+    Parse a formula as linearmodels would and extract panel effects specifications.
+
+    This function processes a formula containing potential EntityEffects, FixedEffects,
+    and TimeEffects terms. It removes these effect terms from the formula and converts
+    them into keyword arguments for linearmodels estimation functions.
+
+    Parameters
+    ----------
+    formula : str
+        A string representing a linearmodels formula (e.g., "y ~ x1 + x2 + EntityEffects").
+        The formula may contain special terms: EntityEffects, FixedEffects, and TimeEffects.
+
+    Returns
+    -------
+    tuple[str, dict[str, bool]]
+        A tuple containing:
+        - str: The cleaned formula with effects terms removed
+        - dict: Keyword arguments for panel effects with keys:
+            - 'entity_effects': True if EntityEffects or FixedEffects present
+            - 'time_effects': True if TimeEffects present
+
+    Raises
+    ------
+    ValueError
+        If both EntityEffects and FixedEffects are present in the formula.
+
+    Examples
+    --------
+    >>> formula = "y ~ x1 + FixedEffects"
+    >>> parse_linearmodels_formula(formula)
+    ('y ~ x1', {'entity_effects': True, 'time_effects': False})
+
+    Notes
+    -----
+    - EntityEffects and FixedEffects are treated as equivalent for entity effects
+    - The function assumes the first variable in the formula is the dependent variable
+    - The returned formula will be in the format "y ~ x1 + x2 + ..."
+    """
+
+    effects_tokens = {
+        "EntityEffects": False,
+        "FixedEffects": False,
+        "TimeEffects": False,
+    }
+    effects_kwargs = {"entity_effects": False, "time_effects": False}
+
+    # add + 0 to start of the rhs of the formula to remove intercept by default
+    # similar to linearmodels.model.panel.PanelFormulaParser
+    # adding + 1 of - 1 to the formula will add/remove intercept as expected
+    lhs, rhs = formula.split("~")
+    formula = f"{lhs.strip()} ~ 0 + {rhs.strip()}"
+    tokens = [token.token for token in tokenize(formula)]
+
+    for effect in effects_tokens.keys():
+        try:
+            idx = tokens.index(effect)
+            effects_tokens[effect] = True
+            _ = tokens.pop(idx)
+
+            # Check if previous token was a "+" and remove it
+            if idx > 0 and tokens[idx - 1] == "+":
+                _ = tokens.pop(idx - 1)
+        except ValueError:
+            pass
+
+    if effects_tokens["EntityEffects"] and effects_tokens["FixedEffects"]:
+        raise ValueError("Cannot use both FixedEffects and EntityEffects")
+
+    effects_kwargs["entity_effects"] = (
+        effects_tokens["EntityEffects"] or effects_tokens["FixedEffects"]
+    )
+    effects_kwargs["time_effects"] = effects_tokens["TimeEffects"]
+
+    cleaned_formula = " ".join(tokens)
+
+    return cleaned_formula, effects_kwargs
+
+
 # @validate_types
 def fit_linearmodels(
     formula: str,
@@ -221,17 +241,17 @@ def fit_linearmodels(
 
     d = listwise_deletion(linearmodels_formula, data=data)
     y, X = model_matrices(linearmodels_formula, d, formula_engine="linearmodels")
-    initialized_engine = engine(dependent=y, exog=X, **kwargs_engine, **effects)
+    out = engine(dependent=y, exog=X, **kwargs_engine, **effects).fit(**kwargs_fit)
 
-    out = initialized_engine.fit(**kwargs_fit)
+    vault = {
+        "formula_engine": "linearmodels",
+        "multiindex": list(d.index.names),
+        "formula": linearmodels_formula,
+        "modeldata": ingest(d),
+        "package": "linearmodels",
+    }
 
-    out.data = d
-    out.formula = linearmodels_formula
-    out.formula_engine = "linearmodels"
-    out.initialize_engine = initialized_engine
-    out.fit_engine = "linearmodels"
-
-    return ModelLinearmodels(out)
+    return ModelLinearmodels(out, vault)
 
 
 docs_linearmodels = (

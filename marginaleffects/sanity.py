@@ -34,18 +34,22 @@ def sanitize_by(by):
 
 
 def sanitize_newdata(model, newdata, wts, by=[]):
-    modeldata = model.data
+    modeldata = model.get_modeldata()
 
     if newdata is None:
         out = modeldata
         newdata = modeldata
 
     if isinstance(newdata, pl.DataFrame):
-        any_missing = any(newdata.select(pl.all().is_null().any()).row(0))
-        if any_missing:
-            raise ValueError(
-                "Please supply a data frame with no missing value to the `newdata` argument."
-            )
+        predictors = model.find_predictors()
+        # sklearn without known predictor names
+        if predictors is not None:
+            predictors = newdata.select(predictors)
+            any_missing = any(predictors.select(pl.all().is_null().any()).row(0))
+            if any_missing:
+                raise ValueError(
+                    "Please supply a data frame with no missing value to the `newdata` argument."
+                )
 
     # if newdata is a string, then we need to treat `by` as unique entries.
     args = {"model": model}
@@ -78,12 +82,8 @@ def sanitize_newdata(model, newdata, wts, by=[]):
             raise e
 
     # user-supplied newdata may include missing values
-    if (
-        model is not None
-        and hasattr(model, "formula")
-        and isinstance(out, pl.DataFrame)
-    ):
-        out = listwise_deletion(model.formula, out)
+    if model is not None and isinstance(out, pl.DataFrame):
+        out = listwise_deletion(model.get_formula(), out)
 
     reserved_names = {
         "rowid",
@@ -208,7 +208,7 @@ def get_one_variable_hi_lo(
     model, variable, value, newdata, comparison, eps, by, wts=None, modeldata=None
 ):
     msg = "`value` must be a numeric, a list of length two, or 'sd'"
-    vartype = model.variables_type[variable]
+    vartype = model.get_variable_type(variable)
 
     def clean(k):
         return clean_global(k, newdata.shape[0])
@@ -251,9 +251,14 @@ def get_one_variable_hi_lo(
         return [out]
 
     if vartype == "binary":
-        hi = clean(1)
-        lo = clean(0)
-        lab = lab.format(hi="1", lo="0")
+        # allows 0 - 1 when manually specified
+        if isinstance(value, list) and len(value) == 2:
+            hi = clean(value[1])
+            lo = clean(value[0])
+        else:
+            hi = clean(1)
+            lo = clean(0)
+        lab = lab.format(hi=str(hi[0]), lo=str(lo[0]))
         out = HiLo(
             variable=variable, hi=hi, lo=lo, lab=lab, comparison=comparison, pad=None
         )
@@ -263,7 +268,7 @@ def get_one_variable_hi_lo(
         if isinstance(value, list) and len(value) == 2:
             hi = clean([value[1]])
             lo = clean([value[0]])
-            lab = lab.format(hi=hi, lo=lo)
+            lab = lab.format(hi=value[1], lo=value[0])
             out = HiLo(
                 variable=variable,
                 hi=hi,
@@ -301,12 +306,12 @@ def get_one_variable_hi_lo(
                 lo = newdata[variable] - value
                 lab = lab.format(hi="(x+sd)", lo="(x-sd)")
             elif value == "iqr":
-                hi = np.percentile(newdata[variable], 75)
-                lo = np.percentile(newdata[variable], 25)
+                hi = np.percentile(modeldata[variable], 75)
+                lo = np.percentile(modeldata[variable], 25)
                 lab = lab.format(hi="Q3", lo="Q1")
             elif value == "minmax":
-                hi = np.max(newdata[variable])
-                lo = np.min(newdata[variable])
+                hi = modeldata[variable].max()
+                lo = modeldata[variable].min()
                 lab = lab.format(hi="Max", lo="Min")
             else:
                 raise ValueError(msg)
@@ -447,10 +452,14 @@ def get_categorical_combinations(
 def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None):
     out = []
 
-    modeldata = model.data
+    modeldata = model.get_modeldata()
 
     if variables is None:
         vlist = model.find_predictors()
+        if vlist is None:
+            raise ValueError(
+                "No predictors could be extracted from the model object. Please specify the `variables` argument."
+            )
         vlist.sort()
         for v in vlist:
             out.append(

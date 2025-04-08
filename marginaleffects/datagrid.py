@@ -50,7 +50,7 @@ def datagrid(
         model = sanitize_model(model)
 
     if newdata is None:
-        newdata = model.data
+        newdata = model.get_modeldata()
 
     if grid_type == "counterfactual":
         return datagridcf(model=model, newdata=newdata, **kwargs)
@@ -99,10 +99,18 @@ def datagrid(
         def FUN_other(x):
             return x.mode()[0]
 
+    if model is not None:
+        modeldata = model.get_modeldata()
+    else:
+        modeldata = newdata
+
     out = {}
     for key, value in kwargs.items():
         if value is not None:
-            out[key] = pl.DataFrame({key: value})
+            if callable(value):
+                out[key] = pl.DataFrame({key: value(modeldata[key])})
+            else:
+                out[key] = pl.DataFrame({key: value})
 
     # Balanced grid should not be built with combiations of response variable, otherwise we get a
     # duplicated rows on `grid_type="balanced"` and other types.
@@ -112,7 +120,7 @@ def datagrid(
             out[col] = pl.DataFrame({col: newdata[col].mode()[0]})
 
     if model is not None:
-        variables_type = model.variables_type
+        variables_type = model.get_variable_type()
     else:
         variables_type = ut.get_type_dictionary(formula=None, modeldata=newdata)
 
@@ -145,7 +153,7 @@ def datagridcf(model=None, newdata=None, **kwargs):
     model = sanitize_model(model)
 
     if newdata is None:
-        newdata = model.data
+        newdata = model.get_modeldata()
 
     if "rowid" not in newdata.columns:
         newdata = newdata.with_columns(
@@ -153,8 +161,19 @@ def datagridcf(model=None, newdata=None, **kwargs):
         )
     newdata = newdata.rename({"rowid": "rowidcf"})
 
+    if model is not None:
+        modeldata = model.get_modeldata()
+    else:
+        modeldata = newdata
+
     # Create dataframe from kwargs
-    dfs = [pl.DataFrame({k: v}) for k, v in kwargs.items()]
+    dfs = []
+    for key, value in kwargs.items():
+        if value is not None:
+            if callable(value):
+                dfs.append(pl.DataFrame({key: value(modeldata[key])}))
+            else:
+                dfs.append(pl.DataFrame({key: value}))
 
     # Perform cross join
     df_cross = reduce(lambda df1, df2: df1.join(df2, how="cross"), dfs)

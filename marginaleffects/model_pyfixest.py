@@ -6,20 +6,27 @@ from .utils import ingest
 
 
 class ModelPyfixest(ModelAbstract):
-    def __init__(self, model):
-        self.data = ingest(model._data)
-        self.formula = model._fml
-        super().__init__(model)
-        if hasattr(self.model, "_fixef"):
-            if self.model._fixef is not None:
-                fe = self.model._fixef.split("+")
+    def __init__(self, model, vault={}):
+        formula = model._fml
+        modeldata = ingest(model._data)
+        cache = {
+            "modeldata": modeldata,
+            "formula": formula,
+        }
+        vault.update(cache)
+        super().__init__(model, vault)
+
+        # after super init & validation
+        if hasattr(model, "_fixef"):
+            if model._fixef is not None:
+                fe = model._fixef.split("+")
                 for f in fe:
-                    self.variables_type[f] = "character"
+                    self.set_variable_type(f, "character")
 
     def get_coef(self):
         return np.array(self.model._beta_hat)
 
-    def find_coef(self):
+    def get_coefnames(self):
         return np.array(self.model._coefnames)
 
     def get_vcov(self, vcov=True):
@@ -30,9 +37,10 @@ class ModelPyfixest(ModelAbstract):
         return V
 
     def find_predictors(self):
+        modeldata = self.get_modeldata()
         variables = self.model._coefnames
         variables = [re.sub(r"\[.*\]", "", x) for x in variables]
-        variables = [x for x in variables if x in self.data.columns]
+        variables = [x for x in variables if x in modeldata.columns]
         variables = pl.Series(variables).unique().to_list()
         return variables
 

@@ -3,54 +3,36 @@ import warnings
 import polars as pl
 from .docs import DocsModels
 from .utils import ingest
-from .formulaic_utils import listwise_deletion, model_matrices, get_variables
+from .formulaic_utils import listwise_deletion, model_matrices, parse_variables
 from .model_abstract import ModelAbstract
 
 
 class ModelSklearn(ModelAbstract):
-    def __init__(self, model):
-        if not hasattr(model, "data"):
-            raise ValueError("Model must have a 'data' attribute")
-        else:
-            self.data = ingest(model.data)
-        if not hasattr(model, "formula"):
-            raise ValueError("Model must have a 'formula' attribute")
-        else:
-            self.formula = model.formula
-        super().__init__(model)
+    def __init__(self, model, vault={}):
+        super().__init__(model, vault)
 
-    def get_predict(self, params, newdata: pl.DataFrame):
+    def get_predict(self, params, newdata):
+        engine = self.get_engine_running()
+        formula = self.get_formula()
+
         if isinstance(newdata, np.ndarray):
             exog = newdata
+        elif callable(formula):
+            _, exog = formula(newdata)
         else:
-            try:
-                import formulaic
-
-                if isinstance(newdata, formulaic.ModelMatrix):
-                    exog = newdata.to_numpy()
-                else:
-                    if isinstance(newdata, pl.DataFrame):
-                        nd = newdata.to_pandas()
-                    else:
-                        nd = newdata
-                    y, exog = formulaic.model_matrix(self.model.formula, nd)
-                    exog = exog.to_numpy()
-            except ImportError:
-                raise ImportError(
-                    "The formulaic package is required to use this feature."
-                )
+            _, exog = model_matrices(formula, data=newdata)
 
         try:
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*valid feature names.*")
-                p = self.model.predict_proba(exog)
+                p = engine.predict_proba(exog)
                 # only keep the second column for binary classification since it is redundant info
                 if p.shape[1] == 2:
                     p = p[:, 1]
         except (AttributeError, NotImplementedError):
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", message=".*valid feature names.*")
-                p = self.model.predict(exog)
+                p = engine.predict(exog)
 
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
@@ -59,7 +41,7 @@ class ModelSklearn(ModelAbstract):
                 {"rowid": range(newdata.shape[0]), "estimate": np.ravel(p)}
             )
         elif p.ndim == 2:
-            colnames = {f"column_{i}": v for i, v in enumerate(self.model.classes_)}
+            colnames = {f"column_{i}": v for i, v in enumerate(engine.classes_)}
             p = (
                 pl.DataFrame(p)
                 .rename(colnames)
@@ -79,9 +61,7 @@ class ModelSklearn(ModelAbstract):
 
 
 # @validate_types
-def fit_sklearn(
-    formula: str, data: pl.DataFrame, engine, kwargs_engine={}, kwargs_fit={}
-) -> ModelSklearn:
+def fit_sklearn(formula, data: pl.DataFrame, engine) -> ModelSklearn:
     """
     Fit a sklearn model with output that is compatible with pymarginaleffects.
 
@@ -89,18 +69,32 @@ def fit_sklearn(
 
     Or type: `help(fit_sklearn)`
     """
+
     d = listwise_deletion(formula, data=data)
-    y, X = model_matrices(formula, d)
-    # formulaic returns a matrix when the response is character or categorical
-    if y.ndim == 2:
-        y = d[get_variables(formula)[0]]
-    y = np.ravel(y)
-    out = engine(**kwargs_engine).fit(X=X, y=y, **kwargs_fit)
-    out.data = d
-    out.formula = formula
-    out.formula_engine = "formulaic"
-    out.fit_engine = "sklearn"
-    return ModelSklearn(out)
+
+    if isinstance(formula, str):
+        d = listwise_deletion(formula, data=data)
+        y, X = model_matrices(formula, d)
+        # formulaic returns a matrix when the response is character or categorical
+        if y.ndim == 2:
+            y = d[parse_variables(formula)[0]]
+        y = np.ravel(y)
+
+    elif callable(formula):
+        y, X = formula(d)
+
+    else:
+        raise ValueError("The formula must be a string or a callable function.")
+
+    engine_running = engine.fit(X=X, y=y)
+
+    vault = {
+        "formula": formula,
+        "modeldata": ingest(d),
+        "package": "sklearn",
+        "engine_running": engine_running,
+    }
+    return ModelSklearn(engine_running, vault)
 
 
 docs_sklearn = (
@@ -126,25 +120,62 @@ This function streamlines the process of fitting sklearn models by:
 """
     + DocsModels.docstring_kwargs_engine
     + """
-`kwargs_fit` : (dict, default={}) Additional arguments passed to the model's fit method. 
 """
     + DocsModels.docstring_fit_returns("Sklearn")
     + """
 ## Examples
 
-```python
-from sklearn.linear_model import LinearRegression
+```{python}
 from marginaleffects import *
+from statsmodels.formula.api import ols
+import polars.selectors as cs
+from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder, FunctionTransformer
+from sklearn.linear_model import LinearRegression
+from sklearn.compose import make_column_transformer
+from xgboost import XGBRegressor
 
-data = get_dataset("thornton")
 
-model = fit_sklearn(
-    formula="outcome ~ distance + incentive",
-    data=data,
-    engine=LinearRegression,
+# Linear regression: Scikit-learn
+military = get_dataset("military")
+
+mod_sk = fit_sklearn(
+    "rank ~ officer + hisp + branch",
+    data=military,
+    engine=LinearRegression(),
 )
+avg_predictions(mod_sk, by="branch")
 
-predictions(model)
+# Linear regression: Statsmodels
+mod_sm = ols("rank ~ officer + hisp + branch", data=military.to_pandas()).fit()
+avg_predictions(mod_sm, by="branch")
+
+# XGBoost: Scikit-learn
+airbnb = get_dataset("airbnb")
+
+train, test = train_test_split(airbnb)
+
+catvar = airbnb.select(~cs.numeric()).columns
+
+
+def selector(data):
+    y = data.select(cs.by_name("price", require_all=False))
+    X = data.select(~cs.by_name("price", require_all=False))
+    return y, X
+
+
+preprocessor = make_column_transformer(
+    (OneHotEncoder(), catvar),
+    remainder=FunctionTransformer(lambda x: x.to_numpy()),
+)
+pipeline = make_pipeline(preprocessor, XGBRegressor())
+
+mod = fit_sklearn(selector, data=train, engine=pipeline)
+
+avg_predictions(mod, newdata=test, by="unit_type")
+
+avg_comparisons(mod, variables={"bedrooms": 2}, newdata=test)
 ```
 """
     + DocsModels.docstring_notes("sklearn")

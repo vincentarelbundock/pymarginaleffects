@@ -100,10 +100,10 @@ def get_pad(df, colname, uniqs):
 
 def get_type_dictionary(formula=None, modeldata=None):
     out = dict()
-    if formula is None:
+    if formula is None or callable(formula):
         variables = modeldata.columns
     else:
-        variables = fml.get_variables(formula)
+        variables = fml.parse_variables(formula)
     for v in variables:
         t_i = [
             pl.Int8,
@@ -148,32 +148,30 @@ def validate_types(func):
     return wrapper
 
 
+def get_dataset_search(search: str):
+    """Internal function to search available datasets"""
+    try:
+        index = pl.read_csv(
+            "https://vincentarelbundock.github.io/Rdatasets/datasets.csv"
+        )
+        index = index.filter(
+            index["Package"].str.contains(search)
+            | index["Item"].str.contains(search)
+            | index["Title"].str.contains(search)
+        )
+        return index.select(["Package", "Item", "Title", "Rows", "Cols", "CSV"])
+    except BaseException as e:
+        raise ValueError(f"Error searching dataset: {e}")
+
+
 def get_dataset(
     dataset: str = "thornton",
-    package: str = "marginaleffects",
+    package: str = None,
     docs: bool = False,
     search: str = None,
 ):
-    """
-    Download and read a dataset as a Polars DataFrame from the `marginaleffects` or from the list at https://vincentarelbundock.github.io/Rdatasets/.
-
-    For more information, visit the website: https://marginaleffects.com/
-
-    Or type: `help(get_dataset)`
-    """
     if search:
-        try:
-            index = pl.read_csv(
-                "https://vincentarelbundock.github.io/Rdatasets/datasets.csv"
-            )
-            index = index.filter(
-                index["Package"].str.contains(search)
-                | index["Item"].str.contains(search)
-                | index["Title"].str.contains(search)
-            )
-            return index.select(["Package", "Item", "Title", "Rows", "Cols", "CSV"])
-        except BaseException as e:
-            raise ValueError(f"Error searching dataset: {e}")
+        return get_dataset_search(search)
 
     datasets = {
         "affairs": "https://marginaleffects.com/data/affairs",
@@ -193,13 +191,37 @@ def get_dataset(
         "polynomial_02": "https://marginaleffects.com/data/polynomial_02",
     }
 
-    if package == "marginaleffects":
-        assert dataset in datasets, (
-            f"Dataset '{dataset}' is not available in the 'marginaleffects' package."
-        )
+    # If package is None, try to guess the correct source
+    if package is None:
+        # First check if it's a marginaleffects dataset
+        if dataset in datasets:
+            package = "marginaleffects"
+        else:
+            # Try to find exact match in Rdatasets
+            matches = get_dataset_search(f"^{dataset}$")
+            if len(matches) == 1:
+                package = matches["Package"][0]
+                dataset = matches["Item"][0]
+            elif len(matches) > 1:
+                options = "\n".join(
+                    [
+                        f"  - {p}::{i}"
+                        for p, i in zip(matches["Package"], matches["Item"])
+                    ]
+                )
+                msg = f"Multiple matches found for dataset '{dataset}'. Please specify the package name.\nAvailable options:\n{options}"
+                raise ValueError(msg)
+            else:
+                msg = f"Dataset '{dataset}' not found. Please:\n1. Specify the package name, or\n2. Use get_dataset(search='...') to search available datasets"
+                raise ValueError(msg)
 
     try:
-        if dataset in datasets:
+        if package == "marginaleffects":
+            if dataset not in datasets:
+                raise ValueError(
+                    f"Dataset '{dataset}' is not available in the 'marginaleffects' package."
+                )
+
             base_url = datasets[dataset]
             df = pl.read_parquet(f"{base_url}.parquet")
             if (
@@ -279,7 +301,7 @@ get_dataset.__doc__ = """
      - marginaleffects archive: affairs, airbnb, ces_demographics, ces_survey, immigration, lottery, military, thornton, factorial_01, interaction_01, interaction_02, interaction_03, interaction_04, polynomial_01, polynomial_02
      - Rdatasets archive: The name of a dataset listed on the Rdatasets index. See the website or the search argument.
 
-    `package`: (str, optional) The package to download the dataset from. Default is "marginaleffects".
+    `package`: (str, optional) The package to download the dataset from.
 
     `docs`: (bool, optional) If True, return the documentation URL instead of the dataset. Default is False.
 

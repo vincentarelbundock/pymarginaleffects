@@ -37,3 +37,9 @@ qmd_local:
 inject_docs:
 	python marginaleffects/inject_docs.py 
 	make lint
+
+build:
+	uv build
+
+publish: build
+	uv publish

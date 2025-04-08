@@ -21,6 +21,7 @@ from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast
 from .model_pyfixest import ModelPyfixest
+from .model_sklearn import ModelSklearn
 from .model_linearmodels import ModelLinearmodels
 
 from .docs import (
@@ -41,6 +42,7 @@ def comparisons(
     wts=None,
     hypothesis=None,
     equivalence=None,
+    cross=False,
     transform=None,
     eps=1e-4,
     eps_vcov=None,
@@ -59,7 +61,7 @@ def comparisons(
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)
-    modeldata = model.data
+    modeldata = model.get_modeldata()
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     # For each variable in `variables`, this will return two values that we want
@@ -83,41 +85,66 @@ def comparisons(
     hi = []
     lo = []
     nd = []
-    for v in variables:
-        nd.append(
-            newdata.with_columns(
+    if not cross:
+        for v in variables:
+            nd.append(
+                newdata.with_columns(
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias("contrast"),
+                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                )
+            )
+            hi.append(
+                newdata.with_columns(
+                    pl.lit(v.hi).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias("contrast"),
+                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                )
+            )
+            lo.append(
+                newdata.with_columns(
+                    pl.lit(v.lo).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias("contrast"),
+                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                )
+            )
+
+    else:
+        hi.append(newdata)
+        lo.append(newdata)
+        nd.append(newdata)
+        for i, v in enumerate(variables):
+            nd[0] = nd[0].with_columns(
                 pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias("contrast"),
+                pl.lit(v.lab).alias(f"contrast_{v.variable}"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
-        )
-        hi.append(
-            newdata.with_columns(
+            hi[0] = hi[0].with_columns(
                 pl.lit(v.hi).alias(v.variable),
                 pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias("contrast"),
+                pl.lit(v.lab).alias(f"contrast_{v.variable}"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
-        )
-        lo.append(
-            newdata.with_columns(
+            lo[0] = lo[0].with_columns(
                 pl.lit(v.lo).alias(v.variable),
                 pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias("contrast"),
+                pl.lit(v.lab).alias(f"contrast_{v.variable}"),
                 pl.lit(v.comparison).alias("marginaleffects_comparison"),
             )
-        )
 
     # Hack: We run into Patsy-related issues unless we "pad" the
     # character/categorical variables to include all unique levels. We add them
     # here but drop them after creating the design matrices.
     vars = model.find_variables()
-    vars = [re.sub(r"\[.*", "", x) for x in vars]
-    vars = list(set(vars))
-    for v in vars:
-        if v in modeldata.columns:
-            if model.variables_type[v] not in ["numeric", "integer"]:
-                pad.append(get_pad(newdata, v, modeldata[v].unique()))
+    if vars is not None:
+        vars = [re.sub(r"\[.*", "", x) for x in vars]
+        vars = list(set(vars))
+        for v in vars:
+            if v in modeldata.columns:
+                if model.get_variable_type(v) not in ["numeric", "integer"]:
+                    pad.append(get_pad(newdata, v, modeldata[v].unique()))
 
     # nd, hi, and lo are lists of data frames, since the user could have
     # requested many contrasts at the same time using the `variables` argument.
@@ -159,12 +186,12 @@ def comparisons(
     # only once and re-use the design matrices. Unfortunately, this is not
     # possible for PyFixest, since the `.predict()` method it supplies does not
     # accept matrices. So we special-case PyFixest.`
-    if isinstance(model, (ModelPyfixest, ModelLinearmodels)):
+    if isinstance(model, (ModelPyfixest, ModelLinearmodels, ModelSklearn)):
         hi_X = hi
         lo_X = lo
         nd_X = nd
     else:
-        fml = re.sub(r".*~", "", model.formula)
+        fml = re.sub(r".*~", "", model.get_formula())
         hi_X = patsy.dmatrix(fml, hi.to_pandas())
         lo_X = patsy.dmatrix(fml, lo.to_pandas())
         nd_X = patsy.dmatrix(fml, nd.to_pandas())
@@ -231,6 +258,8 @@ def comparisons(
         else:
             by = ["term", "contrast"]
 
+        by = by + [x for x in tmp.columns if x.startswith("contrast_")]
+
         # apply a function to compare the predicted_hi and predicted_lo columns
         # ex: hi-lo, mean(hi-lo), hi/lo, mean(hi)/mean(lo), etc.
         def applyfun(x, by, wts=None):
@@ -271,11 +300,11 @@ def comparisons(
     def outer(x):
         return inner(x, by=by, hypothesis=hypothesis, wts=wts, nd=nd)
 
-    out = outer(model.coef)
+    out = outer(model.get_coef())
 
     # Compute standard errors and confidence intervals
     if vcov is not None and vcov is not False and V is not None:
-        J = get_jacobian(func=outer, coefs=model.coef, eps_vcov=eps_vcov)
+        J = get_jacobian(func=outer, coefs=model.get_coef(), eps_vcov=eps_vcov)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(
@@ -288,6 +317,11 @@ def comparisons(
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence, df=np.inf)
     out = sort_columns(out, by=by, newdata=newdata)
+
+    # not sure why we can't do this earlier. Might be related to this bug report
+    # https://github.com/pola-rs/polars/issues/14401
+    if cross:
+        out = out.with_columns(pl.lit("cross").alias("term"))
 
     # Wrap things up in a nice class
     out = MarginaleffectsDataFrame(
@@ -307,6 +341,7 @@ def avg_comparisons(
     wts=None,
     hypothesis=None,
     equivalence=None,
+    cross=False,
     transform=None,
     eps=1e-4,
 ):
@@ -331,6 +366,7 @@ def avg_comparisons(
         wts=wts,
         hypothesis=hypothesis,
         equivalence=equivalence,
+        cross=cross,
         transform=transform,
         eps=eps,
     )
@@ -369,6 +405,7 @@ See the package website and vignette for examples:
     + DocsParameters.docstring_wts
     + DocsParameters.docstring_vcov
     + DocsParameters.docstring_equivalence
+    + DocsParameters.docstring_cross
     + DocsParameters.docstring_conf_level
     + DocsParameters.docstring_eps
     + DocsParameters.docstring_eps_vcov

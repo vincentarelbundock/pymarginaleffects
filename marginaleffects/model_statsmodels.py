@@ -1,4 +1,3 @@
-import re
 import numpy as np
 import polars as pl
 import patsy
@@ -9,26 +8,22 @@ from .utils import validate_types, ingest
 
 
 class ModelStatsmodels(ModelAbstract):
-    def __init__(self, model):
-        if hasattr(model, "formula"):
-            self.formula = model.formula
-            self.data = ingest(model.data)
-        else:
-            self.formula = model.model.formula
-            self.data = ingest(model.model.data.frame)
-        super().__init__(model)
-        # after super()
-        if hasattr(model, "formula"):
-            self.formula_engine = "formulaic"
-        else:
-            self.formula_engine = "patsy"
-            self.design_info_patsy = model.model.data.design_info
-
-    def get_coef(self):
-        return np.array(self.model.params)
-
-    def find_coef(self):
-        return np.array(self.model.params.index.to_numpy())
+    def __init__(self, model, vault={}):
+        # cache is useful because it obviates the need to call methods many times
+        cache = {
+            "coef": np.array(model.params),  # multinomial models are 2d
+            "coefnames": np.array(model.params.index.to_numpy()),
+            "formula": model.model.formula,
+            "modeldata": ingest(model.model.data.frame),
+        }
+        cache["variable_names"] = [
+            model.model.endog_names
+        ] + fml.extract_patsy_variable_names(cache["formula"], cache["modeldata"])
+        if not hasattr(model, "formula"):
+            cache["formula_engine"] = "patsy"
+            cache["design_info_patsy"] = model.model.data.design_info
+        vault.update(cache)
+        super().__init__(model, vault)
 
     def get_vcov(self, vcov=True):
         if isinstance(vcov, bool):
@@ -44,35 +39,17 @@ class ModelStatsmodels(ModelAbstract):
                 raise ValueError(f"The model object has no {lab} attribute.")
         else:
             raise ValueError(
-                '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the model object such as "vcov_HC3".'
+                '`vcov` must be a boolean or a string like "HC3", which corresponds to an attribute of the `statsmodels` model object such as "cov_HC3".'
             )
 
         if V is not None:
             V = np.array(V)
-            if V.shape != (len(self.coef), len(self.coef)):
+            if V.shape != (len(self.get_coef().ravel()), len(self.get_coef().ravel())):
                 raise ValueError(
                     "vcov must be a square numpy array with dimensions equal to the length of self.coef"
                 )
 
         return V
-
-    def find_predictors(self):
-        formula = self.formula
-        columns = self.data.columns
-        order = {}
-        for var in columns:
-            match = re.search(rf"\b{re.escape(var)}\b", formula.split("~")[1])
-            if match:
-                order[var] = match.start()
-        variables = sorted(order, key=lambda i: order[i])
-        return variables
-
-    def find_response(self):
-        try:
-            out = self.model.model.endog_names
-        except AttributeError:
-            out = fml.variables(self.formula)[0]
-        return out
 
     def get_predict(self, params, newdata: pl.DataFrame):
         if isinstance(newdata, np.ndarray):
@@ -81,7 +58,7 @@ class ModelStatsmodels(ModelAbstract):
             exog = newdata.to_numpy()
         else:
             newdata = newdata.to_pandas()
-            y, exog = patsy.dmatrices(self.formula, newdata)
+            y, exog = patsy.dmatrices(self.get_formula(), newdata)
         p = self.model.model.predict(params, exog)
         if p.ndim == 1:
             p = pl.DataFrame({"rowid": range(newdata.shape[0]), "estimate": p})
@@ -93,8 +70,8 @@ class ModelStatsmodels(ModelAbstract):
                 .with_columns(
                     pl.Series(range(p.shape[0]), dtype=pl.Int32).alias("rowid")
                 )
-                .melt(id_vars="rowid", variable_name="group", value_name="estimate")
-            )
+                .unpivot(index="rowid", variable_name="group", value_name="estimate")
+            ).sort("group", "rowid")  # somehow very important for SEs
         else:
             raise ValueError(
                 "The `predict()` method must return an array with 1 or 2 dimensions."
@@ -121,11 +98,12 @@ def fit_statsmodels(
     y, X = fml.model_matrices(formula, d)
     mod = engine(endog=y, exog=X, **kwargs_engine)
     mod = mod.fit(**kwargs_fit)
-    mod.data = d
-    mod.formula = formula
-    mod.formula_engine = "formulaic"
-    mod.fit_engine = "statsmodels"
-    return ModelStatsmodels(mod)
+    vault = {
+        "modeldata": d,
+        "formula": formula,
+        "package": "statsmodels",
+    }
+    return ModelStatsmodels(mod, vault)
 
 
 docs_statsmodels = (

@@ -1,3 +1,23 @@
+# Development
+
+New:
+
+* `datagrid(grid_type="counterfactual")` now accepts lambda functions.
+* `get_dataset()` no longer requires the `package` argument.
+* Group formula hypotheses are now supported `hypothesis="difference~reference|group"`
+* `np.*()` is allowed in string/equation `hypothesis`.
+
+# 0.1.1
+
+Bugs:
+
+* Allow predictors with missing values with `newdata=None`
+
+New:
+
+* `datagrid()` accepts functions: `datagrid(x = np.mean, y = lambda x: np.quantile(x, [0, .4]))`
+* Major refactor and improvement of the `fit_*()` functions.
+
 # 0.1.0
 
 Breaking change:
@@ -15,11 +35,13 @@ New:
 * `variables` is available in `avg_predictions()`
 * `variables` accepts strings and list of strings in `predictions()`
 * Regex supported in `joint_index` argument of `hypotheses()`. Issue #191.
+* `comparisons()` allows reverse binary contrast by manually specifying `variables`. Issue #197.
 
 Bugs:
 
 * `datagrid(grid_type='balanced')` takes unique values of binary and categorical variables. Issue #156.
 * `datagrid(grid_type='balanced')` does not return duplicates based on response. Issue 169.
+* `comparisons(mod, variables="iqr")` and `minmax` now work. Issue #198.
 
 # 0.0.14
 

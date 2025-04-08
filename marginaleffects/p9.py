@@ -13,8 +13,9 @@ from plotnine import (
 import polars as pl
 
 
-def plot_common(model, dt, y_label, var_list, gray=False):
-    discrete = model.variables_type[var_list[0]] not in ["numeric", "integer"]
+
+def plot_common(model, dt, y_label, var_list):
+    discrete = model.get_variable_type()[var_list[0]] not in ["numeric", "integer"]
     interval = "conf_low" in dt.columns
 
     # treat all variables except x-axis as categorical

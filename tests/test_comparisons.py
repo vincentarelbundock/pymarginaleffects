@@ -12,6 +12,7 @@ from marginaleffects import *
 from marginaleffects.comparisons import estimands
 from tests.helpers import mtcars, guerry
 
+hiv = get_dataset("thornton")
 dat = guerry.with_columns(
     (pl.col("Area") > pl.col("Area").median()).alias("Boolea"),
     (pl.col("Distance") > pl.col("Distance").median()).alias("Bin"),
@@ -192,9 +193,8 @@ def test_lift():
 
 
 def test_issue192():
-    dat = get_dataset("thornton")
     mod = smf.logit(
-        "outcome ~ incentive * (agecat + distance)", data=dat.to_pandas()
+        "outcome ~ incentive * (agecat + distance)", data=hiv.to_pandas()
     ).fit()
     grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
     cmp = comparisons(mod, variables="incentive", newdata=grid)
@@ -202,9 +202,8 @@ def test_issue192():
 
 
 def test_issue193():
-    dat = get_dataset("thornton")
     mod = smf.logit(
-        "outcome ~ incentive * (agecat + distance)", data=dat.to_pandas()
+        "outcome ~ incentive * (agecat + distance)", data=hiv.to_pandas()
     ).fit()
     grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
     g_treatment = grid.with_columns(pl.lit(1).alias("incentive"))
@@ -221,3 +220,46 @@ def test_issue193():
     grid = grid.with_columns(pl.col("agecat").cast(pl.Enum(["<18", "18 to 35", ">35"])))
     cmp2 = comparisons(mod, variables="incentive", newdata=grid, vcov=False)
     assert cmp2["estimate"].is_in(cmp1).all()
+
+
+def test_issue197():
+    mod = smf.logit(
+        "outcome ~ incentive * (agecat + distance)", data=hiv.to_pandas()
+    ).fit()
+    grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
+    cmp = comparisons(mod, variables={"incentive": [1, 0]}, newdata=grid)
+    assert (cmp["estimate"] < 0).all()
+
+
+def test_issue198():
+    mod = smf.logit(
+        "outcome ~ incentive * (agecat + distance)", data=hiv.to_pandas()
+    ).fit()
+    grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
+    cmp = comparisons(mod, variables={"distance": "iqr"}, newdata=grid)
+    assert (cmp["std_error"] > 0).all()
+    assert (cmp["estimate"] < 0).all()
+
+
+def test_issue82_cross():
+    mtcars = get_dataset("mtcars", "datasets").to_pandas()
+    mod = smf.ols("mpg ~ am * hp", data=mtcars).fit()
+    cmp = avg_comparisons(mod, variables=["am", "hp"], cross=True)
+    np.testing.assert_almost_equal(
+        cmp["estimate"].to_numpy(),
+        np.array([5.21781687]),
+    )
+    assert cmp.height == 1
+    cmp = comparisons(mod, variables=["am", "hp"], cross=True)
+    assert cmp.height == 32
+
+
+def test_issue_206():
+    dat = get_dataset("thornton")
+    dat = dat.to_pandas()
+    mod = smf.logit("outcome ~ incentive * (agecat + distance)", data=dat).fit()
+    cmp = avg_comparisons(
+        mod, variables=["incentive", "distance"], cross=True, by="agecat"
+    )
+    assert cmp.height == 3
+    assert (cmp["term"] == "cross").all()

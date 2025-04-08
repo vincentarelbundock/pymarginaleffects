@@ -5,10 +5,10 @@ dat = na.omit(dat, cols = c("species", "island", "bill_length_mm", "flipper_leng
 dat[, island := factor(island, c("Torgersen", "Biscoe", "Dream"))]
 mod = multinom(island ~ bill_length_mm + flipper_length_mm, data = dat, trace = FALSE)
 
-predictions(mod, type = "probs") |> 
+predictions(mod, type = "probs") |>
     fwrite(here("tests/r/test_statsmodels_mnlogit_predictions_01.csv"))
 
-predictions(mod, by = c("group", "species"), type = "probs") |> 
+predictions(mod, by = c("group", "species"), type = "probs") |>
     fwrite(here("tests/r/test_statsmodels_mnlogit_predictions_02.csv"))
 
 comparisons(mod, type = "probs") |>
@@ -16,3 +16,12 @@ comparisons(mod, type = "probs") |>
 
 comparisons(mod, by = c("group", "species"), type = "probs") |>
     fwrite(here("tests/r/test_statsmodels_mnlogit_comparisons_02.csv"))
+
+# avg_predictions_01
+dat = get_dataset("penguins", "palmerpenguins")
+setDT(dat)
+dat = na.omit(dat, cols = c("species", "island", "bill_length_mm", "flipper_length_mm"))
+dat$island = factor(dat$island, levels = c("Biscoe", "Dream", "Torgersen"))
+mod = multinom(island ~ bill_length_mm + flipper_length_mm, data = dat, trace = FALSE)
+avg_predictions(mod) |>
+    fwrite(here("tests/r/test_statsmodels_mnlogit_avg_predictions_01.csv"))

@@ -42,13 +42,13 @@ def hypotheses(
 
     # estimands
     def fun(x):
-        out = pl.DataFrame({"term": model.find_coef(), "estimate": x})
+        out = pl.DataFrame({"term": model.get_coefnames(), "estimate": x})
         out = get_hypothesis(out, hypothesis=hypothesis)
         return out
 
-    out = fun(model.coef)
+    out = fun(model.get_coef())
     if vcov is not None:
-        J = get_jacobian(fun, model.coef, eps_vcov=eps_vcov)
+        J = get_jacobian(fun, model.get_coef(), eps_vcov=eps_vcov)
         se = get_se(J, V)
         out = out.with_columns(pl.Series(se).alias("std_error"))
         out = get_z_p_ci(
