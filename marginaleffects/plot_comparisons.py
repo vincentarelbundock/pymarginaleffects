@@ -86,6 +86,15 @@ def plot_comparisons(
     # not sure why these get appended
     var_list = [x for x in var_list if x not in ["newdata", "model"]]
 
+    # condition accepts single values, but those should not be labelled or facetted
+    if isinstance(condition_input, dict):
+        bad = [
+            k
+            for k, v in condition_input.items()
+            if (v is not None) and (not isinstance(v, list))
+        ]
+    var_list = [x for x in var_list if x not in bad]
+
     assert len(var_list) < 5, (
         "The `condition` and `by` arguments can have a max length of 4."
     )
