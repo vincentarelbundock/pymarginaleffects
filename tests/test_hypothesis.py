@@ -97,7 +97,6 @@ def test_hypothesis_by_01():
 def numpy_formula():
     dat = get_dataset("thornton")
     dat.head(6)
-    mod = ols("outcome ~ agecat - 1",
-      data=dat.to_pandas()).fit()
-    h = hypotheses(mod, hypothesis = "b1**2 * np.exp(b0) = 0")
+    mod = ols("outcome ~ agecat - 1", data=dat.to_pandas()).fit()
+    h = hypotheses(mod, hypothesis="b1**2 * np.exp(b0) = 0")
     assert h.height == 1
