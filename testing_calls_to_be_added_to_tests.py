@@ -16,8 +16,7 @@ experiment = "not_discrete_interval_len2"
 if experiment == "thornton":
     data = get_dataset("thornton", package = "marginaleffects")
     print(type(data))
-    # data is a polars dataframe
-    # drop na from polars dataframe
+
     data = data.drop_nulls()
     mod = smf.logit("outcome ~ agecat + incentive", data=data).fit()
     fig = plot_predictions(mod, condition = ["agecat", "incentive"], gray = True)
@@ -39,13 +38,8 @@ elif experiment == "discrete_interval_len1": # this gets inside discrete branch 
     .with_columns(pl.col("gear").cast(pl.String).cast(pl.Categorical))
     .to_pandas()
     )
-    # data is a polars dataframe
-    # drop na from polars dataframe
-    # Create the squared distance term
-    # Fit GLM with interactions and squared term
 
     mod = smf.ols("mpg ~ wt + C(gear)", data=data).fit()
-    # mod = smf.glm("mpg ~ hp * wt * cyl * gear", data=data).fit()
 
     fig = plot_predictions(mod, condition = ["gear"], gray = True)
     fig.show() 
@@ -56,13 +50,8 @@ elif experiment == "discrete_interval_len2": # this gets inside discrete branch 
     .with_columns(pl.col("gear").cast(pl.String).cast(pl.Categorical))
     .to_pandas()
     )
-    # data is a polars dataframe
-    # drop na from polars dataframe
-    # Create the squared distance term
-    # Fit GLM with interactions and squared term
 
     mod = smf.ols("mpg ~ wt + C(gear)", data=data).fit()
-    # mod = smf.glm("mpg ~ hp * wt * cyl * gear", data=data).fit()
 
     fig = plot_predictions(mod, condition = ["gear", "hp", "cyl"], gray = True)
     fig.show() 
