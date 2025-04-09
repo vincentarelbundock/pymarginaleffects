@@ -9,6 +9,7 @@ from plotnine import (
     ggplot,
     labs,
     position_dodge,
+    scale_fill_grey,
 )
 import polars as pl
 
@@ -37,24 +38,31 @@ def plot_common(model, dt, y_label, var_list, gray=False):
 
     if discrete:
         if interval:
-            if len(var_list) > 1: # 
+            if len(var_list) > 1:  #
                 p = p + geom_pointrange(
-                    aes(shape=var_list[1]) if gray else
-                    aes(color=var_list[1]), # so this works correctly for gray
+                    aes(shape=var_list[1])
+                    if gray
+                    else aes(color=var_list[1]),  # so this works correctly for gray
                     position=position_dodge(width=0.1),
                 )
             else:
-                p = p + geom_pointrange() # this does not need grayscale as it does not display colors anyways, run  discrete_interval_len1 to see
+                p = (
+                    p + geom_pointrange()
+                )  # this does not need grayscale as it does not display colors anyways, run  discrete_interval_len1 to see
         else:
-            p = p + geom_point() # this does not need grayscale as it does not display colors anyways, run  discrete_not_interval to see
+            p = (
+                p + geom_point()
+            )  # this does not need grayscale as it does not display colors anyways, run  discrete_not_interval to see
     else:
         if interval:
             if len(var_list) > 1:
                 p = p + geom_ribbon(
-                    aes(linetype=var_list[1]) if gray else
-                    aes(fill=var_list[1]),
+                    # aes(linetype=var_list[1]) if gray else
+                    aes(fill=var_list[1]),  # here is the issue, how is it done in R?
                     alpha=0.2,
                 )
+                if gray:
+                    p = p + scale_fill_grey(start=0.2, end=0.8)
             else:
                 p = p + geom_ribbon(alpha=0.2)
         if len(var_list) > 1:
