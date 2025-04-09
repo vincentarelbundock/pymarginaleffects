@@ -13,8 +13,7 @@ from plotnine import (
 import polars as pl
 
 
-
-def plot_common(model, dt, y_label, var_list):
+def plot_common(model, dt, y_label, var_list, gray=False):
     discrete = model.get_variable_type()[var_list[0]] not in ["numeric", "integer"]
     interval = "conf_low" in dt.columns
 
@@ -38,27 +37,30 @@ def plot_common(model, dt, y_label, var_list):
 
     if discrete:
         if interval:
-            if len(var_list) > 1:
+            if len(var_list) > 1: # 
                 p = p + geom_pointrange(
-                    aes(shape=var_list[1]) if gray else aes(color=var_list[1]),
+                    aes(shape=var_list[1]) if gray else
+                    aes(color=var_list[1]), # so this works correctly for gray
                     position=position_dodge(width=0.1),
                 )
             else:
-                p = p + geom_pointrange()
+                p = p + geom_pointrange() # this does not need grayscale as it does not display colors anyways, run  discrete_interval_len1 to see
         else:
-            p = p + geom_point()
+            p = p + geom_point() # this does not need grayscale as it does not display colors anyways, run  discrete_not_interval to see
     else:
         if interval:
             if len(var_list) > 1:
                 p = p + geom_ribbon(
-                    aes(linetype=var_list[1]) if gray else aes(fill=var_list[1]),
+                    aes(linetype=var_list[1]) if gray else
+                    aes(fill=var_list[1]),
                     alpha=0.2,
                 )
             else:
                 p = p + geom_ribbon(alpha=0.2)
         if len(var_list) > 1:
             p = p + geom_line(
-                aes(linetype=var_list[1]) if gray else aes(color=var_list[1])
+                # aes(linetype=var_list[1]) if gray else
+                aes(color=var_list[1])
             )
         else:
             p = p + geom_line()

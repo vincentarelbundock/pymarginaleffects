@@ -6,6 +6,7 @@ from .hypothesis_formula import eval_hypothesis_formula
 import numpy
 import scipy
 
+
 def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.DataFrame:
     hypothesis = re.sub("=", "-(", hypothesis) + ")"
     if re.search(r"\bb\d+\b", hypothesis):
@@ -34,9 +35,9 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
 
     def eval_string_function(vec, hypothesis, rowlabels):
         env = {rowlabel: vec[i] for i, rowlabel in enumerate(rowlabels)}
-        env['numpy'] = numpy
-        env['scipy'] = scipy
-        env['np'] = numpy
+        env["numpy"] = numpy
+        env["scipy"] = scipy
+        env["np"] = numpy
         hypothesis = hypothesis.replace("=", "==")
         out = eval(hypothesis, env)
         return out

@@ -124,5 +124,6 @@ plot_slopes.__doc__ = (
     + DocsParameters.docstring_draw
     + DocsParameters.docstring_newdata_plot("slopes")
     + DocsParameters.docstring_wts
+    + DocsParameters.docstring_vcov
     + DocsParameters.docstring_gray
 )

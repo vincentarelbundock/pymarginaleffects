@@ -96,6 +96,7 @@ plot_predictions.__doc__ = (
     + DocsParameters.docstring_by_plot("predictions")
     + DocsParameters.docstring_draw
     + DocsParameters.docstring_newdata_plot("predictions")
+    + DocsParameters.docstring_vcov
     + DocsParameters.docstring_wts
     + DocsParameters.docstring_transform
     + DocsParameters.docstring_gray

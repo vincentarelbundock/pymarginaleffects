@@ -114,6 +114,7 @@ plot_comparisons.__doc__ = (
     + DocsParameters.docstring_condition("comparisons")
     + DocsParameters.docstring_by_plot("comparisons")
     + DocsParameters.docstring_wts
+    + DocsParameters.docstring_vcov
     + DocsParameters.docstring_transform
     + DocsParameters.docstring_draw
     + DocsParameters.docstring_gray
