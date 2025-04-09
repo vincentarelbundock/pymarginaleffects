@@ -64,20 +64,30 @@ def plot_common(model, dt, y_label, var_list, gray=False):
                     alpha=0.2,
                 )
                 if gray:
-                    p = p + scale_fill_grey(start=0.2, end=0.8) # this could be improved by putting texture on the background
+                    p = p + scale_fill_grey(
+                        start=0.2, end=0.8
+                    )  # this could be improved by putting texture on the background
             else:
                 p = (
                     p + geom_ribbon(alpha=0.2)
                 )  # this does not need grayscale as it does not display colors anyways, run  not_discrete_interval_len1 to see
-        if len(var_list) > 1: # we are here <----
+        if len(var_list) > 1:  # we are here <----
             if gray:
-                custom_line_types = ['solid', 'dashed', 'dotted',  'dashdot', (2, (5, 3, 1, 3, 1, 3))] # maximum number of lines is 5, this is the default, can add more linetypes by following the documentation at https://plotnine.org/reference/scale_linetype_manual.html
+                custom_line_types = [
+                    "solid",
+                    "dashed",
+                    "dotted",
+                    "dashdot",
+                    (2, (5, 3, 1, 3, 1, 3)),
+                ]  # maximum number of lines is 5, this is the default, can add more linetypes by following the documentation at https://plotnine.org/reference/scale_linetype_manual.html
                 p = p + geom_line(aes(linetype=var_list[1]))
                 p = p + scale_linetype_manual(values=custom_line_types)
             else:
                 p = p + geom_line(aes(color=var_list[1]))
         else:
-            p = p + geom_line() # this does not need grayscale as it does not display colors anyways, run  not_discrete_interval_len1 to see
+            p = (
+                p + geom_line()
+            )  # this does not need grayscale as it does not display colors anyways, run  not_discrete_interval_len1 to see
 
     if len(var_list) == 3:
         p = p + facet_wrap(f"~ {var_list[2]}")
