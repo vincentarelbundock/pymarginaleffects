@@ -82,7 +82,7 @@ def plot_predictions(
             for k, v in condition_input.items()
             if (v is not None) and (not isinstance(v, list))
         ]
-    var_list = [x for x in var_list if x not in bad]
+        var_list = [x for x in var_list if x not in bad]
 
     assert len(var_list) < 5, (
         "The `condition` and `by` arguments can have a max length of 4."
