@@ -6,13 +6,27 @@ from tests.utilities import *
 import pytest
 from tests.helpers import *
 
-pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
+# pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
 
 FIGURES_FOLDER = "plot_predictions"
 
 
 @pytest.mark.plot
 class TestPlotPredictions:
+    def test_gray(self):
+        # discrete interval len 3
+        data = (
+            get_dataset("mtcars", "datasets")
+            .sort("gear")
+            .with_columns(pl.col("gear").cast(pl.String).cast(pl.Categorical))
+            .to_pandas()
+        )
+
+        mod = smf.ols("mpg ~ wt + hp + C(gear)", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear", "wt", "hp"], gray=True)
+        assert assert_image(fig, "test_gray_01", FIGURES_FOLDER) is None
+
     @pytest.mark.parametrize(
         "by, expected_figure_filename",
         [

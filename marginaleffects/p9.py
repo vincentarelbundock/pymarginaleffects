@@ -73,6 +73,10 @@ def plot_common(model, dt, y_label, var_list, gray=False):
                 )  # this does not need grayscale as it does not display colors anyways, run  not_discrete_interval_len1 to see
         if len(var_list) > 1:  # we are here <----
             if gray:
+                if len(var_list[1]) > 5:
+                    raise ValueError(
+                        f"The number of elements in the second position of the `condition` or `by` argument (variable {var_list[1]}) cannot exceed 5. It has currently {len(var_list[1])} elements."
+                    )
                 custom_line_types = [
                     "solid",
                     "dashed",

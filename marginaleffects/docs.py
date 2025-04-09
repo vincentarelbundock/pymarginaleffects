@@ -87,7 +87,7 @@ class DocsParameters:
 """
 
     docstring_gray = """
-`gray`: True returns a gray scale adapted plot. False returns a plot in color.
+`gray`: True returns a gray scale adapted plot. False returns a plot in color. For the second position of the list in the `condition` or `by` argument, the list can have at most 5 elements.
 """
 
     def docstring_by_plot(x):
