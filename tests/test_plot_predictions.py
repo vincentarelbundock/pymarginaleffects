@@ -184,3 +184,13 @@ class TestPlotPredictions:
     def test_issue_114(self, input_condition, expected_figure_filename, penguins_model):
         fig = plot_predictions(penguins_model, condition=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
+
+
+def test_issue_171():
+    dat = get_dataset("thornton")
+    mod = smf.logit(
+        "outcome ~ incentive + agecat + distance", data=dat.to_pandas()
+    ).fit()
+    cond = {"distance": None, "agecat": ">35", "incentive": 0}
+    fig = plot_predictions(mod, condition=cond)
+    assert assert_image(fig, "issue_171", FIGURES_FOLDER) is None
