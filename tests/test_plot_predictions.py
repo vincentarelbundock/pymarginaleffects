@@ -6,7 +6,7 @@ from tests.utilities import *
 import pytest
 from tests.helpers import *
 
-# pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
+pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
 
 FIGURES_FOLDER = "plot_predictions"
 

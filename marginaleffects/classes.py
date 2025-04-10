@@ -27,6 +27,7 @@ class MarginaleffectsDataFrame(pl.DataFrame):
             # Split the dictionary into two parts and combine them into default_mapping.
             # The first part only includes "term" and any column from `data` that start with "contrast".
             # Any contrast key that starts with contrast_ should have a value in the form: "C: v", where v is the part of the key after the underscore.
+            de = dict(zip(self.datagrid_explicit, self.datagrid_explicit))
             contrast_columns = {
                 col: f"C: {col.split('_', 1)[1]}"
                 for col in data.columns
@@ -35,6 +36,7 @@ class MarginaleffectsDataFrame(pl.DataFrame):
             default_mapping = {
                 "term": "Term",
                 "group": "Group",
+                **de,
                 **contrast_columns,
                 "contrast": "Contrast",
                 "estimate": "Estimate",
