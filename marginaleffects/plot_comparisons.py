@@ -1,7 +1,6 @@
 from .docs import DocsParameters
 from .comparisons import comparisons
-from .plot_common import dt_on_condition
-from .p9 import plot_common
+from .plot_common import dt_on_condition, plot_common
 from .sanitize_model import sanitize_model
 from .plot_common import plot_labels
 import copy

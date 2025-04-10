@@ -1,4 +1,4 @@
-# Development
+# 0.1.2
 
 * `datagrid(grid_type="counterfactual")` now accepts lambda functions.
 * `get_dataset()` no longer requires the `package` argument.

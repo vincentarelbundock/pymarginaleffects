@@ -2,6 +2,20 @@ import numpy as np
 from .datagrid import datagrid  # noqa
 from .sanitize_model import sanitize_model
 import polars as pl
+from plotnine import (
+    aes,
+    facet_wrap,
+    facet_grid,
+    geom_pointrange,
+    geom_ribbon,
+    geom_line,
+    geom_point,
+    ggplot,
+    labs,
+    position_dodge,
+    scale_fill_grey,
+    scale_linetype_manual,
+)
 
 
 def dt_on_condition(model, condition):
@@ -128,3 +142,87 @@ def ordered_cat(dt, k, lab):
     dt = dt.with_columns(dt[k].replace_strict(uniq).cast(pl.Categorical).alias(k))
     dt = dt.sort(by="rowid")
     return dt
+
+
+def plot_common(model, dt, y_label, var_list, gray=False):
+    discrete = model.get_variable_type()[var_list[0]] not in ["numeric", "integer"]
+    interval = "conf_low" in dt.columns
+
+    # treat all variables except x-axis as categorical
+    if len(var_list) > 1:
+        for i in range(len(var_list) - 1, 0, -1):  # because .pop()
+            # treat all variables except x-axis as categorical
+            if dt[var_list[i]].dtype.is_numeric() and i != 0 and i != 1:
+                dt = dt.with_columns(pl.col(var_list[i]))
+            elif dt[var_list[i]].dtype != pl.Categorical:
+                dt = dt.with_columns(pl.col(var_list[i]).cast(pl.Utf8))
+
+            # unique values do not get a distinct aesthetic/geom/facet
+            if dt[var_list[i]].unique().len() == 1:
+                var_list.pop(i)
+
+    # aes
+    # mapping = {"x": var_list[0], "y": y_label}  # proposed change to make y axis label correspond to R  but needs some debugging
+    mapping = {"x": var_list[0], "y": "estimate"}
+    if interval:
+        mapping["ymin"] = "conf_low"
+        mapping["ymax"] = "conf_high"
+    mapping = aes(**mapping)
+
+    p = ggplot(data=dt, mapping=mapping)
+
+    if discrete:
+        if interval:
+            if len(var_list) > 1:  #
+                p = p + geom_pointrange(
+                    aes(shape=var_list[1]) if gray else aes(color=var_list[1]),
+                    position=position_dodge(width=0.1),
+                )
+            else:
+                p = p + geom_pointrange()
+        else:
+            p = p + geom_point()
+    else:
+        if interval:
+            if len(var_list) > 1:
+                p = p + geom_ribbon(
+                    aes(fill=var_list[1]),
+                    alpha=0.2,
+                )
+                if gray:
+                    p = p + scale_fill_grey(
+                        start=0.2, end=0.8
+                    )  # this could be improved by putting texture on the background
+            else:
+                p = p + geom_ribbon(alpha=0.2)
+        if len(var_list) > 1:
+            if gray:
+                # get the number of unique values in the column "var_list[1]"
+                unique_values = dt[var_list[1]].unique().len()
+                if unique_values > 5:
+                    raise ValueError(
+                        f"The number of elements in the second position of the `condition` or `by` argument (variable {var_list[1]}) cannot exceed 5. It has currently {len(unique_values)} elements, with values {unique_values}."
+                    )
+                custom_line_types = [
+                    "solid",
+                    "dashed",
+                    "dotted",
+                    "dashdot",
+                    (2, (5, 3, 1, 3, 1, 3)),
+                ]  # maximum number of lines is 5, this is the default, can add more linetypes by following the documentation at https://plotnine.org/reference/scale_linetype_manual.html
+                p = p + geom_line(aes(linetype=var_list[1]))
+                p = p + scale_linetype_manual(values=custom_line_types)
+            else:
+                p = p + geom_line(aes(color=var_list[1]))
+        else:
+            p = p + geom_line()
+
+    if len(var_list) == 3:
+        p = p + facet_wrap(f"~ {var_list[2]}")
+
+    elif len(var_list) == 4:
+        p = p + facet_grid(f"{var_list[3]} ~ {var_list[2]}", scales="free")
+
+    p = p + labs(y=y_label)
+
+    return p
