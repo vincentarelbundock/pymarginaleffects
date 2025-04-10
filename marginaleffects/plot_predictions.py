@@ -16,6 +16,7 @@ def plot_predictions(
     transform=None,
     draw=True,
     wts=None,
+    gray=False,
 ):
     """
     Plot predictions on the y-axis against values of one or more predictors (x-axis, colors/shapes, and facets).
@@ -79,7 +80,7 @@ def plot_predictions(
         "The `condition` and `by` arguments can have a max length of 4."
     )
 
-    return plot_common(model, dt, model.response_name, var_list=var_list)
+    return plot_common(model, dt, model.response_name, var_list=var_list, gray=gray)
 
 
 plot_predictions.__doc__ = (
@@ -91,12 +92,14 @@ plot_predictions.__doc__ = (
 ## Parameters
 """
     + DocsParameters.docstring_model
-    + DocsParameters.docstring_condition
-    + DocsParameters.docstring_by_plot
+    + DocsParameters.docstring_condition("predictions")
+    + DocsParameters.docstring_by_plot("predictions")
     + DocsParameters.docstring_draw
     + DocsParameters.docstring_newdata_plot("predictions")
+    + DocsParameters.docstring_vcov
     + DocsParameters.docstring_wts
     + DocsParameters.docstring_transform
+    + DocsParameters.docstring_gray
     + """
 ## Examples
 ```py

@@ -9,16 +9,19 @@ from plotnine import (
     ggplot,
     labs,
     position_dodge,
+    scale_fill_grey,
+    scale_linetype_manual,
 )
 import polars as pl
 
 
-def plot_common(model, dt, y_label, var_list):
+def plot_common(model, dt, y_label, var_list, gray=False):
     discrete = model.get_variable_type()[var_list[0]] not in ["numeric", "integer"]
     interval = "conf_low" in dt.columns
 
+    # treat all variables except x-axis as categorical
     if len(var_list) > 1:
-        for i in range(len(var_list)-1, 0, -1): # because .pop()
+        for i in range(len(var_list) - 1, 0, -1):  # because .pop()
             # treat all variables except x-axis as categorical
             if dt[var_list[i]].dtype.is_numeric() and i != 0 and i != 1:
                 dt = dt.with_columns(pl.col(var_list[i]))
@@ -41,9 +44,10 @@ def plot_common(model, dt, y_label, var_list):
 
     if discrete:
         if interval:
-            if len(var_list) > 1:
+            if len(var_list) > 1:  #
                 p = p + geom_pointrange(
-                    aes(color=var_list[1]), position=position_dodge(width=0.1)
+                    aes(shape=var_list[1]) if gray else aes(color=var_list[1]),
+                    position=position_dodge(width=0.1),
                 )
             else:
                 p = p + geom_pointrange()
@@ -52,11 +56,35 @@ def plot_common(model, dt, y_label, var_list):
     else:
         if interval:
             if len(var_list) > 1:
-                p = p + geom_ribbon(aes(fill=var_list[1]), alpha=0.2)
+                p = p + geom_ribbon(
+                    aes(fill=var_list[1]),
+                    alpha=0.2,
+                )
+                if gray:
+                    p = p + scale_fill_grey(
+                        start=0.2, end=0.8
+                    )  # this could be improved by putting texture on the background
             else:
                 p = p + geom_ribbon(alpha=0.2)
         if len(var_list) > 1:
-            p = p + geom_line(aes(color=var_list[1]))
+            if gray:
+                # get the number of unique values in the column "var_list[1]"
+                unique_values = dt[var_list[1]].unique().len()
+                if unique_values > 5:
+                    raise ValueError(
+                        f"The number of elements in the second position of the `condition` or `by` argument (variable {var_list[1]}) cannot exceed 5. It has currently {len(unique_values)} elements, with values {unique_values}."
+                    )
+                custom_line_types = [
+                    "solid",
+                    "dashed",
+                    "dotted",
+                    "dashdot",
+                    (2, (5, 3, 1, 3, 1, 3)),
+                ]  # maximum number of lines is 5, this is the default, can add more linetypes by following the documentation at https://plotnine.org/reference/scale_linetype_manual.html
+                p = p + geom_line(aes(linetype=var_list[1]))
+                p = p + scale_linetype_manual(values=custom_line_types)
+            else:
+                p = p + geom_line(aes(color=var_list[1]))
         else:
             p = p + geom_line()
 
