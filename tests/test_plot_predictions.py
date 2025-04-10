@@ -13,8 +13,7 @@ FIGURES_FOLDER = "plot_predictions"
 
 @pytest.mark.plot
 class TestPlotPredictions:
-    def test_gray(self):
-        # discrete interval len 3
+    def test_gray_discrete_interval_len3(self):
         data = (
             get_dataset("mtcars", "datasets")
             .sort("gear")
@@ -25,7 +24,60 @@ class TestPlotPredictions:
         mod = smf.ols("mpg ~ wt + hp + C(gear)", data=data).fit()
 
         fig = plot_predictions(mod, condition=["gear", "wt", "hp"], gray=True)
-        assert assert_image(fig, "test_gray_01", FIGURES_FOLDER) is None
+        assert (
+            assert_image(fig, "test_gray_discrete_interval_len3", FIGURES_FOLDER)
+            is None
+        )
+
+    def test_gray_discrete_interval_len1(self):
+        data = get_dataset("mtcars", "datasets")
+
+        data = data.drop_nulls()
+        mod = smf.glm("mpg ~ hp * wt * cyl * gear", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear"], gray=True)
+        assert (
+            assert_image(fig, "test_gray_discrete_interval_len1", FIGURES_FOLDER)
+            is None
+        )
+
+    def test_gray_discrete_not_interval(self):
+        data = (
+            get_dataset("mtcars", "datasets")
+            .sort("gear")
+            .with_columns(pl.col("gear").cast(pl.String).cast(pl.Categorical))
+            .to_pandas()
+        )
+        mod = smf.ols("mpg ~ wt + C(gear)", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear"], vcov=False, gray=True)
+        assert (
+            assert_image(fig, "test_gray_discrete_not_interval", FIGURES_FOLDER) is None
+        )
+
+    def test_gray_not_discrete_interval_len3(self):
+        data = get_dataset("mtcars", "datasets")
+
+        data = data.drop_nulls()
+        mod = smf.glm("mpg ~ hp * wt * cyl * gear", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear", "hp", "cyl"], gray=True)
+        assert (
+            assert_image(fig, "test_gray_not_discrete_interval_len3", FIGURES_FOLDER)
+            is None
+        )
+
+    def test_gray_not_discrete_interval_len1(self):
+        data = get_dataset("mtcars", "datasets")
+
+        data = data.drop_nulls()
+        mod = smf.glm("mpg ~ hp * wt * cyl * gear", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear"], gray=True)
+        assert (
+            assert_image(fig, "test_gray_not_discrete_interval_len1", FIGURES_FOLDER)
+            is None
+        )
 
     @pytest.mark.parametrize(
         "by, expected_figure_filename",
