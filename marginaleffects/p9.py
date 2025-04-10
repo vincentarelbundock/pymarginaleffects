@@ -21,11 +21,16 @@ def plot_common(model, dt, y_label, var_list, gray=False):
 
     # treat all variables except x-axis as categorical
     if len(var_list) > 1:
-        for i in range(1, len(var_list)):
+        for i in range(len(var_list) - 1, 0, -1):  # because .pop()
+            # treat all variables except x-axis as categorical
             if dt[var_list[i]].dtype.is_numeric() and i != 0 and i != 1:
                 dt = dt.with_columns(pl.col(var_list[i]))
             elif dt[var_list[i]].dtype != pl.Categorical:
                 dt = dt.with_columns(pl.col(var_list[i]).cast(pl.Utf8))
+
+            # unique values do not get a distinct aesthetic/geom/facet
+            if dt[var_list[i]].unique().len() == 1:
+                var_list.pop(i)
 
     # aes
     # mapping = {"x": var_list[0], "y": y_label}  # proposed change to make y axis label correspond to R  but needs some debugging
@@ -41,26 +46,18 @@ def plot_common(model, dt, y_label, var_list, gray=False):
         if interval:
             if len(var_list) > 1:  #
                 p = p + geom_pointrange(
-                    aes(shape=var_list[1])
-                    if gray
-                    else aes(color=var_list[1]),
+                    aes(shape=var_list[1]) if gray else aes(color=var_list[1]),
                     position=position_dodge(width=0.1),
                 )
             else:
-                p = (
-                    p + geom_pointrange()
-                )  
+                p = p + geom_pointrange()
         else:
-            p = (
-                p + geom_point()
-            ) 
+            p = p + geom_point()
     else:
         if interval:
             if len(var_list) > 1:
                 p = p + geom_ribbon(
-                    aes(
-                        fill=var_list[1]
-                    ),
+                    aes(fill=var_list[1]),
                     alpha=0.2,
                 )
                 if gray:
@@ -68,9 +65,7 @@ def plot_common(model, dt, y_label, var_list, gray=False):
                         start=0.2, end=0.8
                     )  # this could be improved by putting texture on the background
             else:
-                p = (
-                    p + geom_ribbon(alpha=0.2)
-                )
+                p = p + geom_ribbon(alpha=0.2)
         if len(var_list) > 1:
             if gray:
                 # get the number of unique values in the column "var_list[1]"
@@ -91,9 +86,7 @@ def plot_common(model, dt, y_label, var_list, gray=False):
             else:
                 p = p + geom_line(aes(color=var_list[1]))
         else:
-            p = (
-                p + geom_line()
-            )
+            p = p + geom_line()
 
     if len(var_list) == 3:
         p = p + facet_wrap(f"~ {var_list[2]}")
