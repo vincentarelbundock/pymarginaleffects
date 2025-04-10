@@ -104,8 +104,8 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     )
 
     datagrid_explicit = None
-    if isinstance(out, pl.DataFrame) and hasattr(out, "datagrid_explicit"):
-        datagrid_explicit = out.datagrid_explicit
+    if isinstance(newdata, pl.DataFrame) and hasattr(newdata, "datagrid_explicit"):
+        datagrid_explicit = newdata.datagrid_explicit
 
     if isinstance(by, list) and len(by) > 0:
         by = [x for x in by if x in out.columns]
@@ -121,9 +121,6 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     if any([isinstance(out[x], pl.Categorical) for x in out.columns]):
         raise ValueError("Categorical type columns are not supported in `newdata`.")
 
-    if datagrid_explicit is not None:
-        out.datagrid_explicit = datagrid_explicit
-
     # ensure all enum levels are in modeldata
     for c in out.columns:
         if c in modeldata.columns and modeldata[c].dtype in [pl.Categorical, pl.Enum]:
@@ -136,6 +133,9 @@ def sanitize_newdata(model, newdata, wts, by=[]):
                 )
 
     out = upcast(out, modeldata)
+
+    if datagrid_explicit is not None:
+        out.datagrid_explicit = datagrid_explicit
 
     return out
 

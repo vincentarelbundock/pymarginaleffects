@@ -1,11 +1,10 @@
 # Development
 
-New:
-
 * `datagrid(grid_type="counterfactual")` now accepts lambda functions.
 * `get_dataset()` no longer requires the `package` argument.
 * Group formula hypotheses are now supported `hypothesis="difference~reference|group"`
 * `np.*()` is allowed in string/equation `hypothesis`.
+* Better printing when `datagrid()` is used to specify column values explicitly.
 
 # 0.1.1
 
