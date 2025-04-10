@@ -20,7 +20,7 @@ def plot_common(model, dt, y_label, var_list, gray=False):
     interval = "conf_low" in dt.columns
 
     if len(var_list) > 1:
-        for i in range(len(var_list)-1, 0, -1): # because .pop()
+        for i in range(len(var_list) - 1, 0, -1):  # because .pop()
             # treat all variables except x-axis as categorical
             if dt[var_list[i]].dtype.is_numeric() and i != 0 and i != 1:
                 dt = dt.with_columns(pl.col(var_list[i]))
