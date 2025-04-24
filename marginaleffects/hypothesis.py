@@ -63,8 +63,11 @@ def get_hypothesis(x, hypothesis, by=None):
     elif isinstance(hypothesis, str) and "=" in hypothesis:
         out = eval_string_hypothesis(x, hypothesis, lab=hypothesis)
     elif isinstance(hypothesis, list):
+        results = []
         for hypothesis_el in hypothesis:
-            out = eval_string_hypothesis(x, hypothesis_el, lab=hypothesis_el)
+            result = eval_string_hypothesis(x, hypothesis_el, lab=hypothesis_el)
+            results.append(result)
+        out = pl.concat(results, how="vertical")  # Concatenate results along rows
     else:
         raise ValueError(msg)
     return out
