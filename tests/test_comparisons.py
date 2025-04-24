@@ -24,6 +24,14 @@ dat = dat.with_columns(
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
 
 
+def test_comparisons_hypothesis_list():
+    # run comparisons with only first hypothesis
+    # run comparisons with only second hypothesis
+    # run again with 2 hypothesis
+    # compare the separate with both runs 
+    pass
+
+
 def test_difference():
     cmp_py = comparisons(mod, comparison="differenceavg").sort("term")
     cmp_r = pl.read_csv("tests/r/test_comparisons_01.csv").sort("term")
