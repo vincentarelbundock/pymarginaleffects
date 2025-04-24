@@ -62,6 +62,9 @@ def get_hypothesis(x, hypothesis, by=None):
         out = eval_hypothesis_formula(x, hypothesis, lab=lab)
     elif isinstance(hypothesis, str) and "=" in hypothesis:
         out = eval_string_hypothesis(x, hypothesis, lab=hypothesis)
+    elif isinstance(hypothesis, list):
+        for hypothesis_el in hypothesis:
+            out = eval_string_hypothesis(x, hypothesis_el, lab=hypothesis_el)
     else:
         raise ValueError(msg)
     return out
