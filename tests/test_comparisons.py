@@ -4,7 +4,7 @@ import numpy as np
 import polars as pl
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
-from polars.testing import assert_series_equal
+from polars.testing import assert_series_equal, assert_frame_equal, assert_frame_not_equal
 import pytest
 
 import marginaleffects
@@ -25,11 +25,23 @@ mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
 
 
 def test_comparisons_hypothesis_list():
+    dat = get_dataset("interaction_04")
+    mod = smf.logit("Y ~ X * M1 * M2", data=dat).fit()
+    comps_1 = avg_comparisons(mod, hypothesis="b2=1", variables="X", by=["M2", "M1"])
+    comps_2 = avg_comparisons(
+        mod, hypothesis="b1 - b0 = 0", variables="X", by=["M2", "M1"]
+    )
+
+    comps_both = avg_comparisons(
+        mod, hypothesis=["b1 - b0 = 0", "b2=1"], variables="X", by=["M2", "M1"]
+    )
+
     # run comparisons with only first hypothesis
     # run comparisons with only second hypothesis
     # run again with 2 hypothesis
-    # compare the separate with both runs 
-    pass
+    # compare the separate with both runs
+    assert_frame_not_equal(comps_both, pl.concat([comps_1, comps_2], how="vertical"))
+    assert_frame_equal(comps_both, pl.concat([comps_2, comps_1], how="vertical"))
 
 
 def test_difference():
