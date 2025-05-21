@@ -1,3 +1,9 @@
+# development
+
+Bugs:
+
+* `fit_statsmodels()` preserves parameter names. 
+
 # 0.1.2
 
 * `datagrid(grid_type="counterfactual")` now accepts lambda functions.

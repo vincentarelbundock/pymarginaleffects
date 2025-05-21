@@ -126,7 +126,7 @@ def model_matrices(formula: str, data: "IntoFrame", formula_engine: str = "formu
                 raise ImportError("The pandas package is required to use this feature.")
             return pd.DataFrame(endog), pd.DataFrame(exog)
         else:
-            return endog.to_numpy(), exog.to_numpy()
+            return endog, exog
 
     elif formula_engine == "patsy":
         try:

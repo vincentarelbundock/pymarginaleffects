@@ -21,7 +21,8 @@ class ModelStatsmodels(ModelAbstract):
         ] + fml.extract_patsy_variable_names(cache["formula"], cache["modeldata"])
         if not hasattr(model, "formula"):
             cache["formula_engine"] = "patsy"
-            cache["design_info_patsy"] = model.model.data.design_info
+            if hasattr(model.model.data, "design_info"):
+                cache["design_info_patsy"] = model.model.data.design_info
         vault.update(cache)
         super().__init__(model, vault)
 
@@ -98,6 +99,8 @@ def fit_statsmodels(
     y, X = fml.model_matrices(formula, d)
     mod = engine(endog=y, exog=X, **kwargs_engine)
     mod = mod.fit(**kwargs_fit)
+    mod.model.formula = formula
+    mod.model.data.frame = d
     vault = {
         "modeldata": d,
         "formula": formula,
