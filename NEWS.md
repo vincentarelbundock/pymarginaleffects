@@ -3,6 +3,7 @@
 Bugs:
 
 * `fit_statsmodels()` preserves parameter names. 
+* `get_dataset()` downloads parquet files rather than CSV (faster)
 
 # 0.1.2
 

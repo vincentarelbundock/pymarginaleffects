@@ -235,9 +235,9 @@ def get_dataset(
             else:
                 doc_url = f"{base_url}.html"
         else:
-            csv_url = f"https://vincentarelbundock.github.io/Rdatasets/csv/{package}/{dataset}.csv"
+            parquet_url = f"https://vincentarelbundock.github.io/Rdatasets/parquet/{package}/{dataset}.parquet"
             doc_url = f"https://vincentarelbundock.github.io/Rdatasets/doc/{package}/{dataset}.html"
-            df = pl.read_csv(csv_url)
+            df = pl.read_parquet(parquet_url)
 
         if docs:
             return doc_url
