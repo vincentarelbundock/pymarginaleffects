@@ -19,8 +19,52 @@ class ModelSklearn(ModelAbstract):
             exog = newdata
         elif callable(formula):
             _, exog = formula(newdata)
+        elif (
+            hasattr(newdata, "shape")
+            and hasattr(newdata, "__array__")
+            and not isinstance(newdata, pl.DataFrame)
+        ):
+            # newdata is already a matrix (e.g., ModelMatrix from formulaic)
+            exog = newdata
         else:
-            _, exog = model_matrices(formula, data=newdata)
+            # Handle case where original data had an index that got converted to columns
+            if isinstance(newdata, pl.DataFrame):
+                pandas_newdata = newdata.to_pandas()
+
+                # Check if we need to restore index structure for formulaic
+                # This happens when polars converted an indexed pandas DataFrame
+                original_columns = self.vault.get("original_columns")
+                if original_columns is not None:
+                    # Determine which columns were originally indices
+                    modeldata_cols = set(newdata.columns)
+                    original_cols = set(original_columns)
+                    index_cols = list(modeldata_cols - original_cols)
+
+                    if index_cols:
+                        # Restore the original index structure
+                        pandas_indexed = pandas_newdata.set_index(index_cols)
+                        _, exog = model_matrices(
+                            formula,
+                            data=pandas_indexed,
+                            formula_engine=self.get_formula_engine(),
+                        )
+                    else:
+                        _, exog = model_matrices(
+                            formula,
+                            data=pandas_newdata,
+                            formula_engine=self.get_formula_engine(),
+                        )
+                else:
+                    # Fallback: no original structure info available
+                    _, exog = model_matrices(
+                        formula,
+                        data=pandas_newdata,
+                        formula_engine=self.get_formula_engine(),
+                    )
+            else:
+                _, exog = model_matrices(
+                    formula, data=newdata, formula_engine=self.get_formula_engine()
+                )
 
         try:
             with warnings.catch_warnings():
@@ -72,6 +116,11 @@ def fit_sklearn(formula, data: pl.DataFrame, engine) -> ModelSklearn:
 
     d = listwise_deletion(formula, data=data)
 
+    # Store original data structure info for later restoration
+    original_columns = None
+    if hasattr(data, "columns"):
+        original_columns = list(data.columns)
+
     if isinstance(formula, str):
         d = listwise_deletion(formula, data=data)
         y, X = model_matrices(formula, d)
@@ -93,6 +142,7 @@ def fit_sklearn(formula, data: pl.DataFrame, engine) -> ModelSklearn:
         "modeldata": ingest(d),
         "package": "sklearn",
         "engine_running": engine_running,
+        "original_columns": original_columns,  # Store for index restoration
     }
     return ModelSklearn(engine_running, vault)
 
