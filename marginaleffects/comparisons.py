@@ -23,6 +23,7 @@ from .utils import get_pad, sort_columns, upcast
 from .model_pyfixest import ModelPyfixest
 from .model_sklearn import ModelSklearn
 from .model_linearmodels import ModelLinearmodels
+from warnings import warn
 
 from .docs import (
     DocsDetails,
@@ -58,6 +59,21 @@ def comparisons(
         newdata = newdata(model)
 
     model = sanitize_model(model)
+
+    # For pyfixest models, automatically set vcov=False for non-linear models with warning
+    if (
+        isinstance(model, ModelPyfixest)
+        and vcov is not False
+        and not model.is_linear_model()
+    ):
+        warn(
+            "Standard errors are not available for comparisons in non-linear pyfixest models. "
+            "Setting vcov=False automatically.",
+            UserWarning,
+            stacklevel=2,
+        )
+        vcov = False
+
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)

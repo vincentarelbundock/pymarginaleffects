@@ -36,7 +36,12 @@ def test_bare_minimum():
     fit = feols("Y ~ X1 * X2 * Z1", data=data, ssc=ssc(fixef_k="none"))
 
     p = predictions(fit)
-    assert p.shape == (1000, 16)
+    # With automatic vcov=False for pyfixest, no uncertainty columns should be present
+    assert p.shape[0] == 1000  # Same number of rows
+    assert "std_error" not in p.columns
+    assert "p_value" not in p.columns
+    assert "conf_low" not in p.columns
+    assert "conf_high" not in p.columns
 
     p = avg_predictions(fit)
     assert_series_equal(
@@ -62,7 +67,12 @@ def test_bare_minimum():
     # test 2: fixed effects
     fit2 = feols("Y ~ X1 * X2 * Z1 | f1", data=data)
     p2 = predictions(fit2)
-    assert p2.shape == (1000, 16)
+    # With automatic vcov=False for pyfixest, no uncertainty columns should be present
+    assert p2.shape[0] == 1000  # Same number of rows
+    assert "std_error" not in p2.columns
+    assert "p_value" not in p2.columns
+    assert "conf_low" not in p2.columns
+    assert "conf_high" not in p2.columns
 
     p2 = avg_predictions(fit2)
     assert_series_equal(
@@ -124,7 +134,12 @@ def test_bare_minimum_fepois():
     # test 1: no fixed effects
     fit1 = fepois("Y ~ X1 * X2 * Z1", data=data)
     p1 = predictions(fit1)
-    assert p1.shape == (1000, 11)
+    # With automatic vcov=False for pyfixest, no uncertainty columns should be present
+    assert p1.shape[0] == 1000  # Same number of rows
+    assert "std_error" not in p1.columns
+    assert "p_value" not in p1.columns
+    assert "conf_low" not in p1.columns
+    assert "conf_high" not in p1.columns
 
     p1 = avg_predictions(fit1)
     assert_series_equal(

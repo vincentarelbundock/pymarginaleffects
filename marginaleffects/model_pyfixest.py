@@ -23,6 +23,15 @@ class ModelPyfixest(ModelAbstract):
                 for f in fe:
                     self.set_variable_type(f, "character")
 
+    def is_linear_model(self):
+        """Check if this is a linear regression model (feols) vs. non-linear (fepois, etc.)."""
+        # Check the _method attribute: 'feols' for linear, 'fepois' for Poisson, etc.
+        if hasattr(self.model, "_method"):
+            return self.model._method == "feols"
+
+        # Fallback: assume linear if no method attribute
+        return True
+
     def get_coef(self):
         return np.array(self.model._beta_hat)
 

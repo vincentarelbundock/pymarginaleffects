@@ -1,5 +1,9 @@
 # development
 
+Breaking changes:
+
+* PyFixest no longer supports standard errors for `predictions()` (all models) or `comparisons()` and `slopes()` when there is a non-linear link function. See this issue for a discussion of estimation challenges.
+
 Bugs:
 
 * `fit_statsmodels()` preserves parameter names. 

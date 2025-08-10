@@ -18,6 +18,7 @@ from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 from .formulaic_utils import model_matrices
+from warnings import warn
 
 from .docs import (
     DocsDetails,
@@ -51,6 +52,17 @@ def predictions(
 
     # sanity checks
     model = sanitize_model(model)
+
+    # For pyfixest models, automatically set vcov=False for predictions with warning
+    if isinstance(model, ModelPyfixest) and vcov is not False:
+        warn(
+            "Standard errors are not available for predictions in pyfixest models. "
+            "Setting vcov=False automatically.",
+            UserWarning,
+            stacklevel=2,
+        )
+        vcov = False
+
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
