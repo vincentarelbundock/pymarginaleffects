@@ -15,7 +15,6 @@ dependencies = [
     "plotnine >=0.14.5",
     "scipy >=1.14.1",
     "pyarrow>=19.0.1",
-    "pre-commit>=4.2.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -28,6 +27,7 @@ test = [
     "matplotlib >=3.7.1",
     "linearmodels >=6.1",
     "pandas >=2.2.2",
+    "pre-commit>=4.2.0",
     "pyarrow >=17.0.0",
     "pyfixest >=0.28.0",
     "statsmodels >=0.14.0",
