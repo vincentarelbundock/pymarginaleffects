@@ -5,9 +5,6 @@ from plotnine import ggsave
 import warnings
 
 
-from marginaleffects import *
-
-
 def compare_r_to_py(r_obj, py_obj, tolr=1e-3, tola=1e-3, msg=""):
     cols = ["term", "contrast", "rowid"]
     cols = [x for x in cols if x in r_obj.columns and x in py_obj.columns]

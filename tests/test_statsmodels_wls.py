@@ -2,7 +2,7 @@ import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
 from tests.helpers import iris
-from marginaleffects import *
+from marginaleffects import comparisons, predictions
 
 dat = iris
 dat = dat.rename(

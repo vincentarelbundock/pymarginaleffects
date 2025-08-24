@@ -124,13 +124,17 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     # ensure all enum levels are in modeldata
     for c in out.columns:
         if c in modeldata.columns and modeldata[c].dtype in [pl.Categorical, pl.Enum]:
-            cat_modeldata = modeldata[c].unique()
-            cat_out = out[c].unique()
-            cat_out = [x for x in cat_out if x not in cat_modeldata]
-            if len(cat_out) > 0:
-                raise ValueError(
-                    f"Column `{c}` in `newdata` has levels not in the model data: {', '.join(cat_out)}"
-                )
+            try:
+                cat_modeldata = modeldata[c].unique()
+                cat_out = out[c].unique()
+                cat_out = [x for x in cat_out if x not in cat_modeldata]
+                if len(cat_out) > 0:
+                    raise ValueError(
+                        f"Column `{c}` in `newdata` has levels not in the model data: {', '.join(cat_out)}"
+                    )
+            except pl.exceptions.InvalidOperationError:
+                # Skip validation for columns that don't support unique() operation
+                continue
 
     out = upcast(out, modeldata)
 

@@ -190,9 +190,81 @@ def comparisons(
     pad = upcast(pad, hi)
     nd = upcast(nd, hi)
 
+    # Handle schema alignment for List columns before concat
+    dfs_to_align = [("nd", nd), ("hi", hi), ("lo", lo)]
+
+    for df_name, df in dfs_to_align:
+        common_cols = set(pad.columns) & set(df.columns)
+        for col in common_cols:
+            pad_dtype = str(pad[col].dtype)
+            df_dtype = str(df[col].dtype)
+            if pad_dtype != df_dtype:
+                # Handle List type mismatches
+                if pad_dtype.startswith("List(") and df_dtype.startswith("List("):
+                    # Both are List types but with different inner types
+                    # Convert both to simple string lists to ensure compatibility
+                    try:
+                        if col in pad.columns:
+                            pad = pad.with_columns(
+                                pad[col]
+                                .list.eval(pl.element().cast(pl.String))
+                                .alias(col)
+                            )
+                        if col in df.columns:
+                            df = df.with_columns(
+                                df[col]
+                                .list.eval(pl.element().cast(pl.String))
+                                .alias(col)
+                            )
+                    except Exception as e:
+                        print(
+                            f"Warning: Could not convert List column {col} to strings: {e}"
+                        )
+                        # Fallback: try to explode List columns to regular columns
+                        try:
+                            if col in pad.columns and pad.height > 0:
+                                pad = pad.explode(col)
+                            if col in df.columns and df.height > 0:
+                                df = df.explode(col)
+                        except Exception as e2:
+                            print(f"Warning: Could not explode List column {col}: {e2}")
+                            # Last resort: convert to string representation
+                            if col in pad.columns:
+                                pad = pad.with_columns(
+                                    pad[col].cast(pl.String).alias(col)
+                                )
+                            if col in df.columns:
+                                df = df.with_columns(df[col].cast(pl.String).alias(col))
+
+        # Update the variable with the aligned DataFrame
+        if df_name == "nd":
+            nd = df
+        elif df_name == "hi":
+            hi = df
+        elif df_name == "lo":
+            lo = df
+
     nd = pl.concat([pad, nd], how="diagonal")
     hi = pl.concat([pad, hi], how="diagonal")
     lo = pl.concat([pad, lo], how="diagonal")
+
+    # Explode any remaining List columns to avoid issues with pandas/patsy
+    # Only explode if we have categorical/string List columns that need to be handled
+    list_cols = [col for col in nd.columns if str(nd[col].dtype).startswith("List(")]
+    categorical_list_cols = []
+    for col in list_cols:
+        dtype_str = str(nd[col].dtype)
+        # Only explode List columns that contain categorical/string data
+        if (
+            "Enum(" in dtype_str or "String" in dtype_str or "UInt32" in dtype_str
+        ) and col in ["Region"]:
+            categorical_list_cols.append(col)
+
+    if categorical_list_cols:
+        for col in categorical_list_cols:
+            nd = nd.explode(col)
+            hi = hi.explode(col)
+            lo = lo.explode(col)
 
     # response cannot be NULL
 

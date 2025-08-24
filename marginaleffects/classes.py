@@ -1,4 +1,5 @@
 import polars as pl
+from typing import Dict, Any, Optional
 
 
 class MarginaleffectsDataFrame(pl.DataFrame):
@@ -127,3 +128,99 @@ class MarginaleffectsDataFrame(pl.DataFrame):
         ## we no longer print the column names
         # out = out + f"\n\nColumns: {', '.join(self.columns)}\n"
         return out
+
+
+def _detect_variable_type(
+    data: pl.DataFrame, model: Optional[Any] = None
+) -> Dict[str, str]:
+    """
+    Detect variable types in a DataFrame similar to R's detect_variable_class.
+
+    Parameters:
+    -----------
+    data : pl.DataFrame
+        The DataFrame to analyze
+    model : Optional[Any]
+        Optional model object (for compatibility)
+
+    Returns:
+    --------
+    Dict[str, str]
+        Dictionary mapping column names to variable types
+    """
+    variable_type = {}
+
+    for col in data.columns:
+        dtype = data[col].dtype
+
+        # Skip columns with complex dtypes that don't support unique()
+        try:
+            unique_vals = data[col].unique()
+            n_unique = len(unique_vals.drop_nulls())
+        except pl.exceptions.InvalidOperationError:
+            # If unique() is not supported, treat as "other"
+            variable_type[col] = "other"
+            continue
+
+        # Check if binary (only 2 unique values, excluding nulls)
+        if n_unique == 2:
+            variable_type[col] = "binary"
+        # Check if integer type
+        elif (
+            dtype == pl.Int64
+            or dtype == pl.Int32
+            or dtype == pl.Int16
+            or dtype == pl.Int8
+        ):
+            variable_type[col] = "integer"
+        # Check if numeric (float)
+        elif dtype == pl.Float64 or dtype == pl.Float32:
+            variable_type[col] = "numeric"
+        # Check if boolean/logical
+        elif dtype == pl.Boolean:
+            variable_type[col] = "logical"
+        # Check if categorical (explicit polars categorical) - check this first
+        elif dtype == pl.Categorical:
+            variable_type[col] = "categorical"
+        # Check if string/character - strings are character by default
+        elif dtype == pl.Utf8 or dtype == pl.String:
+            variable_type[col] = "character"
+        # Everything else
+        else:
+            variable_type[col] = "other"
+
+    return variable_type
+
+
+def _check_variable_type(
+    variable_type: Dict[str, str], variable_name: str, expected_type: str
+) -> bool:
+    """
+    Check if a variable has the expected type.
+
+    Parameters:
+    -----------
+    variable_type : Dict[str, str]
+        Dictionary mapping variable names to types
+    variable_name : str
+        Name of the variable to check
+    expected_type : str
+        Expected variable type
+
+    Returns:
+    --------
+    bool
+        True if variable has expected type, False otherwise
+    """
+    if variable_name not in variable_type:
+        return False
+
+    actual_type = variable_type[variable_name]
+
+    # Handle some aliases/mappings
+    if expected_type == "factor" and actual_type == "categorical":
+        return True
+    elif expected_type == "categorical" and actual_type == "factor":
+        return True
+    else:
+        return actual_type == expected_type

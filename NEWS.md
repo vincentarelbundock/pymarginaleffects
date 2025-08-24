@@ -1,3 +1,9 @@
+# Development
+
+New:
+
+* `datagrid()` gets new arguments: by, response, FUN_categorical, FUN_binary, FUN_numeric, FUN_other
+
 # 0.1.3
 
 Breaking changes:
@@ -8,6 +14,7 @@ Bugs:
 
 * `fit_statsmodels()` preserves parameter names. 
 * `get_dataset()` downloads parquet files rather than CSV (faster)
+
 
 # 0.1.2
 

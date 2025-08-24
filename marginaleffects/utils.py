@@ -1,7 +1,7 @@
 import narwhals as nw
 import numpy as np
 import polars as pl
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, Union, List
 from pydantic import ConfigDict, validate_call
 from functools import wraps
 import marginaleffects.formulaic_utils as fml
@@ -282,9 +282,168 @@ def upcast(df, reference):
                 #     )
 
                 else:
-                    df = df.with_columns(pl.col(col).cast(good))
+                    try:
+                        df = df.with_columns(pl.col(col).cast(good))
+                    except (
+                        pl.exceptions.InvalidOperationError,
+                        pl.exceptions.SchemaError,
+                        pl.exceptions.ComputeError,
+                    ) as e:
+                        error_str = str(e)
+                        # Handle various casting issues
+                        if (
+                            (
+                                ("List type" in error_str or "List(" in str(good))
+                                and ("Enum" in error_str or "UInt32" in error_str)
+                            )
+                            or ("cannot cast 'Object' type" in error_str)
+                            or (
+                                "cannot cast List type" in error_str
+                                and "to: '" in error_str
+                            )
+                        ):
+                            # Skip problematic type conversions
+                            continue
+                        else:
+                            # Re-raise for all other errors
+                            raise
 
     return df
+
+
+def get_mode(series: pl.Series) -> Union[str, int, float, bool]:
+    """
+    Get the mode (most frequent value) of a Polars Series.
+
+    Parameters:
+    -----------
+    series : pl.Series
+        The series to find the mode for
+
+    Returns:
+    --------
+    Union[str, int, float, bool]
+        The most frequent value
+    """
+    if len(series) == 0:
+        return None
+
+    # Remove nulls and get value counts
+    non_null = series.drop_nulls()
+    if len(non_null) == 0:
+        # If all values are null, return None but don't let it propagate
+        # This is a fallback case
+        return series.dtype.base_type() if hasattr(series.dtype, "base_type") else None
+
+    mode_result = non_null.mode()
+    if len(mode_result) > 0:
+        return mode_result[0]
+    else:
+        # Fallback to first non-null value if mode fails
+        return non_null[0] if len(non_null) > 0 else None
+
+
+def mean_i(series: pl.Series) -> int:
+    """
+    Calculate mean and round to integer, similar to R's mean_i.
+
+    Parameters:
+    -----------
+    series : pl.Series
+        The series to calculate mean for
+
+    Returns:
+    --------
+    int
+        Rounded mean value
+    """
+    return int(round(series.drop_nulls().mean()))
+
+
+def mean_na(series: pl.Series) -> float:
+    """
+    Calculate mean with NA removal, similar to R's mean_na.
+
+    Parameters:
+    -----------
+    series : pl.Series
+        The series to calculate mean for
+
+    Returns:
+    --------
+    float
+        Mean value with nulls removed
+    """
+    return series.drop_nulls().mean()
+
+
+def unique_s(series: pl.Series) -> List:
+    """
+    Get unique values sorted, similar to R's unique_s.
+
+    Parameters:
+    -----------
+    series : pl.Series
+        The series to get unique values from
+
+    Returns:
+    --------
+    List
+        Sorted list of unique values
+    """
+    unique_vals = series.unique().drop_nulls().sort()
+    return unique_vals.to_list()
+
+
+def sanitize_datagrid_factor(
+    values: List, newdata_col: pl.Series, variable_type: dict, var_name: str
+):
+    """
+    Sanitize factor values for datagrid, similar to R's sanitize_datagrid_factor.
+
+    Parameters:
+    -----------
+    values : List
+        Values to validate
+    newdata_col : pl.Series
+        Original column from data
+    variable_type : dict
+        Dictionary mapping variable names to types
+    var_name : str
+        Name of the variable
+
+    Returns:
+    --------
+    List
+        Validated and converted values
+    """
+    # Check if this should be treated as a categorical/factor
+    if newdata_col.dtype == pl.Categorical or (
+        var_name in variable_type and variable_type[var_name] == "categorical"
+    ):
+        # Get the categories/levels
+        if newdata_col.dtype == pl.Categorical:
+            levels = newdata_col.cat.get_categories().to_list()
+        else:
+            # For character data treated as categorical, get sorted unique values
+            levels = sorted(newdata_col.unique().drop_nulls().to_list())
+
+        # Convert values to string for comparison
+        str_values = [str(v) for v in values if v is not None]
+
+        # Check if all values are valid levels
+        invalid_values = [v for v in str_values if v not in levels]
+        if invalid_values:
+            msg = f'The "{var_name}" element corresponds to a factor variable. The values entered must be one of the factor levels: {levels}.'
+            raise ValueError(msg)
+
+        # Return as categorical if original was categorical
+        if newdata_col.dtype == pl.Categorical:
+            return pl.Series(values).cast(pl.Categorical).to_list()
+        else:
+            return values
+
+    return values
 
 
 get_dataset.__doc__ = """

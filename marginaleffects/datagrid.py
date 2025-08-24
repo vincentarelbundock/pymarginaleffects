@@ -1,18 +1,26 @@
 from functools import reduce, partial
+from typing import Union, List, Callable, Optional
 
 import polars as pl
 
 from .sanitize_model import sanitize_model
 import marginaleffects.utils as ut
+from .classes import _detect_variable_type, _check_variable_type
 
 
 def datagrid(
     model=None,
     newdata=None,
+    by: Optional[Union[str, List[str]]] = None,
     grid_type="mean_or_mode",
+    response: bool = False,
+    FUN: Optional[Callable] = None,
     FUN_binary=None,
     FUN_character=None,
+    FUN_factor=None,
+    FUN_logical=None,
     FUN_numeric=None,
+    FUN_integer=None,
     FUN_other=None,
     **kwargs,
 ):
@@ -28,125 +36,401 @@ def datagrid(
     if model is None and newdata is None:
         out = partial(
             datagrid,
+            by=by,
             grid_type=grid_type,
+            response=response,
+            FUN=FUN,
             FUN_binary=FUN_binary,
             FUN_character=FUN_character,
+            FUN_factor=FUN_factor,
+            FUN_logical=FUN_logical,
             FUN_numeric=FUN_numeric,
+            FUN_integer=FUN_integer,
             FUN_other=FUN_other,
             **kwargs,
         )
         return out
 
-    msg = "grid_type must be 'mean_or_mode', 'balanced', or 'counterfactual'"
-    assert isinstance(grid_type, str) and grid_type in [
-        "mean_or_mode",
-        "balanced",
-        "counterfactual",
-    ], msg
+    # Validation
+    valid_grid_types = ["mean_or_mode", "balanced", "counterfactual", "dataframe"]
+    if not isinstance(grid_type, str) or grid_type not in valid_grid_types:
+        raise ValueError(f"grid_type must be one of {valid_grid_types}")
+
+    if by is not None:
+        if isinstance(by, str):
+            by = [by]
+        elif not isinstance(by, list):
+            raise ValueError("by must be a string or list of strings")
 
     if model is None and newdata is None:
         raise ValueError("One of model or newdata must be specified")
-    else:
+
+    if model is not None:
+        # Validate and sanitize model - this will raise ValueError for unsupported types
         model = sanitize_model(model)
 
     if newdata is None:
         newdata = model.get_modeldata()
 
+    # Validate 'by' columns exist
+    if by is not None:
+        missing_cols = [col for col in by if col not in newdata.columns]
+        if missing_cols:
+            raise ValueError(
+                f"The following 'by' columns are not in newdata: {missing_cols}"
+            )
+
     if grid_type == "counterfactual":
-        return datagridcf(model=model, newdata=newdata, **kwargs)
+        return _datagridcf(model=model, newdata=newdata, by=by, **kwargs)
 
-    elif grid_type == "mean_or_mode":
-        pass
-
-    elif grid_type == "balanced":
-        if FUN_binary is None:
-
-            def FUN_binary(x):
-                return x.unique()
-
-        if FUN_character is None:
-
-            def FUN_character(x):
-                return x.unique()
-
-        if FUN_numeric is None:
-
-            def FUN_numeric(x):
-                return x.mean()
-
-        if FUN_other is None:
-
-            def FUN_other(x):
-                return x.unique()
-
-    if FUN_binary is None:
-
-        def FUN_binary(x):
-            return x.mode()[0]
-
-    if FUN_character is None:
-
-        def FUN_character(x):
-            return x.mode()[0]
-
-    if FUN_numeric is None:
-
-        def FUN_numeric(x):
-            return x.mean()
-
-    if FUN_other is None:
-
-        def FUN_other(x):
-            return x.mode()[0]
-
+    # Get variable types
     if model is not None:
-        modeldata = model.get_modeldata()
+        model_variable_type = model.get_variable_type()
+        # Also detect types for all columns in newdata to handle columns not in model
+        full_variable_type = _detect_variable_type(newdata)
+        # Merge the two, preferring model types for variables in the model
+        variable_type = {**full_variable_type, **model_variable_type}
     else:
-        modeldata = newdata
+        variable_type = _detect_variable_type(newdata)
 
-    out = {}
+    # Pre-compute variable type mappings to avoid repetitive checks
+    type_mapping = _compute_variable_type_mapping(variable_type, newdata.columns)
+
+    # Handle grouping - split data by 'by' variables
+    if by is None:
+        newdata_split = [newdata]
+        by_groups = [{}]
+    else:
+        # Get unique combinations of 'by' variables
+        by_df = newdata.select(by).unique()
+        newdata_split = []
+        by_groups = []
+        for i in range(by_df.height):
+            group_filter = pl.lit(True)
+            group_dict = {}
+            for col in by:
+                val = by_df[col][i]
+                group_filter = group_filter & (pl.col(col) == val)
+                group_dict[col] = val
+            filtered_data = newdata.filter(group_filter)
+            newdata_split.append(filtered_data)
+            by_groups.append(group_dict)
+
+    # Process each group
+    all_results = []
+    for group_data, group_dict in zip(newdata_split, by_groups):
+        result = _process_datagrid_group(
+            group_data,
+            model,
+            type_mapping,
+            grid_type,
+            response,
+            FUN,
+            FUN_binary,
+            FUN_character,
+            FUN_factor,
+            FUN_logical,
+            FUN_numeric,
+            FUN_integer,
+            FUN_other,
+            **kwargs,
+        )
+
+        # Add grouping columns back to result
+        for col, val in group_dict.items():
+            if col not in result.columns:
+                result = result.with_columns(pl.lit(val).alias(col))
+
+        all_results.append(result)
+
+    # Combine all results
+    if len(all_results) == 1:
+        out = all_results[0]
+    else:
+        out = pl.concat(all_results, how="vertical")
+
+    # Add rowid if not present (only for internal use, not for public API)
+    # Commenting out to maintain compatibility with existing tests
+    # if "rowid" not in out.columns and out.height > 0:
+    #     out = out.with_columns(pl.Series(range(out.height)).alias("rowid"))
+
+    out.datagrid_explicit = list(kwargs.keys())
+    return out
+
+
+def _process_datagrid_group(
+    newdata,
+    model,
+    type_mapping,
+    grid_type,
+    response,
+    FUN,
+    FUN_binary,
+    FUN_character,
+    FUN_factor,
+    FUN_logical,
+    FUN_numeric,
+    FUN_integer,
+    FUN_other,
+    **kwargs,
+):
+    """Process datagrid for a single group (used when 'by' is specified)."""
+
+    # Set up function defaults based on grid_type and FUN parameter
+    func_defaults = _get_function_defaults(grid_type, FUN)
+
+    # Override with specific function parameters if provided
+    if FUN_binary is not None:
+        func_defaults["FUN_binary"] = FUN_binary
+    if FUN_character is not None:
+        func_defaults["FUN_character"] = FUN_character
+    if FUN_factor is not None:
+        func_defaults["FUN_factor"] = FUN_factor
+    if FUN_logical is not None:
+        func_defaults["FUN_logical"] = FUN_logical
+    if FUN_numeric is not None:
+        func_defaults["FUN_numeric"] = FUN_numeric
+    if FUN_integer is not None:
+        func_defaults["FUN_integer"] = FUN_integer
+    if FUN_other is not None:
+        func_defaults["FUN_other"] = FUN_other
+
+    # Process explicit variables (from kwargs)
+    explicit_values = {}
     for key, value in kwargs.items():
         if value is not None:
             if callable(value):
-                out[key] = pl.DataFrame({key: value(modeldata[key])})
+                if key not in newdata.columns:
+                    print(f"Warning: The variable '{key}' is not in the newdata.")
+                    continue
+                result = value(newdata[key])
+                # Handle numpy arrays and similar
+                if hasattr(result, "__iter__") and not isinstance(result, str):
+                    explicit_values[key] = list(result)
+                else:
+                    explicit_values[key] = [result]
             else:
-                out[key] = pl.DataFrame({key: value})
+                # Handle Polars Series (e.g., from modeldata[col].unique())
+                if isinstance(value, pl.Series):
+                    explicit_values[key] = value.to_list()
+                # Handle iterables like range, but not strings
+                elif (
+                    hasattr(value, "__iter__")
+                    and not isinstance(value, (str, bytes))
+                    and not isinstance(value, list)
+                ):
+                    explicit_values[key] = list(value)
+                elif not isinstance(value, list):
+                    value = [value]
+                    explicit_values[key] = value
+                else:
+                    explicit_values[key] = value
 
-    # Balanced grid should not be built with combiations of response variable, otherwise we get a
-    # duplicated rows on `grid_type="balanced"` and other types.
-    if grid_type == "balanced":
+            # Validate factors - need to reconstruct variable_type for this column
+            if key in newdata.columns:
+                # For factor validation, we need the original variable_type dict
+                original_variable_type = (
+                    {key: type_mapping[key]["original_type"]}
+                    if key in type_mapping
+                    else {}
+                )
+                explicit_values[key] = ut.sanitize_datagrid_factor(
+                    explicit_values[key], newdata[key], original_variable_type, key
+                )
+
+    # Process implicit variables (not specified in kwargs)
+    implicit_values = {}
+    implicit_cols = [
+        col for col in newdata.columns if col not in explicit_values.keys()
+    ]
+
+    # Remove columns that are entirely null to avoid downstream issues
+    implicit_cols = [
+        col for col in implicit_cols if newdata[col].null_count() < newdata.height
+    ]
+
+    # For balanced grids, exclude response variable to avoid duplication
+    if grid_type == "balanced" and model is not None:
+        response_cols = []
         if hasattr(model, "response_name") and isinstance(model.response_name, str):
-            col = model.response_name
-            out[col] = pl.DataFrame({col: newdata[col].mode()[0]})
+            response_cols = [model.response_name]
+        elif hasattr(model, "response_name") and isinstance(model.response_name, list):
+            response_cols = model.response_name
+        implicit_cols = [col for col in implicit_cols if col not in response_cols]
 
-    if model is not None:
-        variables_type = model.get_variable_type()
-    else:
-        variables_type = ut.get_type_dictionary(formula=None, modeldata=newdata)
+    # Apply functions to implicit variables
+    for col in implicit_cols:
+        try:
+            col_mapping = type_mapping.get(col, {})
 
-    cols = newdata.columns
-    cols = [col for col in cols if col in variables_type.keys()]
-    cols = [col for col in cols if col in newdata.columns]
-    cols = [col for col in cols if col not in out.keys()]
+            if col_mapping.get("is_binary", False):
+                result = func_defaults["FUN_binary"](newdata[col])
+            elif col_mapping.get("is_character", False):
+                result = func_defaults["FUN_character"](newdata[col])
+            elif col_mapping.get("is_logical", False):
+                result = func_defaults["FUN_logical"](newdata[col])
+            elif col_mapping.get("is_categorical", False) or col_mapping.get(
+                "is_factor", False
+            ):
+                result = func_defaults["FUN_factor"](newdata[col])
+            elif col_mapping.get("is_numeric", False) or col_mapping.get(
+                "is_integer", False
+            ):
+                # Both numeric and integer types use FUN_numeric for compatibility
+                result = func_defaults["FUN_numeric"](newdata[col])
+            else:
+                result = func_defaults["FUN_other"](newdata[col])
 
-    for col in cols:
-        if variables_type[col] == "binary":
-            out[col] = pl.DataFrame({col: FUN_binary(newdata[col])})
-        elif variables_type[col] in ["integer", "numeric"]:
-            out[col] = pl.DataFrame({col: FUN_numeric(newdata[col])})
-        elif variables_type[col] == "character":
-            out[col] = pl.DataFrame({col: FUN_character(newdata[col])})
+            implicit_values[col] = result
+        except Exception as e:
+            # Fallback: use appropriate default function for the column type
+            print(
+                f"Warning: Error applying function to column '{col}': {e}. Using fallback."
+            )
+            col_mapping = type_mapping.get(col, {})
+            if col_mapping.get("is_numeric", False) or col_mapping.get(
+                "is_integer", False
+            ):
+                implicit_values[col] = ut.mean_na(newdata[col])
+            else:
+                implicit_values[col] = ut.get_mode(newdata[col])
+
+    # Convert to DataFrames for joining
+    all_values = {}
+    for key, value in {**implicit_values, **explicit_values}.items():
+        if not isinstance(value, list):
+            value = [value]
+        # Create DataFrame - iterables should already be handled in explicit_values processing
+        all_values[key] = pl.DataFrame({key: value})
+
+    # Create the grid based on grid_type
+    if grid_type == "dataframe":
+        # Column-wise binding - all vectors must have same length (or length 1)
+        lengths = [len(df[df.columns[0]]) for df in all_values.values()]
+        unique_lengths = set(length for length in lengths if length > 1)
+
+        if len(unique_lengths) > 1:
+            raise ValueError(
+                'With grid_type="dataframe", the length of each vector must be 1 or be the same for every variable.'
+            )
+
+        # Combine by rows (column-wise binding)
+        max_length = max(lengths) if lengths else 0
+        expanded_dfs = []
+        for key, df in all_values.items():
+            if len(df) == 1 and max_length > 1:
+                # Repeat single values to match max length
+                expanded = pl.concat([df] * max_length)
+                expanded_dfs.append(expanded)
+            else:
+                expanded_dfs.append(df)
+
+        if expanded_dfs:
+            out = pl.concat(expanded_dfs, how="horizontal")
         else:
-            out[col] = pl.DataFrame({col: FUN_other(newdata[col])})
-
-    out = reduce(lambda x, y: x.join(y, how="cross"), out.values())
-
-    out.datagrid_explicit = list(kwargs.keys())
+            out = pl.DataFrame()
+    else:
+        # Cross-product for balanced and mean_or_mode
+        if all_values:
+            out = reduce(lambda x, y: x.join(y, how="cross"), all_values.values())
+        else:
+            out = pl.DataFrame()
 
     return out
 
 
-def datagridcf(model=None, newdata=None, **kwargs):
+def _get_function_defaults(grid_type, FUN=None):
+    """Get default functions for each variable type based on grid_type."""
+
+    if grid_type == "balanced":
+        defaults = {
+            "FUN_binary": ut.unique_s,
+            "FUN_character": ut.unique_s,
+            "FUN_factor": ut.unique_s,
+            "FUN_logical": ut.unique_s,
+            "FUN_numeric": ut.mean_na,
+            "FUN_integer": ut.mean_i,
+            "FUN_other": ut.mean_na,
+        }
+    elif grid_type in ["mean_or_mode", "dataframe"]:
+        defaults = {
+            "FUN_binary": ut.get_mode,
+            "FUN_character": ut.get_mode,
+            "FUN_factor": ut.get_mode,
+            "FUN_logical": ut.get_mode,
+            "FUN_numeric": ut.mean_na,
+            "FUN_integer": ut.mean_i,
+            "FUN_other": ut.get_mode,  # Use mode for other types, not mean
+        }
+    else:
+        # Fallback defaults
+        defaults = {
+            "FUN_binary": ut.get_mode,
+            "FUN_character": ut.get_mode,
+            "FUN_factor": ut.get_mode,
+            "FUN_logical": ut.get_mode,
+            "FUN_numeric": ut.mean_na,
+            "FUN_integer": ut.mean_i,
+            "FUN_other": ut.get_mode,  # Use mode for other types, not mean
+        }
+
+    # Override all with FUN if provided
+    if FUN is not None:
+        for key in defaults:
+            defaults[key] = FUN
+
+    return defaults
+
+
+def _compute_variable_type_mapping(variable_type: dict, columns: list) -> dict:
+    """
+    Pre-compute variable type mappings to avoid repetitive _check_variable_type calls.
+
+    Parameters:
+    -----------
+    variable_type : dict
+        Dictionary mapping column names to variable types
+    columns : list
+        List of column names to process
+
+    Returns:
+    --------
+    dict
+        Dictionary mapping column names to boolean flags for each type
+    """
+    type_mapping = {}
+
+    for col in columns:
+        if col in variable_type:
+            type_mapping[col] = {
+                "original_type": variable_type[col],
+                "is_binary": _check_variable_type(variable_type, col, "binary"),
+                "is_character": _check_variable_type(variable_type, col, "character"),
+                "is_logical": _check_variable_type(variable_type, col, "logical"),
+                "is_categorical": _check_variable_type(
+                    variable_type, col, "categorical"
+                ),
+                "is_factor": _check_variable_type(variable_type, col, "factor"),
+                "is_numeric": _check_variable_type(variable_type, col, "numeric"),
+                "is_integer": _check_variable_type(variable_type, col, "integer"),
+            }
+        else:
+            # Default mapping for unknown columns
+            type_mapping[col] = {
+                "original_type": "other",
+                "is_binary": False,
+                "is_character": False,
+                "is_logical": False,
+                "is_categorical": False,
+                "is_factor": False,
+                "is_numeric": False,
+                "is_integer": False,
+            }
+
+    return type_mapping
+
+
+def _datagridcf(model=None, newdata=None, by=None, **kwargs):
     if model is None and newdata is None:
         raise ValueError("One of model or newdata must be specified")
 
