@@ -8,7 +8,7 @@ __all__ = ["listwise_deletion", "model_matrices"]
 
 
 def parse_variables_categorical(fml: str) -> list[str]:
-    return re.findall(r"C\((.*?)\)", fml)
+    return re.findall(r"C\(\s*([^,)\s]+)", fml)
 
 
 # @validate_types
