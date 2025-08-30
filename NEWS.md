@@ -3,6 +3,7 @@
 New:
 
 * `datagrid()` gets new arguments: by, response, FUN_categorical, FUN_binary, FUN_numeric, FUN_other
+* Improved parsing of categorical variables from formulas. Thanks to @danielkberry for Pull Request #225.
 
 # 0.1.3
 
