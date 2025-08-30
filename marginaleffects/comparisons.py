@@ -103,11 +103,15 @@ def comparisons(
     nd = []
     if not cross:
         for v in variables:
+            if callable(v.comparison):
+                vcomp = "custom"
+            else:
+                vcomp = v.comparison
             nd.append(
                 newdata.with_columns(
                     pl.lit(v.variable).alias("term"),
                     pl.lit(v.lab).alias("contrast"),
-                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
                 )
             )
             hi.append(
@@ -115,7 +119,7 @@ def comparisons(
                     pl.lit(v.hi).alias(v.variable),
                     pl.lit(v.variable).alias("term"),
                     pl.lit(v.lab).alias("contrast"),
-                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
                 )
             )
             lo.append(
@@ -123,7 +127,7 @@ def comparisons(
                     pl.lit(v.lo).alias(v.variable),
                     pl.lit(v.variable).alias("term"),
                     pl.lit(v.lab).alias("contrast"),
-                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
                 )
             )
 
@@ -132,22 +136,26 @@ def comparisons(
         lo.append(newdata)
         nd.append(newdata)
         for i, v in enumerate(variables):
+            if callable(v.comparison):
+                vcomp = "custom"
+            else:
+                vcomp = v.comparison
             nd[0] = nd[0].with_columns(
                 pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                pl.lit(vcomp).alias("marginaleffects_comparison"),
             )
             hi[0] = hi[0].with_columns(
                 pl.lit(v.hi).alias(v.variable),
                 pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                pl.lit(vcomp).alias("marginaleffects_comparison"),
             )
             lo[0] = lo[0].with_columns(
                 pl.lit(v.lo).alias(v.variable),
                 pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                pl.lit(vcomp).alias("marginaleffects_comparison"),
             )
 
     # Hack: We run into Patsy-related issues unless we "pad" the
@@ -352,12 +360,18 @@ def comparisons(
         # ex: hi-lo, mean(hi-lo), hi/lo, mean(hi)/mean(lo), etc.
         def applyfun(x, by, wts=None):
             comp = x["marginaleffects_comparison"][0]
+            # TODO
+            # comp = lambda hi, lo, eps, x, y, w: hi / lo
             xvar = x[x["term"][0]]
+            if callable(comp):
+                estimand = comp
+            else:
+                estimand = estimands[comp]
             if wts is not None:
                 xwts = x[wts]
             else:
                 xwts = None
-            est = estimands[comp](
+            est = estimand(
                 hi=x["predicted_hi"],
                 lo=x["predicted_lo"],
                 eps=eps,
