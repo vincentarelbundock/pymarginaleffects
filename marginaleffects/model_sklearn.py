@@ -3,7 +3,7 @@ import warnings
 import polars as pl
 from .docs import DocsModels
 from .utils import ingest
-from .formulaic_utils import listwise_deletion, model_matrices, parse_variables
+from .formulaic_utils import listwise_deletion, model_matrices
 from .model_abstract import ModelAbstract
 
 
@@ -126,7 +126,8 @@ def fit_sklearn(formula, data: pl.DataFrame, engine) -> ModelSklearn:
         y, X = model_matrices(formula, d)
         # formulaic returns a matrix when the response is character or categorical
         if y.ndim == 2:
-            y = d[parse_variables(formula)[0]]
+            response_var = formula.split("~")[0].strip()
+            y = d[response_var]
         y = np.ravel(y)
 
     elif callable(formula):

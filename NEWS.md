@@ -1,3 +1,9 @@
+# 0.1.5
+
+Bugs:
+
+* `fit_sklearn()` sometimes failed due to bad formula parsing.
+
 # 0.1.4
 
 New:
