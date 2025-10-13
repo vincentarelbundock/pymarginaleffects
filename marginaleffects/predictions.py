@@ -2,7 +2,7 @@ import numpy as np
 import polars as pl
 
 from .by import get_by
-from .classes import MarginaleffectsDataFrame
+from .result import MarginaleffectsResult
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
 from .sanitize_model import sanitize_model
@@ -39,6 +39,7 @@ def predictions(
     transform=None,
     wts=None,
     eps_vcov=None,
+    **kwargs,
 ):
     """
     `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
@@ -47,6 +48,22 @@ def predictions(
 
     Or type: `help(predictions)`
     """
+    if "hypotheses" in kwargs:
+        if hypothesis is not None:
+            raise ValueError("Specify at most one of `hypothesis` or `hypotheses`.")
+        hypotheses = kwargs.pop("hypotheses")
+        warn(
+            "`hypotheses` is deprecated; use `hypothesis` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        hypothesis = hypotheses
+    if kwargs:
+        unexpected = ", ".join(sorted(kwargs.keys()))
+        raise TypeError(
+            f"predictions() got unexpected keyword argument(s): {unexpected}"
+        )
+
     if callable(newdata):
         newdata = newdata(model)
 
@@ -191,7 +208,7 @@ def predictions(
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by, newdata=newdata)
 
-    out = MarginaleffectsDataFrame(
+    out = MarginaleffectsResult(
         out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
     )
     return out
@@ -208,6 +225,7 @@ def avg_predictions(
     equivalence=None,
     transform=None,
     wts=None,
+    **kwargs,
 ):
     """
     `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
@@ -230,6 +248,7 @@ def avg_predictions(
         equivalence=equivalence,
         transform=transform,
         wts=wts,
+        **kwargs,
     )
 
     return out

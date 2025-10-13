@@ -1,3 +1,9 @@
+# 0.1.5.2
+
+Fixes:
+
+* Allow `hypotheses=` alias in high-level APIs without breaking the signature, and restore hypothesis evaluation for duplicated `term` values while keeping `MarginaleffectsResult` metadata intact when calling DataFrame-like methods.
+
 # 0.1.5
 
 Bugs:

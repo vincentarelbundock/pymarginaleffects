@@ -3,8 +3,8 @@ import polars as pl
 from polars.testing import assert_series_equal
 import statsmodels.formula.api as smf
 from tests.helpers import guerry, penguins, diamonds, mtcars
-import marginaleffects
 from marginaleffects import *
+from marginaleffects import MarginaleffectsResult
 from tests.utilities import *
 
 df = guerry.with_columns(pl.Series(range(guerry.shape[0])).alias("row_id")).sort(
@@ -48,11 +48,14 @@ def test_by_hypothesis():
 
 def test_class_manipulation():
     p = predictions(mod_py)
-    assert isinstance(p, pl.DataFrame)
-    assert isinstance(p, marginaleffects.classes.MarginaleffectsDataFrame)
-    p = p.head()
-    assert isinstance(p, pl.DataFrame)
-    assert isinstance(p, marginaleffects.classes.MarginaleffectsDataFrame)
+    assert isinstance(p, MarginaleffectsResult)
+    assert isinstance(p.data, pl.DataFrame)
+    assert p.data.equals(p.to_polars())
+    assert p["estimate"].equals(p.data["estimate"])
+    head_df = p.head()
+    assert isinstance(head_df, pl.DataFrame)
+    assert head_df.equals(p.data.head())
+    assert isinstance(p.summary(), str)
 
 
 def issue_38():

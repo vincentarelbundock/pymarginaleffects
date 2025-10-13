@@ -3,6 +3,7 @@ import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
 from marginaleffects import *
+from marginaleffects import MarginaleffectsResult
 
 
 guerry = (
@@ -61,6 +62,7 @@ def test_hypothesis_list():
 
 def test_coef():
     h = hypotheses(mod, hypothesis="Pop1831=Desertion")
-    assert isinstance(h, pl.DataFrame)
+    assert isinstance(h, MarginaleffectsResult)
+    assert isinstance(h.data, pl.DataFrame)
     assert h.shape[0] == 1
     assert h["term"][0] == "Pop1831=Desertion"

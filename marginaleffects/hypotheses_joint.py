@@ -4,7 +4,7 @@ import scipy.stats as stats
 import polars as pl
 
 from .sanity import sanitize_hypothesis_null
-from .classes import MarginaleffectsDataFrame
+from .result import MarginaleffectsResult
 
 
 def joint_hypotheses(obj, joint_index=None, joint_test="f", hypothesis=0):
@@ -106,6 +106,6 @@ def joint_hypotheses(obj, joint_index=None, joint_test="f", hypothesis=0):
         print_head += var_names[j] + f" = {hypothesis[i]}\n"
     print_head += "\n"
 
-    out = MarginaleffectsDataFrame(out, mapping=mapping, print_head=print_head)
+    out = MarginaleffectsResult(out, mapping=mapping, print_head=print_head)
 
     return out

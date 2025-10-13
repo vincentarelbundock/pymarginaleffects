@@ -5,7 +5,7 @@ import numpy as np
 import patsy
 import polars as pl
 
-from .classes import MarginaleffectsDataFrame
+from .result import MarginaleffectsResult
 from .equivalence import get_equivalence
 from .estimands import estimands
 from .hypothesis import get_hypothesis
@@ -47,6 +47,7 @@ def comparisons(
     transform=None,
     eps=1e-4,
     eps_vcov=None,
+    **kwargs,
 ):
     """
     `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, average treatment effect (on the treated or untreated), etc.
@@ -55,6 +56,22 @@ def comparisons(
 
     Or type: `help(comparisons)`
     """
+    if "hypotheses" in kwargs:
+        if hypothesis is not None:
+            raise ValueError("Specify at most one of `hypothesis` or `hypotheses`.")
+        hypotheses = kwargs.pop("hypotheses")
+        warn(
+            "`hypotheses` is deprecated; use `hypothesis` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        hypothesis = hypotheses
+    if kwargs:
+        unexpected = ", ".join(sorted(kwargs.keys()))
+        raise TypeError(
+            f"comparisons() got unexpected keyword argument(s): {unexpected}"
+        )
+
     if callable(newdata):
         newdata = newdata(model)
 
@@ -414,7 +431,7 @@ def comparisons(
         out = out.with_columns(pl.lit("cross").alias("term"))
 
     # Wrap things up in a nice class
-    out = MarginaleffectsDataFrame(
+    out = MarginaleffectsResult(
         out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
     )
     return out
@@ -434,6 +451,7 @@ def avg_comparisons(
     cross=False,
     transform=None,
     eps=1e-4,
+    **kwargs,
 ):
     """
     `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, average treatment effect (on the treated or untreated), etc.
@@ -459,6 +477,7 @@ def avg_comparisons(
         cross=cross,
         transform=transform,
         eps=eps,
+        **kwargs,
     )
 
     return out

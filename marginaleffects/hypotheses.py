@@ -2,7 +2,7 @@ import polars as pl
 
 from .docs import DocsDetails, DocsParameters
 
-from .classes import MarginaleffectsDataFrame
+from .result import MarginaleffectsResult
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
 from .sanity import sanitize_hypothesis_null, sanitize_vcov
@@ -58,7 +58,7 @@ def hypotheses(
         J = None
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=None)
-    out = MarginaleffectsDataFrame(out, conf_level=conf_level, jacobian=J)
+    out = MarginaleffectsResult(out, conf_level=conf_level, jacobian=J)
     return out
 
 
@@ -99,7 +99,7 @@ To learn more, visit the package website: <https://marginaleffects.com/>
 
 
 ## Returns
-(MarginaleffectsDataFrame)
+(MarginaleffectsResult)
 * DataFrame containing the results of the hypothesis tests.
 
 ## Examples

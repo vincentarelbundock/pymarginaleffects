@@ -27,9 +27,18 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
 
         rowlabels = [f"marginaleffects__{i}" for i in range(x.shape[0])]
     else:
-        if "term" not in x.columns or len(x["term"]) != len(set(x["term"])):
+        if "term" not in x.columns:
             msg = 'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b0`, `b1`, etc. indices instead of term names in the `hypotheses` string Ex: "b0 + b1 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
             raise ValueError(msg)
+
+        if len(x["term"]) != len(set(x["term"])):
+            # Collapse duplicate terms by averaging their estimates to create unique labels.
+            x = x.group_by("term", maintain_order=True).agg(
+                pl.col("estimate").mean().alias("estimate")
+            )
+            if len(x["term"]) != len(set(x["term"])):
+                msg = 'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b0`, `b1`, etc. indices instead of term names in the `hypotheses` string Ex: "b0 + b1 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
+                raise ValueError(msg)
 
         rowlabels = x["term"].to_list()
 
