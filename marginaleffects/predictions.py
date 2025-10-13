@@ -55,12 +55,22 @@ def predictions(
 
     # For pyfixest models, automatically set vcov=False for predictions with warning
     if isinstance(model, ModelPyfixest) and vcov is not False:
-        warn(
-            "Standard errors are not available for predictions in pyfixest models. "
-            "Setting vcov=False automatically.",
-            UserWarning,
-            stacklevel=2,
-        )
+        has_fixef = getattr(model.model, "_has_fixef", False)
+        if has_fixef:
+            warn(
+                "For this pyfixest model, marginaleffects cannot take into account the "
+                "uncertainty in fixed-effects parameters. Standard errors are disabled "
+                "and vcov=False is enforced.",
+                UserWarning,
+                stacklevel=2,
+            )
+        else:
+            warn(
+                "Standard errors are not available for predictions in pyfixest models. "
+                "Setting vcov=False automatically.",
+                UserWarning,
+                stacklevel=2,
+            )
         vcov = False
 
     by = sanitize_by(by)

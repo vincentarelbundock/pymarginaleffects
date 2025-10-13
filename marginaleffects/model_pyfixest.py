@@ -18,10 +18,15 @@ class ModelPyfixest(ModelAbstract):
 
         # after super init & validation
         if hasattr(model, "_fixef"):
-            if model._fixef is not None:
-                fe = model._fixef.split("+")
+            fixef = getattr(model, "_fixef")
+            if isinstance(fixef, str) and fixef.strip().lower() in {"", "none"}:
+                fixef = None
+            if fixef:
+                fe = str(fixef).split("+")
                 for f in fe:
-                    self.set_variable_type(f, "character")
+                    f = f.strip()
+                    if f:
+                        self.set_variable_type(f, "character")
 
     def is_linear_model(self):
         """Check if this is a linear regression model (feols) vs. non-linear (fepois, etc.)."""

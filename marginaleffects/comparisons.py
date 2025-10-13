@@ -64,11 +64,13 @@ def comparisons(
     if (
         isinstance(model, ModelPyfixest)
         and vcov is not False
+        and getattr(model.model, "_has_fixef", False)
         and not model.is_linear_model()
     ):
         warn(
-            "Standard errors are not available for comparisons in non-linear pyfixest models. "
-            "Setting vcov=False automatically.",
+            "For this pyfixest model, marginaleffects cannot take into account the "
+            "uncertainty in fixed-effects parameters when computing contrasts. "
+            "Standard errors are disabled and vcov=False is enforced.",
             UserWarning,
             stacklevel=2,
         )

@@ -35,7 +35,10 @@ def test_bare_minimum():
     # test 1: no fixed effects
     fit = feols("Y ~ X1 * X2 * Z1", data=data, ssc=ssc(fixef_k="none"))
 
-    p = predictions(fit)
+    with pytest.warns(
+        UserWarning, match="Standard errors are not available for predictions"
+    ):
+        p = predictions(fit)
     # With automatic vcov=False for pyfixest, no uncertainty columns should be present
     assert p.shape[0] == 1000  # Same number of rows
     assert "std_error" not in p.columns
@@ -43,15 +46,20 @@ def test_bare_minimum():
     assert "conf_low" not in p.columns
     assert "conf_high" not in p.columns
 
-    p = avg_predictions(fit)
+    comp = comparisons(fit)
+    assert "std_error" in comp.columns
+    assert comp["std_error"].null_count() == 0
+    assert any(abs(val) > 0 for val in comp["std_error"].to_list())
+
+    p = avg_predictions(fit, vcov=False)
     assert_series_equal(
         p["estimate"], pl.Series([0.010447]), check_names=False, rtol=rtol
     )
-    s = avg_slopes(fit)
+    s = avg_slopes(fit, vcov=False)
     known = pl.Series([0.010960664156094414, -0.02592049598947146, 0.08384415120847774])
     assert_series_equal(s["estimate"], known, check_names=False, rtol=rtol)
 
-    c = comparisons(fit, newdata=datagrid(X1=[2, 4], model=fit))
+    c = comparisons(fit, newdata=datagrid(X1=[2, 4], model=fit), vcov=False)
     known = pl.Series(
         [
             0.025874865365717037,
@@ -66,7 +74,10 @@ def test_bare_minimum():
 
     # test 2: fixed effects
     fit2 = feols("Y ~ X1 * X2 * Z1 | f1", data=data)
-    p2 = predictions(fit2)
+    with pytest.warns(
+        UserWarning, match="cannot take into account the uncertainty in fixed-effects"
+    ):
+        p2 = predictions(fit2)
     # With automatic vcov=False for pyfixest, no uncertainty columns should be present
     assert p2.shape[0] == 1000  # Same number of rows
     assert "std_error" not in p2.columns
@@ -74,16 +85,21 @@ def test_bare_minimum():
     assert "conf_low" not in p2.columns
     assert "conf_high" not in p2.columns
 
-    p2 = avg_predictions(fit2)
+    p2 = avg_predictions(fit2, vcov=False)
     assert_series_equal(
         p["estimate"], pl.Series([0.0104466614683]), check_names=False, rtol=rtol
     )
 
-    s2 = avg_slopes(fit2)
+    s2 = avg_slopes(fit2, vcov=False)
     known = pl.Series([0.0109451775035, -0.0218987575428, 0.0811949147670])
     assert_series_equal(s2["estimate"], known, check_names=False, rtol=rtol)
 
-    c2 = comparisons(fit2, newdata=datagrid(X1=[2, 4], model=fit2))
+    comp2 = comparisons(fit2)
+    assert "std_error" in comp2.columns
+    assert comp2["std_error"].null_count() == 0
+    assert any(abs(val) > 0 for val in comp2["std_error"].to_list())
+
+    c2 = comparisons(fit2, newdata=datagrid(X1=[2, 4], model=fit2), vcov=False)
     known = pl.Series(
         [
             0.0258895660319,
@@ -126,39 +142,32 @@ def test_bare_minimum():
     #
 
 
-@pytest.mark.skip(reason="predict method with newdata not yet implemented for fepois.")
-def test_bare_minimum_fepois():
+def test_pyfixest_standard_errors_across_models():
     data = create_test_data()
-    data = data.with_columns(pl.col("Y").abs().round())
+    poisson_data = data.with_columns(pl.col("Y").abs().round())
 
-    # test 1: no fixed effects
-    fit1 = fepois("Y ~ X1 * X2 * Z1", data=data)
-    p1 = predictions(fit1)
-    # With automatic vcov=False for pyfixest, no uncertainty columns should be present
-    assert p1.shape[0] == 1000  # Same number of rows
-    assert "std_error" not in p1.columns
-    assert "p_value" not in p1.columns
-    assert "conf_low" not in p1.columns
-    assert "conf_high" not in p1.columns
+    # Non-linear without fixed effects: SEs should be available
+    fit_pois = fepois("Y ~ X1 * X2 * Z1", data=poisson_data)
+    try:
+        comp_pois = comparisons(fit_pois)
+    except NotImplementedError:
+        pytest.skip(
+            "PyFixest does not yet support prediction with newdata for Poisson regression."
+        )
+    assert "std_error" in comp_pois.columns
+    assert comp_pois["std_error"].null_count() == 0
+    assert any(abs(val) > 0 for val in comp_pois["std_error"].to_list())
 
-    p1 = avg_predictions(fit1)
-    assert_series_equal(
-        p1["estimate"], pl.Series([1.02079513338]), check_names=False, rtol=rtol
-    )
-
-    s1 = avg_slopes(fit1)
-    known = pl.Series([0.0249776642963, -0.0301245101317, -0.0651280822962])
-    assert_series_equal(s1["estimate"], known, check_names=False, rtol=rtol)
-
-    c1 = comparisons(fit1, newdata=datagrid(X1=[2, 4], model=fit1))
-    known = pl.Series(
-        [
-            0.0248290488423,
-            0.0260243633045,
-            -0.1686213732790,
-            -0.3250219312182,
-            -0.0435495908984,
-            -0.0211557385990,
-        ]
-    )
-    assert_series_equal(c1["estimate"], known, check_names=False, rtol=rtol)
+    # Non-linear with fixed effects: SEs disabled automatically
+    fit_pois_fe = fepois("Y ~ X1 * X2 * Z1 | f1", data=poisson_data)
+    with pytest.warns(
+        UserWarning,
+        match="uncertainty in fixed-effects parameters when computing contrasts",
+    ):
+        try:
+            comp_pois_fe = comparisons(fit_pois_fe)
+        except NotImplementedError:
+            pytest.skip(
+                "PyFixest does not yet support prediction with newdata for Poisson regression."
+            )
+    assert "std_error" not in comp_pois_fe.columns
