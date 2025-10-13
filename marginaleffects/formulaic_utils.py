@@ -1,6 +1,8 @@
 import re
+
 import formulaic
 import narwhals as nw
+import numpy as np
 from narwhals.typing import IntoFrame
 
 
@@ -118,7 +120,8 @@ def model_matrices(formula: str, data: "IntoFrame", formula_engine: str = "formu
     data = nw.from_native(data)
 
     if formula_engine in ["formulaic", "linearmodels"]:
-        endog, exog = formulaic.model_matrix(formula, data.to_pandas())
+        context = {"np": np}
+        endog, exog = formulaic.model_matrix(formula, data.to_pandas(), context=context)
         if formula_engine == "linearmodels":
             try:
                 import pandas as pd

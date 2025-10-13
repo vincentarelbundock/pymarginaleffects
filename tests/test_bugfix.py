@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import polars as pl
-from statsmodels.formula.api import ols
+from statsmodels.formula.api import glm, ols
 
 from marginaleffects import predictions
 
@@ -13,3 +13,10 @@ def test_issue_25():
     m = ols("A ~ B + C + D", data=train).fit()
     p = predictions(m, newdata=test)
     assert isinstance(p, pl.DataFrame)
+
+
+def test_issue_226_np_context():
+    df = pd.DataFrame({"y": np.arange(5), "x": np.arange(5)})
+    mod = glm("y ~ np.maximum(x, 1)", data=df).fit()
+    out = predictions(mod, newdata=df)
+    assert isinstance(out, pl.DataFrame)
