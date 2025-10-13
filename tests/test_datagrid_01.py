@@ -115,3 +115,28 @@ def test_datagrid_counterfactual_lambda():
         grid_type="counterfactual",
     )
     assert grid.height == 32 * 2 * 3
+
+
+def test_datagrid_balanced_outputs_sorted_unique_values():
+    df = pl.DataFrame(
+        {
+            "letter": ["c", "a", "b", "c"],
+            "flag": [1, 0, 1, 0],
+        }
+    )
+    grid = datagrid(newdata=df, grid_type="balanced")
+    pairs = list(zip(grid["letter"], grid["flag"]))
+    assert pairs == sorted(pairs)
+
+
+def test_datagrid_balanced_multiple_columns_sorted_cartesian():
+    df = pl.DataFrame(
+        {
+            "group": ["z", "y", "x"],
+            "level": ["b", "a", "c"],
+            "indicator": [1, 0, 1],
+        }
+    )
+    grid = datagrid(newdata=df, grid_type="balanced")
+    rows = list(zip(grid["group"], grid["level"], grid["indicator"]))
+    assert rows == sorted(rows)

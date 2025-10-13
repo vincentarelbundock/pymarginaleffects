@@ -102,7 +102,7 @@ def datagrid(
         by_groups = [{}]
     else:
         # Get unique combinations of 'by' variables
-        by_df = newdata.select(by).unique()
+        by_df = newdata.select(by).unique().sort(by)
         newdata_split = []
         by_groups = []
         for i in range(by_df.height):
