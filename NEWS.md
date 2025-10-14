@@ -1,22 +1,30 @@
-# 0.1.5.6
+# Development
+
+## 0.1.5.7
+
+Fixes:
+
+* `datagrid(grid_type="counterfactual")` now retains all columns in `newdata`. Issue #1175.
+
+## 0.1.5.6
 
 Fixes:
 
 * `hypothesis="ratio ~ ..."` now centers test statistics on 1 instead of 0.
 
-# 0.1.5.5
+## 0.1.5.5
 
 New:
 
 * `plot_predictions()` gains a `points` argument to overlay raw-data points with controllable transparency.
 
-# 0.1.5.4
+## 0.1.5.4
 
 New:
 
 * `hypothesis=` accepts a list of strings, evaluating each hypothesis in order and stacking the results.
 
-# 0.1.5.2
+## 0.1.5.2
 
 Fixes:
 

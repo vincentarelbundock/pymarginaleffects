@@ -358,6 +358,44 @@ class TestNewDatagridFeatures:
         grid3 = datagrid(newdata=mtcars, mpg=[20, 25], grid_type="counterfactual")
         assert grid3.height == mtcars.height * 2  # Original rows * 2 values
 
+    def test_counterfactual_retains_all_columns(self):
+        """Test that counterfactual grid retains all newdata columns (#1175)."""
+        newdata = pl.DataFrame({"id": [1, 2, 3], "x": [10, 20, 30]})
+
+        # Test with variable not in newdata - should retain all original columns
+        grid = datagrid(newdata=newdata, z=[100, 200], grid_type="counterfactual")
+        assert set(newdata.columns).issubset(set(grid.columns))
+        assert "z" in grid.columns
+
+    def test_counterfactual_with_model_retains_non_model_columns(self):
+        """Test that counterfactual grid retains non-model columns when model is passed (#1175)."""
+        import statsmodels.formula.api as smf
+        from marginaleffects import predictions, get_dataset
+
+        # Use mtcars dataset
+        mtcars = get_dataset("mtcars")
+
+        # Fit model using only some columns (hp, wt)
+        model = smf.ols("mpg ~ hp + wt", data=mtcars).fit()
+
+        # Create counterfactual grid from model - should retain non-model columns like qsec, cyl
+        grid = datagrid(
+            model=model,
+            hp=[100, 150],  # Vary HP
+            grid_type="counterfactual"
+        )
+
+        # Should retain columns not in the model formula
+        assert "qsec" in grid.columns, "qsec (non-model column) should be retained"
+        assert "cyl" in grid.columns, "cyl (non-model column) should be retained"
+
+        # Test that predictions work with the retained columns
+        preds = predictions(model, newdata=grid)
+
+        # Should be able to access non-model columns for post-prediction analysis
+        assert "qsec" in preds.columns, "qsec should be available for grouping/analysis"
+        assert "cyl" in preds.columns, "cyl should be available for grouping/analysis"
+
 
 class TestPerformanceOptimization:
     """Test the performance optimization (code repetition elimination)."""

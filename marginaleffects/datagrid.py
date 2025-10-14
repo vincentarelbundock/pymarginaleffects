@@ -462,8 +462,10 @@ def _datagridcf(model=None, newdata=None, by=None, **kwargs):
     # Perform cross join
     df_cross = reduce(lambda df1, df2: df1.join(df2, how="cross"), dfs)
 
-    # Drop would-be duplicates
-    newdata = newdata.drop(df_cross.columns)
+    # Drop columns that exist in both newdata and df_cross to avoid duplicates
+    columns_to_drop = [col for col in df_cross.columns if col in newdata.columns]
+    if columns_to_drop:
+        newdata = newdata.drop(columns_to_drop)
 
     result = newdata.join(df_cross, how="cross")
 
