@@ -194,3 +194,15 @@ def test_issue_171():
     cond = {"distance": None, "agecat": ">35", "incentive": 0}
     fig = plot_predictions(mod, condition=cond)
     assert assert_image(fig, "issue_171", FIGURES_FOLDER) is None
+
+
+def test_points_adds_raw_layer():
+    mod = smf.ols("mpg ~ wt", data=mtcars.to_pandas()).fit()
+    fig_points = plot_predictions(mod, condition=["wt"], points=0.4)
+    assert assert_image(fig_points, "points_adds_raw_layer", FIGURES_FOLDER) is None
+
+
+def test_points_out_of_bounds_raises():
+    mod = smf.ols("mpg ~ wt", data=mtcars.to_pandas()).fit()
+    with pytest.raises(ValueError):
+        plot_predictions(mod, condition=["wt"], points=1.5)

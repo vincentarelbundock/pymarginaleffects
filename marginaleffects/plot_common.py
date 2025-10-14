@@ -144,9 +144,11 @@ def ordered_cat(dt, k, lab):
     return dt
 
 
-def plot_common(model, dt, y_label, var_list, gray=False):
+def plot_common(model, dt, y_label, var_list, gray=False, points=0):
     discrete = model.get_variable_type()[var_list[0]] not in ["numeric", "integer"]
     interval = "conf_low" in dt.columns
+    # Keep a plain Polars view around for dtype checks when dt is a MarginaleffectsResult.
+    dt_data = dt.data if hasattr(dt, "data") else dt
 
     # treat all variables except x-axis as categorical
     if len(var_list) > 1:
@@ -170,6 +172,56 @@ def plot_common(model, dt, y_label, var_list, gray=False):
     mapping = aes(**mapping)
 
     p = ggplot(data=dt, mapping=mapping)
+
+    if points and points > 0:
+        # We need to keep the raw-point layer in sync with every aesthetic used
+        # elsewhere (color, shape, facets). That means pulling the same columns,
+        # trimming categories to the grid, and dropping nulls before the plotnine layer.
+        raw_data = getattr(model, "get_modeldata", lambda: None)()
+        if isinstance(raw_data, pl.DataFrame):
+            required_cols = [col for col in var_list if col in raw_data.columns]
+            if (
+                y_label in raw_data.columns
+                and var_list
+                and var_list[0] in required_cols
+            ):
+                cols = list(dict.fromkeys(required_cols + [y_label]))
+                raw_subset = raw_data.select(cols)
+                categorical_types = (
+                    pl.Categorical,
+                    pl.Enum,
+                    pl.Utf8,
+                    pl.String,
+                    pl.Boolean,
+                )
+                for col in cols:
+                    # Matching the categorical levels avoids extra legend entries or plotnine errors.
+                    if col not in raw_subset.columns or col not in dt_data.columns:
+                        continue
+                    dtype = dt_data[col].dtype
+                    is_numeric = getattr(dtype, "is_numeric", lambda: False)()
+                    if dtype in categorical_types or not is_numeric:
+                        values = (
+                            dt_data[col].unique().drop_nulls().to_list()
+                            if col in dt_data.columns
+                            else None
+                        )
+                        if values:
+                            raw_subset = raw_subset.filter(pl.col(col).is_in(values))
+                raw_subset = raw_subset.drop_nulls(subset=[var_list[0], y_label])
+                if raw_subset.height > 0:
+                    point_mapping = {"x": var_list[0], "y": y_label}
+                    if len(var_list) > 1 and var_list[1] in raw_subset.columns:
+                        if gray:
+                            point_mapping["shape"] = var_list[1]
+                        else:
+                            point_mapping["color"] = var_list[1]
+                    point_kwargs = {"alpha": points, "inherit_aes": False}
+                    if gray:
+                        point_kwargs["color"] = "gray30"
+                    p = p + geom_point(
+                        aes(**point_mapping), data=raw_subset, **point_kwargs
+                    )
 
     if discrete:
         if interval:

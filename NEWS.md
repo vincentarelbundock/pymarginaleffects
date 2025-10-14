@@ -1,3 +1,9 @@
+# 0.1.5.5
+
+New:
+
+* `plot_predictions()` gains a `points` argument to overlay raw-data points with controllable transparency.
+
 # 0.1.5.4
 
 New:

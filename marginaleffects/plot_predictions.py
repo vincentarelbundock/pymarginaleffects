@@ -16,6 +16,7 @@ def plot_predictions(
     draw=True,
     wts=None,
     gray=False,
+    points=0,
 ):
     """
     Plot predictions on the y-axis against values of one or more predictors (x-axis, colors/shapes, and facets).
@@ -25,6 +26,15 @@ def plot_predictions(
     Or type: `help(plot_predictions)`
     """
     model = sanitize_model(model)
+
+    if points is None:
+        points = 0
+    try:
+        points = float(points)
+    except (TypeError, ValueError) as exc:
+        raise TypeError("`points` must be a numeric value between 0 and 1.") from exc
+    if points < 0 or points > 1:
+        raise ValueError("`points` must be a numeric value between 0 and 1.")
 
     assert not (not by and newdata is not None), (
         "The `newdata` argument requires a `by` argument."
@@ -79,7 +89,14 @@ def plot_predictions(
         "The `condition` and `by` arguments can have a max length of 4."
     )
 
-    return plot_common(model, dt, model.response_name, var_list=var_list, gray=gray)
+    return plot_common(
+        model,
+        dt,
+        model.response_name,
+        var_list=var_list,
+        gray=gray,
+        points=points,
+    )
 
 
 plot_predictions.__doc__ = (
@@ -98,6 +115,7 @@ plot_predictions.__doc__ = (
     + DocsParameters.docstring_vcov
     + DocsParameters.docstring_wts
     + DocsParameters.docstring_transform
+    + DocsParameters.docstring_points
     + DocsParameters.docstring_gray
     + """
 ## Examples

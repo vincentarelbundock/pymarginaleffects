@@ -87,6 +87,12 @@ class DocsParameters:
 `draw`: True returns a matplotlib plot. False returns a dataframe of the underlying data.
 """
 
+    docstring_points = """
+`points`: (float, default=0) Number between 0 and 1 which controls the transparency of raw data points. 0 (default) does not display any points.
+
+Warning: The points displayed are raw data, so the resulting plot is not a "partial residual plot."
+"""
+
     docstring_gray = """
 `gray`: True returns a gray scale adapted plot. False returns a plot in color. For the second position of the list in the `condition` or `by` argument, the list can have at most 5 elements.
 """
