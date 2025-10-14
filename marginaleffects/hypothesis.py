@@ -72,10 +72,25 @@ def get_hypothesis(x, hypothesis, by=None):
         lab = [f"H{i + 1}" for i in range(out.shape[0])]
         out = out.with_columns(pl.Series(lab).alias("term"))
     elif isinstance(hypothesis, str) and "~" in hypothesis:
-        # lab = [f"b{i}" for i in range(x.shape[0])]
         out = eval_hypothesis_formula(x, hypothesis, lab=lab)
     elif isinstance(hypothesis, str) and "=" in hypothesis:
         out = eval_string_hypothesis(x, hypothesis, lab=hypothesis)
+    elif isinstance(hypothesis, (list, tuple)):
+        if len(hypothesis) == 0:
+            raise ValueError(msg)
+        frames = []
+        for hyp in hypothesis:
+            if not isinstance(hyp, str):
+                raise ValueError(
+                    "When `hypothesis` is a sequence, every element must be a string."
+                )
+            if "~" in hyp:
+                frames.append(eval_hypothesis_formula(x, hyp, lab=lab))
+            elif "=" in hyp:
+                frames.append(eval_string_hypothesis(x, hyp, lab=hyp))
+            else:
+                raise ValueError(msg)
+        out = pl.concat(frames, how="vertical")
     else:
         raise ValueError(msg)
     return out

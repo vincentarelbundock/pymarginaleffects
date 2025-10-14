@@ -13,7 +13,7 @@ class DocsParameters:
 - "dyex": dY/dX / X
 """
     docstring_hypothesis = """
-`hypothesis`: (str, int, float, numpy array) Specifies a hypothesis test or custom contrast
+`hypothesis`: (str, int, float, list of str, numpy array) Specifies a hypothesis test or custom contrast
 
 * Number to specify the null hypothesis.
 * Numpy array with a number of rows equal to the number of estimates.
@@ -35,6 +35,7 @@ class DocsParameters:
         - `pairwise` and `revpairwise`: pairwise differences between estimates in each row.
         - `reference` and `revreference`: differences between the estimates in each row and the estimate in the first row.
         - `sequential` and `revsequential`: differences between an estimate and the estimate in the next row.
+- list of strings: Multiple hypotheses evaluated in sequence, each processed as if passed individually. The resulting rows are stacked in the order supplied. Example: `["b1 - b0 = 0", "b2 = 1"]`.
 - numpy.ndarray: Each column is a vector of weights. The output is the dot product between these vectors of weights and the vectors of estimates. e.g. `hypothesis=np.array([[1, 1, 2], [2, 2, 3]]).T`
 - See the Examples section and the vignette: https://marginaleffects.com/chapters/hypothesis.html
 """

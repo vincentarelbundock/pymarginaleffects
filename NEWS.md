@@ -1,3 +1,9 @@
+# 0.1.5.4
+
+New:
+
+* `hypothesis=` accepts a list of strings, evaluating each hypothesis in order and stacking the results.
+
 # 0.1.5.2
 
 Fixes:
