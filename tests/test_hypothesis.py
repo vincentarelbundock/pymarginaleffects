@@ -64,6 +64,30 @@ def test_predictions_pairwise():
     assert np.isclose(p[1] - p[2], q[2])
 
 
+def test_ratio_hypothesis_uses_null_one():
+    out = predictions(mod, by="cyl", hypothesis="ratio~sequential")
+    expected = (out["estimate"] - 1) / out["std_error"]
+    assert_series_equal(
+        out["statistic"],
+        expected,
+        check_names=False,
+        atol=1e-9,
+        rtol=1e-9,
+    )
+
+
+def test_ratio_hypothesis_sequence_uses_null_one():
+    out = predictions(mod, by="cyl", hypothesis=["ratio~sequential"])
+    expected = (out["estimate"] - 1) / out["std_error"]
+    assert_series_equal(
+        out["statistic"],
+        expected,
+        check_names=False,
+        atol=1e-9,
+        rtol=1e-9,
+    )
+
+
 def test_comparisons_by():
     mtcars = (
         get_dataset("mtcars", "datasets")

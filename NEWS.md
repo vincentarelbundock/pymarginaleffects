@@ -1,3 +1,9 @@
+# 0.1.5.6
+
+Fixes:
+
+* `hypothesis="ratio ~ ..."` now centers test statistics on 1 instead of 0.
+
 # 0.1.5.5
 
 New:
