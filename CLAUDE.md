@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Use this to run tests:
+
+```sh
+make test
+```
+
 ## Development Commands
 
 ### Setup and Installation

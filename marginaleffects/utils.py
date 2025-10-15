@@ -271,15 +271,13 @@ def upcast(df, reference):
                     idx = max(numtypes.index(good), numtypes.index(bad))
                     df = df.with_columns(pl.col(col).cast(numtypes[idx]))
 
-                # # this breaks all the tests, espcially those from slopes
-                # # probably because of upcasting?
-                # # string & cat
-                # if good in [pl.Categorical, pl.Enum]:
-                #     categories = reference[col].cat.get_categories()
-                #     df = df.with_columns(pl.col(col).cast(pl.Enum(categories)))
-                #     reference = reference.with_columns(
-                #         pl.col(col).cast(pl.Enum(categories))
-                #     )
+                # string & cat
+                elif good in [pl.Categorical, pl.Enum]:
+                    categories = reference[col].cat.get_categories()
+                    df = df.with_columns(pl.col(col).cast(pl.Enum(categories)))
+                    reference = reference.with_columns(
+                        pl.col(col).cast(pl.Enum(categories))
+                    )
 
                 else:
                     try:

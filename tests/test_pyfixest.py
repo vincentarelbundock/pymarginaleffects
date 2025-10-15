@@ -22,8 +22,6 @@ def create_test_data():
         }
     ).with_columns(
         (pl.col("X1") * pl.col("X2") * pl.col("Z1") + pl.col("e")).alias("Y"),
-        pl.col("f1").cast(pl.Utf8),
-        pl.col("f2").cast(pl.Utf8),
     )
     return data
 
