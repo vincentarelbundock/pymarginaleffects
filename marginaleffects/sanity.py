@@ -10,6 +10,84 @@ from .utils import ingest, upcast
 from .formulaic_utils import listwise_deletion
 
 
+# ============================================================================
+# Unified Argument Handling Functions
+# ============================================================================
+
+
+def handle_deprecated_hypotheses_argument(hypothesis, kwargs, stacklevel=2):
+    """Handle migration from 'hypotheses' to 'hypothesis' parameter.
+
+    Parameters
+    ----------
+    hypothesis : object
+        Current hypothesis value
+    kwargs : dict
+        Keyword arguments dict that may contain 'hypotheses'
+    stacklevel : int
+        Stack level for warning
+
+    Returns
+    -------
+    object
+        The hypothesis value (either from kwargs or original parameter)
+
+    Raises
+    ------
+    ValueError
+        If both hypothesis and hypotheses are specified
+    """
+    if "hypotheses" in kwargs:
+        if hypothesis is not None:
+            raise ValueError("Specify at most one of `hypothesis` or `hypotheses`.")
+        hypotheses = kwargs.pop("hypotheses")
+        warn(
+            "`hypotheses` is deprecated; use `hypothesis` instead.",
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
+        return hypotheses
+    return hypothesis
+
+
+def handle_pyfixest_vcov_limitation(model, vcov, stacklevel=2):
+    """Handle pyfixest vcov constraints with appropriate warnings.
+
+    PyFixest models have specific limitations with standard error computation
+    for non-linear models with fixed effects.
+
+    Parameters
+    ----------
+    model : object
+        Fitted model (after sanitization)
+    vcov : bool or array-like
+        Variance-covariance specification
+    stacklevel : int
+        Stack level for warning
+
+    Returns
+    -------
+    bool or array-like
+        Modified vcov value if PyFixest limitation applies, otherwise unchanged
+    """
+    # Import here to avoid circular dependency
+    from .model_pyfixest import ModelPyfixest
+
+    if isinstance(model, ModelPyfixest) and vcov is not False:
+        has_fixef = getattr(model.model, "_has_fixef", False)
+        if has_fixef and not model.is_linear_model():
+            warn(
+                "For this pyfixest model, marginaleffects cannot take into account the "
+                "uncertainty in fixed-effects parameters. Standard errors are disabled "
+                "and vcov=False is enforced.",
+                UserWarning,
+                stacklevel=stacklevel,
+            )
+            return False
+
+    return vcov
+
+
 def sanitize_vcov(vcov, model):
     V = model.get_vcov(vcov)
     if V is not None:

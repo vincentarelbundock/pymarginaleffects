@@ -16,6 +16,8 @@ from .sanity import (
     sanitize_newdata,
     sanitize_variables,
     sanitize_vcov,
+    handle_deprecated_hypotheses_argument,
+    handle_pyfixest_vcov_limitation,
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
@@ -23,7 +25,6 @@ from .utils import get_pad, sort_columns, upcast
 from .model_pyfixest import ModelPyfixest
 from .model_sklearn import ModelSklearn
 from .model_linearmodels import ModelLinearmodels
-from warnings import warn
 
 from .docs import (
     DocsDetails,
@@ -56,16 +57,7 @@ def comparisons(
 
     Or type: `help(comparisons)`
     """
-    if "hypotheses" in kwargs:
-        if hypothesis is not None:
-            raise ValueError("Specify at most one of `hypothesis` or `hypotheses`.")
-        hypotheses = kwargs.pop("hypotheses")
-        warn(
-            "`hypotheses` is deprecated; use `hypothesis` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        hypothesis = hypotheses
+    hypothesis = handle_deprecated_hypotheses_argument(hypothesis, kwargs, stacklevel=2)
     if kwargs:
         unexpected = ", ".join(sorted(kwargs.keys()))
         raise TypeError(
@@ -76,22 +68,7 @@ def comparisons(
         newdata = newdata(model)
 
     model = sanitize_model(model)
-
-    # For pyfixest models, automatically set vcov=False for non-linear models with warning
-    if (
-        isinstance(model, ModelPyfixest)
-        and vcov is not False
-        and getattr(model.model, "_has_fixef", False)
-        and not model.is_linear_model()
-    ):
-        warn(
-            "For this pyfixest model, marginaleffects cannot take into account the "
-            "uncertainty in fixed-effects parameters when computing contrasts. "
-            "Standard errors are disabled and vcov=False is enforced.",
-            UserWarning,
-            stacklevel=2,
-        )
-        vcov = False
+    vcov = handle_pyfixest_vcov_limitation(model, vcov, stacklevel=2)
 
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
