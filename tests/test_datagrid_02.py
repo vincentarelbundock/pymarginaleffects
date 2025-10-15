@@ -382,7 +382,7 @@ class TestNewDatagridFeatures:
         grid = datagrid(
             model=model,
             hp=[100, 150],  # Vary HP
-            grid_type="counterfactual"
+            grid_type="counterfactual",
         )
 
         # Should retain columns not in the model formula

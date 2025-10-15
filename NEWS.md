@@ -5,6 +5,7 @@ New:
 * Model adapters now forward attribute access to underlying fitted models via `__getattr__`, allowing direct access to model-specific attributes and methods.
 * `plot_predictions()` gains a `points` argument to overlay raw-data points with controllable transparency.
 * `hypothesis=` accepts a list of strings, evaluating each hypothesis in order and stacking the results.
+* `comparison=` argument in `comparisons()` now accepts lambda functions to compute custom estimates based on `hi` and `lo` predictions.
 
 Fixes:
 

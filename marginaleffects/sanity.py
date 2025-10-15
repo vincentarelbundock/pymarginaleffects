@@ -223,6 +223,10 @@ def sanitize_newdata(model, newdata, wts, by=[]):
 
 
 def sanitize_comparison(comparison, by, wts=None):
+    # Handle callable comparison functions
+    if callable(comparison):
+        return (comparison, "custom")
+
     out = comparison
     if by is not False:
         if f"{comparison}avg" in estimands.keys():

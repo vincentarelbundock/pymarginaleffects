@@ -271,3 +271,63 @@ def test_issue_206():
     )
     assert cmp.height == 3
     assert (cmp["term"] == "cross").all()
+
+
+def test_callable_comparison():
+    """Test that comparison= argument accepts lambda functions to compute custom estimates.
+
+    This test verifies that custom lambda functions produce identical results to
+    built-in comparison methods (difference, ratio, lnratio).
+    """
+    mod = smf.ols("am ~ hp", data=mtcars).fit()
+
+    # Test 1: Lambda difference should equal built-in difference
+    cmp_builtin_diff = comparisons(
+        mod, variables="hp", comparison="difference", vcov=False
+    )
+    cmp_lambda_diff = comparisons(
+        mod, variables="hp", comparison=lambda hi, lo, eps, x, y, w: hi - lo, vcov=False
+    )
+    assert isinstance(cmp_lambda_diff, MarginaleffectsResult)
+    np.testing.assert_array_almost_equal(
+        cmp_builtin_diff["estimate"].to_numpy(), cmp_lambda_diff["estimate"].to_numpy()
+    )
+
+    # Test 2: Lambda ratio should equal built-in ratio
+    cmp_builtin_ratio = comparisons(mod, variables="hp", comparison="ratio", vcov=False)
+    cmp_lambda_ratio = comparisons(
+        mod, variables="hp", comparison=lambda hi, lo, eps, x, y, w: hi / lo, vcov=False
+    )
+    assert isinstance(cmp_lambda_ratio, MarginaleffectsResult)
+    assert all(cmp_lambda_ratio["estimate"] > 0)  # Ratio should be positive
+    np.testing.assert_array_almost_equal(
+        cmp_builtin_ratio["estimate"].to_numpy(),
+        cmp_lambda_ratio["estimate"].to_numpy(),
+    )
+
+    # Test 3: Lambda lnratio should equal built-in lnratio
+    cmp_builtin_lnratio = comparisons(
+        mod, variables="hp", comparison="lnratio", vcov=False
+    )
+    cmp_lambda_lnratio = comparisons(
+        mod,
+        variables="hp",
+        comparison=lambda hi, lo, eps, x, y, w: np.log(hi / lo),
+        vcov=False,
+    )
+    assert isinstance(cmp_lambda_lnratio, MarginaleffectsResult)
+    np.testing.assert_array_almost_equal(
+        cmp_builtin_lnratio["estimate"].to_numpy(),
+        cmp_lambda_lnratio["estimate"].to_numpy(),
+    )
+
+    # Test 4: Custom function (percent change) with avg_comparisons
+    cmp_avg = avg_comparisons(
+        mod,
+        variables="hp",
+        comparison=lambda hi, lo, eps, x, y, w: (hi - lo) / lo * 100,
+        vcov=False,
+        by=True,
+    )
+    assert isinstance(cmp_avg, MarginaleffectsResult)
+    assert cmp_avg.shape[0] >= 1

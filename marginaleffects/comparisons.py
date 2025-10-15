@@ -99,11 +99,15 @@ def comparisons(
     nd = []
     if not cross:
         for v in variables:
+            if callable(v.comparison):
+                vcomp = "custom"
+            else:
+                vcomp = v.comparison
             nd.append(
                 newdata.with_columns(
                     pl.lit(v.variable).alias("term"),
                     pl.lit(v.lab).alias("contrast"),
-                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
                 )
             )
             hi.append(
@@ -111,7 +115,7 @@ def comparisons(
                     pl.lit(v.hi).alias(v.variable),
                     pl.lit(v.variable).alias("term"),
                     pl.lit(v.lab).alias("contrast"),
-                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
                 )
             )
             lo.append(
@@ -119,7 +123,7 @@ def comparisons(
                     pl.lit(v.lo).alias(v.variable),
                     pl.lit(v.variable).alias("term"),
                     pl.lit(v.lab).alias("contrast"),
-                    pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
                 )
             )
 
@@ -128,22 +132,26 @@ def comparisons(
         lo.append(newdata)
         nd.append(newdata)
         for i, v in enumerate(variables):
+            if callable(v.comparison):
+                vcomp = "custom"
+            else:
+                vcomp = v.comparison
             nd[0] = nd[0].with_columns(
                 pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                pl.lit(vcomp).alias("marginaleffects_comparison"),
             )
             hi[0] = hi[0].with_columns(
                 pl.lit(v.hi).alias(v.variable),
                 pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                pl.lit(vcomp).alias("marginaleffects_comparison"),
             )
             lo[0] = lo[0].with_columns(
                 pl.lit(v.lo).alias(v.variable),
                 pl.lit(v.variable).alias("term"),
                 pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                pl.lit(v.comparison).alias("marginaleffects_comparison"),
+                pl.lit(vcomp).alias("marginaleffects_comparison"),
             )
 
     # Hack: We run into Patsy-related issues unless we "pad" the
@@ -289,6 +297,14 @@ def comparisons(
         hi = hi[pad.shape[0] :]
         lo = lo[pad.shape[0] :]
 
+    # Create a mapping of comparison labels to their actual functions (for callable comparisons)
+    comparison_functions = {}
+    for v in variables:
+        if callable(v.comparison):
+            # Store the callable function for later use, keyed by its index or variable+lab combo
+            key = f"{v.variable}_{v.lab}"
+            comparison_functions[key] = v.comparison
+
     # inner() takes the `hi` and `lo` matrices, computes predictions, compares
     # them, and aggregates the results based on the `by` argument. This gives us
     # the final quantity of interest. We wrap this in a function because it will
@@ -353,7 +369,20 @@ def comparisons(
                 xwts = x[wts]
             else:
                 xwts = None
-            est = estimands[comp](
+
+            # Check if this is a custom callable comparison
+            term_val = x["term"][0] if "term" in x.columns else None
+            contrast_val = x["contrast"][0] if "contrast" in x.columns else None
+            key = f"{term_val}_{contrast_val}"
+
+            if comp == "custom" and key in comparison_functions:
+                # Use the callable comparison function
+                estimand = comparison_functions[key]
+            else:
+                # Use the predefined estimand
+                estimand = estimands[comp]
+
+            est = estimand(
                 hi=x["predicted_hi"],
                 lo=x["predicted_lo"],
                 eps=eps,
@@ -481,9 +510,11 @@ See the package website and vignette for examples:
     + DocsParameters.docstring_variables("comparison")
     + DocsParameters.docstring_newdata("comparison")
     + """
-* `comparison`: (str) String specifying how pairs of predictions should be compared. See the Comparisons section below for definitions of each transformation.
+* `comparison`: (str or callable) String specifying how pairs of predictions should be compared, or a callable function to compute custom estimates. See the Comparisons section below for definitions of each transformation.
 
-* Acceptable strings: difference, differenceavg, differenceavgwts, dydx, eyex, eydx, dyex, dydxavg, eyexavg, eydxavg, dyexavg, dydxavgwts, eyexavgwts, eydxavgwts, dyexavgwts, ratio, ratioavg, ratioavgwts, lnratio, lnratioavg, lnratioavgwts, lnor, lnoravg, lnoravgwts, lift, liftavg, liftavgwts, expdydx, expdydxavg, expdydxavgwts
+  * Acceptable strings: difference, differenceavg, differenceavgwts, dydx, eyex, eydx, dyex, dydxavg, eyexavg, eydxavg, dyexavg, dydxavgwts, eyexavgwts, eydxavgwts, dyexavgwts, ratio, ratioavg, ratioavgwts, lnratio, lnratioavg, lnratioavgwts, lnor, lnoravg, lnoravgwts, lift, liftavg, liftavg, expdydx, expdydxavg, expdydxavgwts
+
+  * Callable: A function that takes `hi`, `lo`, `eps`, `x`, `y`, and `w` as arguments and returns a numeric array. This allows computing custom comparisons like `lambda hi, lo, eps, x, y, w: hi / lo` for ratios or `lambda hi, lo, eps, x, y, w: (hi - lo) / lo * 100` for percent changes.
 """
     + DocsParameters.docstring_by
     + DocsParameters.docstring_transform
@@ -496,16 +527,18 @@ See the package website and vignette for examples:
     + DocsParameters.docstring_eps
     + DocsParameters.docstring_eps_vcov
     + docstring_returns
-    + """ 
+    + """
 ## Examples
 ```py
 from marginaleffects import *
+import numpy as np
 
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 data = get_dataset("thornton")
 model = smf.ols("outcome ~ distance + incentive", data=data).fit()
 
+# Basic comparisons
 comparisons(model)
 
 avg_comparisons(model)
@@ -517,6 +550,19 @@ avg_comparisons(model, hypothesis=0)
 comparisons(model, by="agecat")
 
 avg_comparisons(model, by="agecat")
+
+# Custom comparisons with lambda functions
+# Ratio comparison using lambda
+comparisons(model, variables="distance",
+            comparison=lambda hi, lo, eps, x, y, w: hi / lo)
+
+# Percent change using lambda
+comparisons(model, variables="distance",
+            comparison=lambda hi, lo, eps, x, y, w: (hi - lo) / lo * 100)
+
+# Log ratio using lambda
+comparisons(model, variables="distance",
+            comparison=lambda hi, lo, eps, x, y, w: np.log(hi / lo))
 ```
 
 ## Details
