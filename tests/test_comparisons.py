@@ -144,7 +144,7 @@ def test_bare_minimum():
             fit,
             variables=["Pop1831", "Desertion"],
             comparison="ratio",
-            hypotheses="Pop1831 = Desertion",
+            hypothesis="Pop1831 = Desertion",
         ),
         MarginaleffectsResult,
     )

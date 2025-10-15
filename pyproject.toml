@@ -51,6 +51,11 @@ dev-dependencies = [
 markers =[
     "plot: marks plot tests (slow)",
 ]
+filterwarnings = [
+    "ignore::scipy.optimize.OptimizeWarning",
+    "ignore::statsmodels.tools.sm_exceptions.ConvergenceWarning",
+    "ignore:Dropping rows with missing observations:UserWarning",
+]
 
 [tool.ruff.lint]
 extend-ignore = ["F405", "F403", "F811"]
