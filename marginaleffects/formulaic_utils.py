@@ -27,7 +27,9 @@ def parse_variables(formula: str) -> list[str]:
     -------
     list[str]
         A list of variable names extracted from the formula. Only names/identifiers
-        are included, operators and special tokens are excluded.
+        are included, operators and special tokens are excluded. The response variable
+        is returned first, followed by predictor variables in the order they appear
+        in the formula.
 
     Examples
     --------
@@ -38,8 +40,32 @@ def parse_variables(formula: str) -> list[str]:
     if not isinstance(formula, str):
         return []
 
+    if "~" not in formula:
+        # No response variable, just return all variables
+        fml = formulaic.Formula(formula)
+        return list(fml.required_variables)
+
+    # Split into LHS (response) and RHS (predictors)
+    lhs, rhs = formula.split("~", 1)
+    lhs = lhs.strip()
+
+    # Get all variables from the formula
     fml = formulaic.Formula(formula)
-    return list(fml.required_variables)
+    all_vars = fml.required_variables
+
+    # Response is the LHS variable
+    response = lhs
+
+    # Predictors are all other variables, sorted by their position in RHS
+    predictors = []
+    for var in all_vars:
+        if var != response:
+            predictors.append(var)
+
+    # Sort predictors by their position in the RHS string to preserve order
+    predictors.sort(key=lambda v: rhs.find(v))
+
+    return [response] + predictors
 
 
 # @validate_types

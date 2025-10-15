@@ -1,5 +1,11 @@
 # Development
 
+## 0.1.5.8
+
+Fixes:
+
+* Fixed bug where variables were misidentified due to unordered set from `formulaic.Formula.required_variables`. This caused the outcome variable to be incorrectly included as a predictor and some predictors to be excluded. Issue #221.
+
 ## 0.1.5.7
 
 Fixes:
