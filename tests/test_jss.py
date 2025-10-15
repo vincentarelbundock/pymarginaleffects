@@ -2,24 +2,31 @@ import numpy as np
 import polars as pl
 import statsmodels.formula.api as smf
 from marginaleffects import *
+from marginaleffects import MarginaleffectsResult
 from tests.utilities import *
 import pytest
-from tests.helpers import impartiality_df, impartiality_model  # noqa
+from tests.helpers import impartiality_model  # noqa
+
+
+def assert_is_result(obj):
+    assert isinstance(obj, MarginaleffectsResult)
+    assert isinstance(obj.data, pl.DataFrame)
+    return obj
 
 
 @pytest.mark.skip(reason="to be fixed")
 def test_predictions(impartiality_model):
     p = predictions(impartiality_model)
 
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
 
     p = predictions(impartiality_model, newdata=dat.head())
 
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
 
     p = predictions(impartiality_model, newdata="mean")
 
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
 
     p = predictions(
         impartiality_model,
@@ -29,17 +36,17 @@ def test_predictions(impartiality_model):
             equal=[30, 90],
         ),
     )
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
     assert p.shape[0] == 4
 
     p1 = avg_predictions(impartiality_model)
     p2 = np.mean(impartiality_model.predict(dat.to_pandas()).to_numpy())
-    assert isinstance(p1, pl.DataFrame)
+    assert_is_result(p1)
     assert p1.shape[0] == 1
     assert p1["estimate"][0] == p2
 
     p = predictions(impartiality_model, by="democracy")
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
     assert p.shape[0] == 2
 
     p = plot_predictions(impartiality_model, by=["democracy", "continent"])
@@ -51,13 +58,13 @@ def test_hypotheses(impartiality_model):
 
     h = hypotheses(impartiality_model, hypothesis="b4 = b3")
 
-    assert isinstance(h, pl.DataFrame)
+    assert_is_result(h)
     assert h.shape[0] == 1
 
     avg_predictions(impartiality_model, by="democracy", hypothesis="~revpairwise")
 
     p = predictions(impartiality_model, by="democracy", hypothesis="b1 = b0 * 2")
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
     assert p.shape[0] == 1
 
     p = predictions(
@@ -66,28 +73,28 @@ def test_hypotheses(impartiality_model):
         hypothesis="b1 = b0 * 2",
         equivalence=[-0.2, 0.2],
     )
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
     assert p.shape[0] == 1
 
     c = comparisons(impartiality_model, variables="democracy")
-    assert isinstance(c, pl.DataFrame)
+    assert_is_result(c)
     assert c.shape[0] == 166
 
     c = avg_comparisons(impartiality_model)
-    assert isinstance(c, pl.DataFrame)
+    assert_is_result(c)
     assert c.shape[0] == 5
 
     c = avg_comparisons(impartiality_model, variables={"equal": 4})
-    assert isinstance(c, pl.DataFrame)
+    assert_is_result(c)
     assert c.shape[0] == 1
     c = avg_comparisons(impartiality_model, variables={"equal": "sd"})
-    assert isinstance(c, pl.DataFrame)
+    assert_is_result(c)
     assert c.shape[0] == 1
     c = avg_comparisons(impartiality_model, variables={"equal": [30, 90]})
-    assert isinstance(c, pl.DataFrame)
+    assert_is_result(c)
     assert c.shape[0] == 1
     c = avg_comparisons(impartiality_model, variables={"equal": "iqr"})
-    assert isinstance(c, pl.DataFrame)
+    assert_is_result(c)
     assert c.shape[0] == 1
 
     c = avg_comparisons(impartiality_model, variables="democracy", comparison="ratio")
@@ -185,7 +192,7 @@ def test_hypothesis_shape_and_row_labels(h, label, impartiality_model):
             variables={"equal": [30, 90]},
             hypothesis=h,
         )
-        assert isinstance(c, pl.DataFrame)
+        assert_is_result(c)
         if b == "democracy":
             assert c.shape[0] == 1
             assert c["term"][0] == label[b]
@@ -207,7 +214,7 @@ def test_transform(impartiality_model):
 
 def test_misc(impartiality_model):
     cmp = comparisons(impartiality_model, by="democracy", variables={"equal": [30, 90]})
-    assert isinstance(cmp, pl.DataFrame)
+    assert_is_result(cmp)
     assert cmp.shape[0] == 2
 
     cmp = comparisons(
@@ -216,7 +223,7 @@ def test_misc(impartiality_model):
         variables={"equal": [30, 90]},
         hypothesis="~pairwise",
     )
-    assert isinstance(cmp, pl.DataFrame)
+    assert_is_result(cmp)
     assert cmp.shape[0] == 1
 
     s = slopes(
@@ -225,19 +232,19 @@ def test_misc(impartiality_model):
         newdata=datagrid(equal=[25, 50], model=impartiality_model),
     )
 
-    assert isinstance(s, pl.DataFrame)
+    assert_is_result(s)
     assert s.shape[0] == 2
 
     s = avg_slopes(impartiality_model, variables="equal")
-    assert isinstance(s, pl.DataFrame)
+    assert_is_result(s)
     assert s.shape[0] == 1
 
     s = slopes(impartiality_model, variables="equal", newdata="mean")
-    assert isinstance(s, pl.DataFrame)
+    assert_is_result(s)
     assert s.shape[0] == 1
 
     s = avg_slopes(impartiality_model, variables="equal", slope="eyex")
-    assert isinstance(s, pl.DataFrame)
+    assert_is_result(s)
     assert s.shape[0] == 1
 
 
@@ -254,7 +261,7 @@ def test_titanic():
         ),
         by="Woman",
     )
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
     assert p.shape[0] == 2
 
     p = avg_predictions(
@@ -267,7 +274,7 @@ def test_titanic():
         by="Woman",
         hypothesis="~revpairwise",
     )
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
     assert p.shape[0] == 1
 
     p = avg_comparisons(
@@ -279,30 +286,30 @@ def test_titanic():
             model=mod_tit,
         ),
     )
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
     assert p.shape[0] == 1
 
     # Risk difference by passenger class
     c = avg_comparisons(
         mod_tit, variables="Woman", by="Passenger_Class", comparison="difference"
     )
-    assert isinstance(c, pl.DataFrame)
+    assert_is_result(c)
     assert c.shape[0] == 3
 
     c = avg_comparisons(
         mod_tit, variables="Woman", by="Passenger_Class", hypothesis="b0 - b2 = 0"
     )
-    assert isinstance(c, pl.DataFrame)
+    assert_is_result(c)
     assert c.shape[0] == 1
 
 
 def test_python_section(impartiality_model):
     p = avg_predictions(impartiality_model, by="continent")
-    assert isinstance(p, pl.DataFrame)
+    assert_is_result(p)
     assert p.shape[0] == 4
 
     s = slopes(impartiality_model, newdata="mean")
-    assert isinstance(s, pl.DataFrame)
+    assert_is_result(s)
     assert s.shape[0] == 5
 
 

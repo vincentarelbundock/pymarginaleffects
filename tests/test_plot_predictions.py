@@ -13,6 +13,72 @@ FIGURES_FOLDER = "plot_predictions"
 
 @pytest.mark.plot
 class TestPlotPredictions:
+    def test_gray_discrete_interval_len3(self):
+        data = (
+            get_dataset("mtcars", "datasets")
+            .sort("gear")
+            .with_columns(pl.col("gear").cast(pl.String).cast(pl.Categorical))
+            .to_pandas()
+        )
+
+        mod = smf.ols("mpg ~ wt + hp + C(gear)", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear", "wt", "hp"], gray=True)
+        assert (
+            assert_image(fig, "test_gray_discrete_interval_len3", FIGURES_FOLDER)
+            is None
+        )
+
+    def test_gray_discrete_interval_len1(self):
+        data = get_dataset("mtcars", "datasets")
+
+        data = data.drop_nulls()
+        mod = smf.glm("mpg ~ hp * wt * cyl * gear", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear"], gray=True)
+        assert (
+            assert_image(fig, "test_gray_discrete_interval_len1", FIGURES_FOLDER)
+            is None
+        )
+
+    def test_gray_discrete_not_interval(self):
+        data = (
+            get_dataset("mtcars", "datasets")
+            .sort("gear")
+            .with_columns(pl.col("gear").cast(pl.String).cast(pl.Categorical))
+            .to_pandas()
+        )
+        mod = smf.ols("mpg ~ wt + C(gear)", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear"], vcov=False, gray=True)
+        assert (
+            assert_image(fig, "test_gray_discrete_not_interval", FIGURES_FOLDER) is None
+        )
+
+    def test_gray_not_discrete_interval_len3(self):
+        data = get_dataset("mtcars", "datasets")
+
+        data = data.drop_nulls()
+        mod = smf.glm("mpg ~ hp * wt * cyl * gear", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear", "hp", "cyl"], gray=True)
+        assert (
+            assert_image(fig, "test_gray_not_discrete_interval_len3", FIGURES_FOLDER)
+            is None
+        )
+
+    def test_gray_not_discrete_interval_len1(self):
+        data = get_dataset("mtcars", "datasets")
+
+        data = data.drop_nulls()
+        mod = smf.glm("mpg ~ hp * wt * cyl * gear", data=data).fit()
+
+        fig = plot_predictions(mod, condition=["gear"], gray=True)
+        assert (
+            assert_image(fig, "test_gray_not_discrete_interval_len1", FIGURES_FOLDER)
+            is None
+        )
+
     @pytest.mark.parametrize(
         "by, expected_figure_filename",
         [
@@ -118,3 +184,25 @@ class TestPlotPredictions:
     def test_issue_114(self, input_condition, expected_figure_filename, penguins_model):
         fig = plot_predictions(penguins_model, condition=input_condition)
         assert assert_image(fig, expected_figure_filename, FIGURES_FOLDER) is None
+
+
+def test_issue_171():
+    dat = get_dataset("thornton")
+    mod = smf.logit(
+        "outcome ~ incentive + agecat + distance", data=dat.to_pandas()
+    ).fit()
+    cond = {"distance": None, "agecat": ">35", "incentive": 0}
+    fig = plot_predictions(mod, condition=cond)
+    assert assert_image(fig, "issue_171", FIGURES_FOLDER) is None
+
+
+def test_points_adds_raw_layer():
+    mod = smf.ols("mpg ~ wt", data=mtcars.to_pandas()).fit()
+    fig_points = plot_predictions(mod, condition=["wt"], points=0.4)
+    assert assert_image(fig_points, "points_adds_raw_layer", FIGURES_FOLDER) is None
+
+
+def test_points_out_of_bounds_raises():
+    mod = smf.ols("mpg ~ wt", data=mtcars.to_pandas()).fit()
+    with pytest.raises(ValueError):
+        plot_predictions(mod, condition=["wt"], points=1.5)

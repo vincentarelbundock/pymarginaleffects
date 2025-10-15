@@ -41,5 +41,8 @@ inject_docs:
 build:
 	uv build
 
+ipy:
+	uv run --all-extras ipython --no-autoindent
+
 publish: build
 	uv publish

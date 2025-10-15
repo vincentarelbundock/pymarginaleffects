@@ -10,6 +10,84 @@ from .utils import ingest, upcast
 from .formulaic_utils import listwise_deletion
 
 
+# ============================================================================
+# Unified Argument Handling Functions
+# ============================================================================
+
+
+def handle_deprecated_hypotheses_argument(hypothesis, kwargs, stacklevel=2):
+    """Handle migration from 'hypotheses' to 'hypothesis' parameter.
+
+    Parameters
+    ----------
+    hypothesis : object
+        Current hypothesis value
+    kwargs : dict
+        Keyword arguments dict that may contain 'hypotheses'
+    stacklevel : int
+        Stack level for warning
+
+    Returns
+    -------
+    object
+        The hypothesis value (either from kwargs or original parameter)
+
+    Raises
+    ------
+    ValueError
+        If both hypothesis and hypotheses are specified
+    """
+    if "hypotheses" in kwargs:
+        if hypothesis is not None:
+            raise ValueError("Specify at most one of `hypothesis` or `hypotheses`.")
+        hypotheses = kwargs.pop("hypotheses")
+        warn(
+            "`hypotheses` is deprecated; use `hypothesis` instead.",
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
+        return hypotheses
+    return hypothesis
+
+
+def handle_pyfixest_vcov_limitation(model, vcov, stacklevel=2):
+    """Handle pyfixest vcov constraints with appropriate warnings.
+
+    PyFixest models have specific limitations with standard error computation
+    for non-linear models with fixed effects.
+
+    Parameters
+    ----------
+    model : object
+        Fitted model (after sanitization)
+    vcov : bool or array-like
+        Variance-covariance specification
+    stacklevel : int
+        Stack level for warning
+
+    Returns
+    -------
+    bool or array-like
+        Modified vcov value if PyFixest limitation applies, otherwise unchanged
+    """
+    # Import here to avoid circular dependency
+    from .model_pyfixest import ModelPyfixest
+
+    if isinstance(model, ModelPyfixest) and vcov is not False:
+        has_fixef = getattr(model.model, "_has_fixef", False)
+        if has_fixef and not model.is_linear_model():
+            warn(
+                "For this pyfixest model, marginaleffects cannot take into account the "
+                "uncertainty in fixed-effects parameters. Standard errors are disabled "
+                "and vcov=False is enforced.",
+                UserWarning,
+                stacklevel=stacklevel,
+            )
+            return False
+
+    return vcov
+
+
 def sanitize_vcov(vcov, model):
     V = model.get_vcov(vcov)
     if V is not None:
@@ -104,8 +182,8 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     )
 
     datagrid_explicit = None
-    if isinstance(out, pl.DataFrame) and hasattr(out, "datagrid_explicit"):
-        datagrid_explicit = out.datagrid_explicit
+    if isinstance(newdata, pl.DataFrame) and hasattr(newdata, "datagrid_explicit"):
+        datagrid_explicit = newdata.datagrid_explicit
 
     if isinstance(by, list) and len(by) > 0:
         by = [x for x in by if x in out.columns]
@@ -121,21 +199,25 @@ def sanitize_newdata(model, newdata, wts, by=[]):
     if any([isinstance(out[x], pl.Categorical) for x in out.columns]):
         raise ValueError("Categorical type columns are not supported in `newdata`.")
 
-    if datagrid_explicit is not None:
-        out.datagrid_explicit = datagrid_explicit
-
     # ensure all enum levels are in modeldata
     for c in out.columns:
         if c in modeldata.columns and modeldata[c].dtype in [pl.Categorical, pl.Enum]:
-            cat_modeldata = modeldata[c].unique()
-            cat_out = out[c].unique()
-            cat_out = [x for x in cat_out if x not in cat_modeldata]
-            if len(cat_out) > 0:
-                raise ValueError(
-                    f"Column `{c}` in `newdata` has levels not in the model data: {', '.join(cat_out)}"
-                )
+            try:
+                cat_modeldata = modeldata[c].unique()
+                cat_out = out[c].unique()
+                cat_out = [x for x in cat_out if x not in cat_modeldata]
+                if len(cat_out) > 0:
+                    raise ValueError(
+                        f"Column `{c}` in `newdata` has levels not in the model data: {', '.join(cat_out)}"
+                    )
+            except pl.exceptions.InvalidOperationError:
+                # Skip validation for columns that don't support unique() operation
+                continue
 
     out = upcast(out, modeldata)
+
+    if datagrid_explicit is not None:
+        out.datagrid_explicit = datagrid_explicit
 
     return out
 
@@ -541,9 +623,38 @@ def sanitize_variables(variables, model, newdata, comparison, eps, by, wts=None)
     return out
 
 
+def _is_ratio_formula(hypothesis):
+    lhs = None
+    if isinstance(hypothesis, str) and "~" in hypothesis:
+        lhs = hypothesis.split("~", 1)[0]
+    elif hasattr(hypothesis, "lhs"):
+        lhs = hypothesis.lhs
+    if lhs is None:
+        return False
+    if not isinstance(lhs, str):
+        lhs = str(lhs)
+    return lhs.strip().lower() == "ratio"
+
+
 def sanitize_hypothesis_null(hypothesis):
     if isinstance(hypothesis, (int, float)):
         hypothesis_null = hypothesis
+    elif _is_ratio_formula(hypothesis):
+        hypothesis_null = 1
+    elif isinstance(hypothesis, (list, tuple)):
+        # Align with the R behavior: only switch the null to 1 when *all* formula-style
+        # hypotheses in the sequence are ratio contrasts. Mixed contrast types retain
+        # the default null of 0 to avoid shifting difference-based tests.
+        formula_like = [
+            hyp
+            for hyp in hypothesis
+            if hasattr(hyp, "lhs") or (isinstance(hyp, str) and "~" in hyp)
+        ]
+        ratio_formulas = [hyp for hyp in hypothesis if _is_ratio_formula(hyp)]
+        if ratio_formulas and len(ratio_formulas) == len(formula_like):
+            hypothesis_null = 1
+        else:
+            hypothesis_null = 0
     else:
         hypothesis_null = 0
     return hypothesis_null

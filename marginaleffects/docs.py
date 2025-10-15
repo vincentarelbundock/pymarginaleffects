@@ -13,7 +13,7 @@ class DocsParameters:
 - "dyex": dY/dX / X
 """
     docstring_hypothesis = """
-`hypothesis`: (str, int, float, numpy array) Specifies a hypothesis test or custom contrast
+`hypothesis`: (str, int, float, list of str, numpy array) Specifies a hypothesis test or custom contrast
 
 * Number to specify the null hypothesis.
 * Numpy array with a number of rows equal to the number of estimates.
@@ -35,6 +35,7 @@ class DocsParameters:
         - `pairwise` and `revpairwise`: pairwise differences between estimates in each row.
         - `reference` and `revreference`: differences between the estimates in each row and the estimate in the first row.
         - `sequential` and `revsequential`: differences between an estimate and the estimate in the next row.
+- list of strings: Multiple hypotheses evaluated in sequence, each processed as if passed individually. The resulting rows are stacked in the order supplied. Example: `["b1 - b0 = 0", "b2 = 1"]`.
 - numpy.ndarray: Each column is a vector of weights. The output is the dot product between these vectors of weights and the vectors of estimates. e.g. `hypothesis=np.array([[1, 1, 2], [2, 2, 3]]).T`
 - See the Examples section and the vignette: https://marginaleffects.com/chapters/hypothesis.html
 """
@@ -47,8 +48,10 @@ class DocsParameters:
     docstring_conf_level = """
 `conf_level`: (float, default=0.95) Numeric value specifying the confidence level for the confidence intervals.
 """
-    docstring_condition = """
-`condition`: (str, list, dictionary) Max length : 4.
+
+    def docstring_condition(x):
+        return f"""
+`condition`: (str, list, dictionary) Conditional {x}s.
 
 - Position's representation:
     1. x-axis. 
@@ -83,14 +86,29 @@ class DocsParameters:
     docstring_draw = """
 `draw`: True returns a matplotlib plot. False returns a dataframe of the underlying data.
 """
-    docstring_by_plot = """
-`by`: (bool, str, list) Names of the categorical predictors to marginalize across. Max length of list is 4, with position meanings:
+
+    docstring_points = """
+`points`: (float, default=0) Number between 0 and 1 which controls the transparency of raw data points. 0 (default) does not display any points.
+
+Warning: The points displayed are raw data, so the resulting plot is not a "partial residual plot."
+"""
+
+    docstring_gray = """
+`gray`: True returns a gray scale adapted plot. False returns a plot in color. For the second position of the list in the `condition` or `by` argument, the list can have at most 5 elements.
+"""
+
+    def docstring_by_plot(x):
+        return f"""
+`by`: (bool, str, list) Marginal {x}s. 
+
+Names of the categorical predictors to marginalize across. Max length of list is 4, with position meanings:
 
 1. x-axis.
 2. color.
 3. facet (wrap if no fourth variable, otherwise columns of grid).
 4. facet (rows of grid)
 """
+
     docstring_wts = """
 `wts`: (str, optional) Column name of weights to use for marginalization. Must be a column in `newdata`.
 """

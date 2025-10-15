@@ -15,6 +15,7 @@ def slopes(
     wts=None,
     eps=1e-4,
     eps_vcov=None,
+    **kwargs,
 ):
     """
     `slopes()` and `avg_slopes()` estimate unit-level (conditional) partial derivative of the regression equation with respect to a regressor of interest.
@@ -44,6 +45,7 @@ def slopes(
         wts=wts,
         eps=eps,
         eps_vcov=eps_vcov,
+        **kwargs,
     )
     return out
 
@@ -61,6 +63,7 @@ def avg_slopes(
     equivalence=None,
     eps=1e-4,
     eps_vcov=None,
+    **kwargs,
 ):
     """
     `slopes()` and `avg_slopes()` estimate unit-level (conditional) partial derivative of the regression equation with respect to a regressor of interest.
@@ -87,6 +90,7 @@ def avg_slopes(
         equivalence=equivalence,
         eps=eps,
         eps_vcov=eps_vcov,
+        **kwargs,
     )
 
     return out

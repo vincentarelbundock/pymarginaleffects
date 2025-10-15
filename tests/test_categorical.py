@@ -3,7 +3,8 @@ from marginaleffects import *
 import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
-from tests.helpers import mtcars
+
+# mtcars is redefined below, so no import needed
 import pytest
 
 

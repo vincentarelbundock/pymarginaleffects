@@ -2,7 +2,7 @@ import numpy as np
 import polars as pl
 
 from .by import get_by
-from .classes import MarginaleffectsDataFrame
+from .result import MarginaleffectsResult
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
 from .sanitize_model import sanitize_model
@@ -18,6 +18,7 @@ from .utils import sort_columns
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 from .formulaic_utils import model_matrices
+from warnings import warn
 
 from .docs import (
     DocsDetails,
@@ -38,6 +39,7 @@ def predictions(
     transform=None,
     wts=None,
     eps_vcov=None,
+    **kwargs,
 ):
     """
     `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
@@ -46,11 +48,48 @@ def predictions(
 
     Or type: `help(predictions)`
     """
+    if "hypotheses" in kwargs:
+        if hypothesis is not None:
+            raise ValueError("Specify at most one of `hypothesis` or `hypotheses`.")
+        hypotheses = kwargs.pop("hypotheses")
+        warn(
+            "`hypotheses` is deprecated; use `hypothesis` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        hypothesis = hypotheses
+    if kwargs:
+        unexpected = ", ".join(sorted(kwargs.keys()))
+        raise TypeError(
+            f"predictions() got unexpected keyword argument(s): {unexpected}"
+        )
+
     if callable(newdata):
         newdata = newdata(model)
 
     # sanity checks
     model = sanitize_model(model)
+
+    # For pyfixest models, automatically set vcov=False for predictions with warning
+    if isinstance(model, ModelPyfixest) and vcov is not False:
+        has_fixef = getattr(model.model, "_has_fixef", False)
+        if has_fixef:
+            warn(
+                "For this pyfixest model, marginaleffects cannot take into account the "
+                "uncertainty in fixed-effects parameters. Standard errors are disabled "
+                "and vcov=False is enforced.",
+                UserWarning,
+                stacklevel=2,
+            )
+        else:
+            warn(
+                "Standard errors are not available for predictions in pyfixest models. "
+                "Setting vcov=False automatically.",
+                UserWarning,
+                stacklevel=2,
+            )
+        vcov = False
+
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
@@ -169,7 +208,7 @@ def predictions(
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by, newdata=newdata)
 
-    out = MarginaleffectsDataFrame(
+    out = MarginaleffectsResult(
         out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
     )
     return out
@@ -186,6 +225,7 @@ def avg_predictions(
     equivalence=None,
     transform=None,
     wts=None,
+    **kwargs,
 ):
     """
     `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
@@ -208,6 +248,7 @@ def avg_predictions(
         equivalence=equivalence,
         transform=transform,
         wts=wts,
+        **kwargs,
     )
 
     return out

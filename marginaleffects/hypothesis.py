@@ -3,6 +3,8 @@ from itertools import compress
 import numpy as np
 import polars as pl
 from .hypothesis_formula import eval_hypothesis_formula
+import numpy
+import scipy
 
 
 def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.DataFrame:
@@ -25,14 +27,26 @@ def eval_string_hypothesis(x: pl.DataFrame, hypothesis: str, lab: str) -> pl.Dat
 
         rowlabels = [f"marginaleffects__{i}" for i in range(x.shape[0])]
     else:
-        if "term" not in x.columns or len(x["term"]) != len(set(x["term"])):
+        if "term" not in x.columns:
             msg = 'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b0`, `b1`, etc. indices instead of term names in the `hypotheses` string Ex: "b0 + b1 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
             raise ValueError(msg)
+
+        if len(x["term"]) != len(set(x["term"])):
+            # Collapse duplicate terms by averaging their estimates to create unique labels.
+            x = x.group_by("term", maintain_order=True).agg(
+                pl.col("estimate").mean().alias("estimate")
+            )
+            if len(x["term"]) != len(set(x["term"])):
+                msg = 'To use term names in a `hypothesis` string, the same function call without `hypothesis` argument must produce a `term` column with unique row identifiers. You can use `b0`, `b1`, etc. indices instead of term names in the `hypotheses` string Ex: "b0 + b1 = 0" Alternatively, you can use the `newdata`, `variables`, or `by` arguments:'
+                raise ValueError(msg)
 
         rowlabels = x["term"].to_list()
 
     def eval_string_function(vec, hypothesis, rowlabels):
         env = {rowlabel: vec[i] for i, rowlabel in enumerate(rowlabels)}
+        env["numpy"] = numpy
+        env["scipy"] = scipy
+        env["np"] = numpy
         hypothesis = hypothesis.replace("=", "==")
         out = eval(hypothesis, env)
         return out
@@ -58,10 +72,25 @@ def get_hypothesis(x, hypothesis, by=None):
         lab = [f"H{i + 1}" for i in range(out.shape[0])]
         out = out.with_columns(pl.Series(lab).alias("term"))
     elif isinstance(hypothesis, str) and "~" in hypothesis:
-        # lab = [f"b{i}" for i in range(x.shape[0])]
         out = eval_hypothesis_formula(x, hypothesis, lab=lab)
     elif isinstance(hypothesis, str) and "=" in hypothesis:
         out = eval_string_hypothesis(x, hypothesis, lab=hypothesis)
+    elif isinstance(hypothesis, (list, tuple)):
+        if len(hypothesis) == 0:
+            raise ValueError(msg)
+        frames = []
+        for hyp in hypothesis:
+            if not isinstance(hyp, str):
+                raise ValueError(
+                    "When `hypothesis` is a sequence, every element must be a string."
+                )
+            if "~" in hyp:
+                frames.append(eval_hypothesis_formula(x, hyp, lab=lab))
+            elif "=" in hyp:
+                frames.append(eval_string_hypothesis(x, hyp, lab=hyp))
+            else:
+                raise ValueError(msg)
+        out = pl.concat(frames, how="vertical")
     else:
         raise ValueError(msg)
     return out

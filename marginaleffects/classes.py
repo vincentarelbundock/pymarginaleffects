@@ -1,127 +1,64 @@
+import warnings
+from typing import Any, Dict, Optional
+
 import polars as pl
 
+from .result import MarginaleffectsResult
 
-class MarginaleffectsDataFrame(pl.DataFrame):
-    def __init__(
-        self,
-        data=None,
-        by=None,
-        conf_level=0.95,
-        jacobian=None,
-        newdata=None,
-        mapping=None,
-        print_head="",
-    ):
-        if isinstance(data, pl.DataFrame):
-            self._df = data._df
-            self.by = by
-            self.conf_level = conf_level
-            self.jacobian = jacobian
-            if hasattr(newdata, "datagrid_explicit"):
-                self.datagrid_explicit = newdata.datagrid_explicit
-            else:
-                self.datagrid_explicit = []
 
-            self.print_head = print_head
+# Backwards compatibility alias
+class MarginaleffectsDataFrame(MarginaleffectsResult):
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            "MarginaleffectsDataFrame is deprecated; use MarginaleffectsResult instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(*args, **kwargs)
 
-            # Split the dictionary into two parts and combine them into default_mapping.
-            # The first part only includes "term" and any column from `data` that start with "contrast".
-            # Any contrast key that starts with contrast_ should have a value in the form: "C: v", where v is the part of the key after the underscore.
-            contrast_columns = {
-                col: f"C: {col.split('_', 1)[1]}"
-                for col in data.columns
-                if col.startswith("contrast_")
-            }
-            default_mapping = {
-                "term": "Term",
-                "group": "Group",
-                **contrast_columns,
-                "contrast": "Contrast",
-                "estimate": "Estimate",
-                "std_error": "Std.Error",
-                "statistic": "z",
-                "p_value": "P(>|z|)",
-                "s_value": "S",
-                "p_value_noninf": "p (NonInf)",
-                "p_value_nonsup": "p (NonSup)",
-                "p_value_equiv": "p (Equiv)",
-                "pred_low": "Pred low",
-                "pred_high": "Pred high",
-            }
-            if mapping is None:
-                self.mapping = default_mapping
-            else:
-                for key, val in default_mapping.items():
-                    if key not in mapping.keys():
-                        mapping[key] = val
-                self.mapping = mapping
 
-            return
-        super().__init__(data)
+def _detect_variable_type(
+    data: pl.DataFrame, model: Optional[Any] = None
+) -> Dict[str, str]:
+    variable_type: Dict[str, str] = {}
 
-    def __str__(self):
-        if hasattr(self, "conf_level"):
-            self.mapping["conf_low"] = f"{(1 - self.conf_level) / 2 * 100:.1f}%"
-            self.mapping["conf_high"] = f"{(1 - (1 - self.conf_level) / 2) * 100:.1f}%"
+    for col in data.columns:
+        dtype = data[col].dtype
+
+        try:
+            unique_vals = data[col].unique()
+            n_unique = len(unique_vals.drop_nulls())
+        except pl.exceptions.InvalidOperationError:
+            variable_type[col] = "other"
+            continue
+
+        if n_unique == 2:
+            variable_type[col] = "binary"
+        elif dtype in (pl.Int64, pl.Int32, pl.Int16, pl.Int8):
+            variable_type[col] = "integer"
+        elif dtype in (pl.Float64, pl.Float32):
+            variable_type[col] = "numeric"
+        elif dtype == pl.Boolean:
+            variable_type[col] = "logical"
+        elif dtype == pl.Categorical:
+            variable_type[col] = "categorical"
+        elif dtype in (pl.Utf8, pl.String):
+            variable_type[col] = "character"
         else:
-            self.mapping["conf_low"] = "["
-            self.mapping["conf_high"] = "]"
+            variable_type[col] = "other"
 
-        if hasattr(self, "by"):
-            if self.by is None:
-                valid = list(self.mapping.keys())
-            elif self.by is True:
-                valid = list(self.mapping.keys())
-            elif self.by is False:
-                valid = list(self.mapping.keys())
-            elif isinstance(self.by, list):
-                valid = self.by + list(self.mapping.keys())
-            elif isinstance(self.by, str):
-                valid = [self.by] + list(self.mapping.keys())
-            else:
-                raise ValueError("by must be None or a string or a list of strings")
-        else:
-            valid = list(self.mapping.keys())
+    return variable_type
 
-        valid = self.datagrid_explicit + valid
-        valid = [x for x in valid if x in self.columns]
 
-        # sometimes we get duplicates when there is `by` and `datagrid()`
-        valid = dict.fromkeys(valid)
-        valid = list(valid.keys())
+def _check_variable_type(
+    variable_type: Dict[str, str], variable_name: str, expected_type: str
+) -> bool:
+    if variable_name not in variable_type:
+        return False
 
-        out = self.print_head
-        self.mapping = {key: self.mapping[key] for key in self.mapping if key in valid}
-        tmp = self.select(valid).rename(self.mapping)
-        for col in tmp.columns:
-            if tmp[col].dtype.is_numeric():
-
-                def fmt(x):
-                    out = pl.Series([f"{i:.3g}" for i in x])
-                    return out
-
-                tmp.with_columns(
-                    pl.col(col).map_batches(fmt, return_dtype=pl.Utf8).alias(col)
-                )
-
-        if "Term" in tmp.columns and len(tmp["Term"].unique()) == 1:
-            term_str = tmp["Term"].unique()
-            tmp = tmp.drop("Term")
-        else:
-            term_str = None
-
-        if "Contrast" in tmp.columns and len(tmp["Contrast"].unique()) == 1:
-            contrast_str = tmp["Contrast"].unique()
-            tmp = tmp.drop("Contrast")
-        else:
-            contrast_str = None
-
-        out += tmp.__str__()
-        if term_str is not None:
-            out += f"\nTerm: {term_str[0]}"
-        if contrast_str is not None:
-            out += f"\nContrast: {contrast_str[0]}"
-
-        ## we no longer print the column names
-        # out = out + f"\n\nColumns: {', '.join(self.columns)}\n"
-        return out
+    actual_type = variable_type[variable_name]
+    if expected_type == "factor" and actual_type == "categorical":
+        return True
+    if expected_type == "categorical" and actual_type == "factor":
+        return True
+    return actual_type == expected_type

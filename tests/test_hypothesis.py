@@ -1,8 +1,10 @@
 import numpy as np
-import statsmodels.formula.api as smf
-from marginaleffects import *
 import polars as pl
-from polars.testing import assert_series_equal
+import statsmodels.formula.api as smf
+from polars.testing import assert_frame_equal, assert_series_equal
+
+from marginaleffects import *
+from marginaleffects.hypothesis import get_hypothesis
 
 mtcars = get_dataset("mtcars", "datasets")
 mod = smf.ols("mpg ~ hp + cyl", data=mtcars.to_pandas()).fit()
@@ -62,6 +64,30 @@ def test_predictions_pairwise():
     assert np.isclose(p[1] - p[2], q[2])
 
 
+def test_ratio_hypothesis_uses_null_one():
+    out = predictions(mod, by="cyl", hypothesis="ratio~sequential")
+    expected = (out["estimate"] - 1) / out["std_error"]
+    assert_series_equal(
+        out["statistic"],
+        expected,
+        check_names=False,
+        atol=1e-9,
+        rtol=1e-9,
+    )
+
+
+def test_ratio_hypothesis_sequence_uses_null_one():
+    out = predictions(mod, by="cyl", hypothesis=["ratio~sequential"])
+    expected = (out["estimate"] - 1) / out["std_error"]
+    assert_series_equal(
+        out["statistic"],
+        expected,
+        check_names=False,
+        atol=1e-9,
+        rtol=1e-9,
+    )
+
+
 def test_comparisons_by():
     mtcars = (
         get_dataset("mtcars", "datasets")
@@ -92,3 +118,52 @@ def test_hypothesis_by_01():
     )
     assert_series_equal(p["estimate"], r_b, check_names=False)
     assert_series_equal(p["std_error"], r_se, check_names=False)
+
+
+def numpy_formula():
+    dat = get_dataset("thornton")
+    dat.head(6)
+    mod = ols("outcome ~ agecat - 1", data=dat.to_pandas()).fit()
+    h = hypotheses(mod, hypothesis="b1**2 * np.exp(b0) = 0")
+    assert h.height == 1
+
+
+def test_get_hypothesis_sequence_of_strings():
+    base = pl.DataFrame(
+        {"term": ["a", "b", "c"], "estimate": [1.0, 2.0, -0.5]},
+    )
+
+    single_1 = get_hypothesis(base, hypothesis="b - a = 0")
+    single_2 = get_hypothesis(base, hypothesis="c = 0")
+    combined = get_hypothesis(base, hypothesis=["b - a = 0", "c = 0"])
+
+    expected = pl.concat([single_1, single_2], how="vertical")
+    assert_frame_equal(combined, expected)
+
+
+def test_trash_example_matches_r_output():
+    mtcars = pl.read_csv("tests/data/mtcars.csv").with_columns(
+        pl.col("cyl").cast(pl.Utf8)
+    )
+    mod = smf.ols("mpg ~ C(cyl)", data=mtcars.to_pandas()).fit()
+
+    hypotheses = ["b1 - b0 = 0", "b2 - b0 = 0"]
+    out = avg_predictions(mod, by="cyl", hypothesis=hypotheses)
+
+    r_estimate = pl.Series([-6.92077922077923, -11.5636363636364])
+    r_std_error = pl.Series([1.55834813148785, 1.29862349320347])
+
+    assert_series_equal(
+        out["estimate"],
+        r_estimate,
+        check_names=False,
+        atol=1e-6,
+        rtol=1e-6,
+    )
+    assert_series_equal(
+        out["std_error"],
+        r_std_error,
+        check_names=False,
+        atol=1e-6,
+        rtol=1e-6,
+    )

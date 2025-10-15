@@ -10,6 +10,7 @@ from .plot_slopes import plot_slopes
 from .predictions import avg_predictions, predictions
 from .slopes import avg_slopes, slopes
 from .utils import get_dataset
+from .result import MarginaleffectsResult
 
 __all__ = [
     "avg_comparisons",
@@ -27,4 +28,5 @@ __all__ = [
     "fit_sklearn",
     "fit_linearmodels",
     "get_dataset",
+    "MarginaleffectsResult",
 ]

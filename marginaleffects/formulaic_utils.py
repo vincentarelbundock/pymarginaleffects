@@ -1,6 +1,8 @@
 import re
+
 import formulaic
 import narwhals as nw
+import numpy as np
 from narwhals.typing import IntoFrame
 
 
@@ -8,7 +10,7 @@ __all__ = ["listwise_deletion", "model_matrices"]
 
 
 def parse_variables_categorical(fml: str) -> list[str]:
-    return re.findall(r"C\((.*?)\)", fml)
+    return re.findall(r"C\(\s*([^,)\s]+)", fml)
 
 
 # @validate_types
@@ -25,7 +27,9 @@ def parse_variables(formula: str) -> list[str]:
     -------
     list[str]
         A list of variable names extracted from the formula. Only names/identifiers
-        are included, operators and special tokens are excluded.
+        are included, operators and special tokens are excluded. The response variable
+        is returned first, followed by predictor variables in the order they appear
+        in the formula.
 
     Examples
     --------
@@ -36,8 +40,32 @@ def parse_variables(formula: str) -> list[str]:
     if not isinstance(formula, str):
         return []
 
+    if "~" not in formula:
+        # No response variable, just return all variables
+        fml = formulaic.Formula(formula)
+        return list(fml.required_variables)
+
+    # Split into LHS (response) and RHS (predictors)
+    lhs, rhs = formula.split("~", 1)
+    lhs = lhs.strip()
+
+    # Get all variables from the formula
     fml = formulaic.Formula(formula)
-    return list(fml.required_variables)
+    all_vars = fml.required_variables
+
+    # Response is the LHS variable
+    response = lhs
+
+    # Predictors are all other variables, sorted by their position in RHS
+    predictors = []
+    for var in all_vars:
+        if var != response:
+            predictors.append(var)
+
+    # Sort predictors by their position in the RHS string to preserve order
+    predictors.sort(key=lambda v: rhs.find(v))
+
+    return [response] + predictors
 
 
 # @validate_types
@@ -118,7 +146,8 @@ def model_matrices(formula: str, data: "IntoFrame", formula_engine: str = "formu
     data = nw.from_native(data)
 
     if formula_engine in ["formulaic", "linearmodels"]:
-        endog, exog = formulaic.model_matrix(formula, data.to_pandas())
+        context = {"np": np}
+        endog, exog = formulaic.model_matrix(formula, data.to_pandas(), context=context)
         if formula_engine == "linearmodels":
             try:
                 import pandas as pd
@@ -126,7 +155,7 @@ def model_matrices(formula: str, data: "IntoFrame", formula_engine: str = "formu
                 raise ImportError("The pandas package is required to use this feature.")
             return pd.DataFrame(endog), pd.DataFrame(exog)
         else:
-            return endog.to_numpy(), exog.to_numpy()
+            return endog, exog
 
     elif formula_engine == "patsy":
         try:

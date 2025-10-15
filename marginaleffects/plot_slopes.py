@@ -1,5 +1,4 @@
-from .plot_common import dt_on_condition, plot_labels
-from .p9 import plot_common
+from .plot_common import dt_on_condition, plot_labels, plot_common
 from .slopes import slopes
 from .sanitize_model import sanitize_model
 import copy
@@ -19,6 +18,7 @@ def plot_slopes(
     draw=True,
     eps=1e-4,
     eps_vcov=None,
+    gray=False,
 ):
     """
     Plot slopes on the y-axis against values of one or more predictors (x-axis, colors/shapes, and facets).
@@ -105,7 +105,7 @@ def plot_slopes(
     if not draw:
         return dt
 
-    return plot_common(model, dt, "Slope", var_list)
+    return plot_common(model, dt, "Slope", var_list, gray=gray)
 
 
 plot_slopes.__doc__ = (
@@ -118,9 +118,11 @@ plot_slopes.__doc__ = (
 """
     + DocsParameters.docstring_model
     + DocsParameters.docstring_variables_plot("marginal effect (slope)")
-    + DocsParameters.docstring_condition
-    + DocsParameters.docstring_by_plot
+    + DocsParameters.docstring_condition("slopes")
+    + DocsParameters.docstring_by_plot("slopes")
     + DocsParameters.docstring_draw
     + DocsParameters.docstring_newdata_plot("slopes")
     + DocsParameters.docstring_wts
+    + DocsParameters.docstring_vcov
+    + DocsParameters.docstring_gray
 )

@@ -7,7 +7,6 @@ import statsmodels.api as sm
 from polars.testing import assert_series_equal
 import pytest
 
-import marginaleffects
 from marginaleffects import *
 from marginaleffects.comparisons import estimands
 from tests.helpers import mtcars, guerry
@@ -98,55 +97,64 @@ def test_bare_minimum():
     fit = smf.ols(
         "Literacy ~ Pop1831 * Desertion + Boolea + Bin + Char", data=dat
     ).fit()
-    assert isinstance(
-        comparisons(fit), marginaleffects.classes.MarginaleffectsDataFrame
-    )
+    res = comparisons(fit)
+    assert isinstance(res, MarginaleffectsResult)
+    assert isinstance(res.data, pl.DataFrame)
+
     assert isinstance(
         comparisons(fit, variables="Pop1831", comparison="differenceavg"),
-        marginaleffects.classes.MarginaleffectsDataFrame,
+        MarginaleffectsResult,
     )
-    assert isinstance(
-        comparisons(fit, variables="Pop1831", comparison="difference").head(),
-        marginaleffects.classes.MarginaleffectsDataFrame,
-    )
-    assert isinstance(
-        comparisons(fit, variables="Pop1831", comparison="ratio").head(),
-        marginaleffects.classes.MarginaleffectsDataFrame,
-    )
+    diff_result = comparisons(fit, variables="Pop1831", comparison="difference")
+    assert isinstance(diff_result, MarginaleffectsResult)
+    assert isinstance(diff_result.head(), pl.DataFrame)
+    ratio_result = comparisons(fit, variables="Pop1831", comparison="ratio")
+    assert isinstance(ratio_result, MarginaleffectsResult)
+    assert isinstance(ratio_result.head(), pl.DataFrame)
     assert isinstance(
         comparisons(fit, variables="Pop1831", comparison="difference", by="Region"),
-        marginaleffects.classes.MarginaleffectsDataFrame,
+        MarginaleffectsResult,
     )
     assert isinstance(
         comparisons(fit, vcov=False, comparison="differenceavg"),
-        marginaleffects.classes.MarginaleffectsDataFrame,
+        MarginaleffectsResult,
     )
     assert isinstance(
         comparisons(fit, vcov="HC3", comparison="differenceavg"),
-        marginaleffects.classes.MarginaleffectsDataFrame,
-    )
-    assert isinstance(
-        comparisons(fit), marginaleffects.classes.MarginaleffectsDataFrame
+        MarginaleffectsResult,
     )
     assert isinstance(
         comparisons(fit, variables={"Char": "sequential"}),
-        marginaleffects.classes.MarginaleffectsDataFrame,
+        MarginaleffectsResult,
     )
     assert isinstance(
         comparisons(fit, variables="Pop1831"),
-        marginaleffects.classes.MarginaleffectsDataFrame,
+        MarginaleffectsResult,
     )
     assert isinstance(
         comparisons(fit, variables=["Pop1831", "Desertion"]),
-        marginaleffects.classes.MarginaleffectsDataFrame,
+        MarginaleffectsResult,
     )
     assert isinstance(
-        comparisons(fit, variables={"Pop1831": 1000, "Desertion": 2}),
-        marginaleffects.classes.MarginaleffectsDataFrame,
+        comparisons(fit, variables=["Pop1831", "Desertion"], by=True),
+        MarginaleffectsResult,
     )
     assert isinstance(
-        comparisons(fit, variables={"Pop1831": [100, 2000]}),
-        marginaleffects.classes.MarginaleffectsDataFrame,
+        comparisons(
+            fit,
+            variables=["Pop1831", "Desertion"],
+            comparison="ratio",
+            hypotheses="Pop1831 = Desertion",
+        ),
+        MarginaleffectsResult,
+    )
+    assert isinstance(
+        comparisons(fit, comparison="difference", hypothesis=None),
+        MarginaleffectsResult,
+    )
+    assert isinstance(
+        comparisons(fit, comparison="difference", hypothesis="Pop1831 = 0"),
+        MarginaleffectsResult,
     )
 
 

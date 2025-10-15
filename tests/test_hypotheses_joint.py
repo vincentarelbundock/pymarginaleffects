@@ -32,7 +32,7 @@ def test_hypotheses_joint(kwargs, expected_file):
     hypo_py = hypotheses(mod, **kwargs)
     hypo_r = pl.read_csv(f"tests/r/{expected_file}").rename({"p.value": "p_value"})
     hypo_r = hypo_r.cast({"p_value": pl.Float64})
-    assert_frame_equal(hypo_py, hypo_r)
+    assert_frame_equal(hypo_py.to_polars(), hypo_r)
 
 
 @pytest.mark.parametrize(
@@ -45,7 +45,7 @@ def test_hypotheses_joint(kwargs, expected_file):
 def test_hypotheses_joint_2(kwargs, expected_file):
     hypo_py = hypotheses(mod_without_intercept, **kwargs)
     hypo_r = pl.read_csv(f"tests/r/{expected_file}").rename({"p.value": "p_value"})
-    assert_frame_equal(hypo_py, hypo_r)
+    assert_frame_equal(hypo_py.to_polars(), hypo_r)
 
 
 @pytest.mark.parametrize(
@@ -62,4 +62,4 @@ def test_hypotheses_joint_2(kwargs, expected_file):
 def test_hypotheses_joint_regex(kwargs, expected_file):
     hypo_py = hypotheses(mod, **kwargs)
     hypo_r = pl.read_csv(f"tests/r/{expected_file}").rename({"p.value": "p_value"})
-    assert_frame_equal(hypo_py, hypo_r)
+    assert_frame_equal(hypo_py.to_polars(), hypo_r)

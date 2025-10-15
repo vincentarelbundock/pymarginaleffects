@@ -2,9 +2,49 @@
 
 New:
 
+* Model adapters now forward attribute access to underlying fitted models via `__getattr__`, allowing direct access to model-specific attributes and methods.
+* `plot_predictions()` gains a `points` argument to overlay raw-data points with controllable transparency.
+* `hypothesis=` accepts a list of strings, evaluating each hypothesis in order and stacking the results.
+
+Fixes:
+
+* Fixed bug where variables were misidentified due to unordered set from `formulaic.Formula.required_variables`. This caused the outcome variable to be incorrectly included as a predictor and some predictors to be excluded. Issue #221.
+* `datagrid(grid_type="counterfactual")` now retains all columns in `newdata`. Issue #1175.
+* `hypothesis="ratio ~ ..."` now centers test statistics on 1 instead of 0.
+* Allow `hypotheses=` alias in high-level APIs without breaking the signature, and restore hypothesis evaluation for duplicated `term` values while keeping `MarginaleffectsResult` metadata intact when calling DataFrame-like methods.
+
+# 0.1.5
+
+Bugs:
+
+* `fit_sklearn()` sometimes failed due to bad formula parsing.
+
+# 0.1.4
+
+New:
+
+* `datagrid()` gets new arguments: by, response, FUN_categorical, FUN_binary, FUN_numeric, FUN_other
+* Improved parsing of categorical variables from formulas. Thanks to @danielkberry for Pull Request #225.
+
+# 0.1.3
+
+Breaking changes:
+
+* PyFixest no longer supports standard errors for `predictions()` (all models) or `comparisons()` and `slopes()` when there is a non-linear link function. See this issue for a discussion of estimation challenges.
+
+Bugs:
+
+* `fit_statsmodels()` preserves parameter names. 
+* `get_dataset()` downloads parquet files rather than CSV (faster)
+
+
+# 0.1.2
+
 * `datagrid(grid_type="counterfactual")` now accepts lambda functions.
 * `get_dataset()` no longer requires the `package` argument.
 * Group formula hypotheses are now supported `hypothesis="difference~reference|group"`
+* `np.*()` is allowed in string/equation `hypothesis`.
+* Better printing when `datagrid()` is used to specify column values explicitly.
 
 # 0.1.1
 

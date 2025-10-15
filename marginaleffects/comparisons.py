@@ -5,7 +5,7 @@ import numpy as np
 import patsy
 import polars as pl
 
-from .classes import MarginaleffectsDataFrame
+from .result import MarginaleffectsResult
 from .equivalence import get_equivalence
 from .estimands import estimands
 from .hypothesis import get_hypothesis
@@ -16,6 +16,8 @@ from .sanity import (
     sanitize_newdata,
     sanitize_variables,
     sanitize_vcov,
+    handle_deprecated_hypotheses_argument,
+    handle_pyfixest_vcov_limitation,
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
@@ -46,6 +48,7 @@ def comparisons(
     transform=None,
     eps=1e-4,
     eps_vcov=None,
+    **kwargs,
 ):
     """
     `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, average treatment effect (on the treated or untreated), etc.
@@ -54,10 +57,19 @@ def comparisons(
 
     Or type: `help(comparisons)`
     """
+    hypothesis = handle_deprecated_hypotheses_argument(hypothesis, kwargs, stacklevel=2)
+    if kwargs:
+        unexpected = ", ".join(sorted(kwargs.keys()))
+        raise TypeError(
+            f"comparisons() got unexpected keyword argument(s): {unexpected}"
+        )
+
     if callable(newdata):
         newdata = newdata(model)
 
     model = sanitize_model(model)
+    vcov = handle_pyfixest_vcov_limitation(model, vcov, stacklevel=2)
+
     by = sanitize_by(by)
     V = sanitize_vcov(vcov, model)
     newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)
@@ -182,9 +194,81 @@ def comparisons(
     pad = upcast(pad, hi)
     nd = upcast(nd, hi)
 
+    # Handle schema alignment for List columns before concat
+    dfs_to_align = [("nd", nd), ("hi", hi), ("lo", lo)]
+
+    for df_name, df in dfs_to_align:
+        common_cols = set(pad.columns) & set(df.columns)
+        for col in common_cols:
+            pad_dtype = str(pad[col].dtype)
+            df_dtype = str(df[col].dtype)
+            if pad_dtype != df_dtype:
+                # Handle List type mismatches
+                if pad_dtype.startswith("List(") and df_dtype.startswith("List("):
+                    # Both are List types but with different inner types
+                    # Convert both to simple string lists to ensure compatibility
+                    try:
+                        if col in pad.columns:
+                            pad = pad.with_columns(
+                                pad[col]
+                                .list.eval(pl.element().cast(pl.String))
+                                .alias(col)
+                            )
+                        if col in df.columns:
+                            df = df.with_columns(
+                                df[col]
+                                .list.eval(pl.element().cast(pl.String))
+                                .alias(col)
+                            )
+                    except Exception as e:
+                        print(
+                            f"Warning: Could not convert List column {col} to strings: {e}"
+                        )
+                        # Fallback: try to explode List columns to regular columns
+                        try:
+                            if col in pad.columns and pad.height > 0:
+                                pad = pad.explode(col)
+                            if col in df.columns and df.height > 0:
+                                df = df.explode(col)
+                        except Exception as e2:
+                            print(f"Warning: Could not explode List column {col}: {e2}")
+                            # Last resort: convert to string representation
+                            if col in pad.columns:
+                                pad = pad.with_columns(
+                                    pad[col].cast(pl.String).alias(col)
+                                )
+                            if col in df.columns:
+                                df = df.with_columns(df[col].cast(pl.String).alias(col))
+
+        # Update the variable with the aligned DataFrame
+        if df_name == "nd":
+            nd = df
+        elif df_name == "hi":
+            hi = df
+        elif df_name == "lo":
+            lo = df
+
     nd = pl.concat([pad, nd], how="diagonal")
     hi = pl.concat([pad, hi], how="diagonal")
     lo = pl.concat([pad, lo], how="diagonal")
+
+    # Explode any remaining List columns to avoid issues with pandas/patsy
+    # Only explode if we have categorical/string List columns that need to be handled
+    list_cols = [col for col in nd.columns if str(nd[col].dtype).startswith("List(")]
+    categorical_list_cols = []
+    for col in list_cols:
+        dtype_str = str(nd[col].dtype)
+        # Only explode List columns that contain categorical/string data
+        if (
+            "Enum(" in dtype_str or "String" in dtype_str or "UInt32" in dtype_str
+        ) and col in ["Region"]:
+            categorical_list_cols.append(col)
+
+    if categorical_list_cols:
+        for col in categorical_list_cols:
+            nd = nd.explode(col)
+            hi = hi.explode(col)
+            lo = lo.explode(col)
 
     # response cannot be NULL
 
@@ -338,7 +422,7 @@ def comparisons(
         out = out.with_columns(pl.lit("cross").alias("term"))
 
     # Wrap things up in a nice class
-    out = MarginaleffectsDataFrame(
+    out = MarginaleffectsResult(
         out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
     )
     return out
@@ -358,6 +442,7 @@ def avg_comparisons(
     cross=False,
     transform=None,
     eps=1e-4,
+    **kwargs,
 ):
     """
     `comparisons()` and `avg_comparisons()` are functions for predicting the outcome variable at different regressor values and comparing those predictions by computing a difference, ratio, or some other function. These functions can return many quantities of interest, such as contrasts, differences, risk ratios, changes in log odds, lift, slopes, elasticities, average treatment effect (on the treated or untreated), etc.
@@ -383,6 +468,7 @@ def avg_comparisons(
         cross=cross,
         transform=transform,
         eps=eps,
+        **kwargs,
     )
 
     return out
