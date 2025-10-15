@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 from .validation import ModelValidation
 from . import formulaic_utils as fml
 
@@ -78,3 +79,11 @@ class ModelAbstract(ModelValidation, ABC):
     @abstractmethod
     def get_predict(self):
         pass
+
+    def __getattr__(self, name: str) -> Any:
+        """Forward attribute access to the underlying fitted model."""
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            # Forward to the wrapped model
+            return getattr(self.model, name)

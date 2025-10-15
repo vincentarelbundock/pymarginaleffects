@@ -1,39 +1,16 @@
 # Development
 
-## 0.1.5.8
+New:
+
+* Model adapters now forward attribute access to underlying fitted models via `__getattr__`, allowing direct access to model-specific attributes and methods.
+* `plot_predictions()` gains a `points` argument to overlay raw-data points with controllable transparency.
+* `hypothesis=` accepts a list of strings, evaluating each hypothesis in order and stacking the results.
 
 Fixes:
 
 * Fixed bug where variables were misidentified due to unordered set from `formulaic.Formula.required_variables`. This caused the outcome variable to be incorrectly included as a predictor and some predictors to be excluded. Issue #221.
-
-## 0.1.5.7
-
-Fixes:
-
 * `datagrid(grid_type="counterfactual")` now retains all columns in `newdata`. Issue #1175.
-
-## 0.1.5.6
-
-Fixes:
-
 * `hypothesis="ratio ~ ..."` now centers test statistics on 1 instead of 0.
-
-## 0.1.5.5
-
-New:
-
-* `plot_predictions()` gains a `points` argument to overlay raw-data points with controllable transparency.
-
-## 0.1.5.4
-
-New:
-
-* `hypothesis=` accepts a list of strings, evaluating each hypothesis in order and stacking the results.
-
-## 0.1.5.2
-
-Fixes:
-
 * Allow `hypotheses=` alias in high-level APIs without breaking the signature, and restore hypothesis evaluation for duplicated `term` values while keeping `MarginaleffectsResult` metadata intact when calling DataFrame-like methods.
 
 # 0.1.5
