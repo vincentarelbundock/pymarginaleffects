@@ -12,6 +12,15 @@ from .slopes import avg_slopes, slopes
 from .utils import get_dataset
 from .result import MarginaleffectsResult
 
+# Conditionally import autodiff module if JAX is available
+try:
+    from . import autodiff
+
+    _AUTODIFF_AVAILABLE = True
+except ImportError:
+    _AUTODIFF_AVAILABLE = False
+    autodiff = None
+
 __all__ = [
     "avg_comparisons",
     "comparisons",
@@ -30,3 +39,6 @@ __all__ = [
     "get_dataset",
     "MarginaleffectsResult",
 ]
+
+if _AUTODIFF_AVAILABLE:
+    __all__.append("autodiff")

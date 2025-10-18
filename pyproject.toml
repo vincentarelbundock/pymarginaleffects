@@ -1,6 +1,6 @@
 [project]
 name = "marginaleffects"
-version = "0.1.5.10"
+version = "0.1.5.11"
 license = "GPL-3.0-or-later"
 description = "Predictions, counterfactual comparisons, slopes, and hypothesis tests for statistical models."
 readme = "README.md"
@@ -22,6 +22,9 @@ exclude = ["qmd_files/*"]
 
 
 [project.optional-dependencies]
+autodiff = [
+    "jax >=0.4.0",
+]
 test = [
     "duckdb >=1.1.2",
     "matplotlib >=3.7.1",
