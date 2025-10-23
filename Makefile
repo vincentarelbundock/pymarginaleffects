@@ -8,7 +8,7 @@ precommit: ## run pre-commit on all files
 	pre-commit run --all-files
 
 test: install ## run pytest suite
-	uv run --all-extras pytest
+	uv run --all-extras pytest -n auto
 
 snapshot: ## snapshot test
 	R CMD BATCH tests/r/run.R

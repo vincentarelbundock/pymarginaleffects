@@ -103,3 +103,44 @@ def test_issue_221_long_column_names():
         se_long = comp_long_sorted["std_error"].to_numpy()
         se_short = comp_short_sorted["std_error"].to_numpy()
         assert np.allclose(se_long, se_short, rtol=1e-10)
+
+
+def test_categorical_formula_equivalence():
+    """Test that C(branch) and branch produce equivalent estimates in avg_predictions."""
+    military = me.get_dataset("military")
+
+    # Fit model with C(branch) - categorical treatment
+    mod_categorical = me.fit_sklearn(
+        "rank ~ officer + hisp + C(branch)",
+        data=military,
+        engine=LinearRegression(),
+    )
+
+    # Fit model with branch directly (should be treated as categorical by default)
+    mod_direct = me.fit_sklearn(
+        "rank ~ officer + hisp + branch",
+        data=military,
+        engine=LinearRegression(),
+    )
+
+    # Get average predictions by branch for both models
+    pred_categorical = me.avg_predictions(mod_categorical, by="branch").sort("branch")
+    pred_direct = me.avg_predictions(mod_direct, by="branch").sort("branch")
+
+    # Verify both results have the expected structure
+    assert isinstance(pred_categorical, MarginaleffectsResult)
+    assert isinstance(pred_direct, MarginaleffectsResult)
+    assert "estimate" in pred_categorical.columns
+    assert "estimate" in pred_direct.columns
+    assert "branch" in pred_categorical.columns
+    assert "branch" in pred_direct.columns
+
+    # Verify estimates are equivalent
+    est_categorical = pred_categorical["estimate"].to_numpy()
+    est_direct = pred_direct["estimate"].to_numpy()
+    assert np.allclose(est_categorical, est_direct, rtol=1e-10)
+
+    # Verify branch values are the same
+    branch_categorical = pred_categorical["branch"].to_list()
+    branch_direct = pred_direct["branch"].to_list()
+    assert branch_categorical == branch_direct

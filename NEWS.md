@@ -1,3 +1,9 @@
+# 0.2.1
+
+Fixes:
+
+* Fixed KeyError in `summary()` method when displaying results with `by` variables that are not in the column mapping. This affected cases where categorical variables like `branch` were used in `by=` argument.
+
 # 0.2.0
 
 New:

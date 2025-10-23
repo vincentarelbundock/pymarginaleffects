@@ -138,7 +138,9 @@ class MarginaleffectsResult:
         columns = [col for col in columns if col in self._data.columns]
         columns = list(dict.fromkeys(columns))  # preserve order, drop dupes
 
-        tmp = self._data.select(columns).rename({k: mapping[k] for k in columns})
+        tmp = self._data.select(columns).rename(
+            {k: mapping[k] for k in columns if k in mapping}
+        )
 
         numeric_cols = [col for col in tmp.columns if tmp.schema[col].is_numeric()]
         if numeric_cols:
