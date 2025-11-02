@@ -1,3 +1,9 @@
+# 0.2.2
+
+Improvements:
+
+* `autodiff` module now uses JAX 64-bit precision by default for improved numerical accuracy.
+
 # 0.2.1
 
 Fixes:

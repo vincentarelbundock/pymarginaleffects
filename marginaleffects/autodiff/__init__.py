@@ -23,6 +23,12 @@ def _raise_jax_error():
 
 
 if _JAX_AVAILABLE:
+    # Enable 64-bit precision in JAX by default (#1)
+    # https://docs.jax.dev/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision
+    import jax
+
+    jax.config.update("jax_enable_x64", True)
+
     # Import submodules to make them accessible
     from . import linear as linear
     from . import glm as glm
