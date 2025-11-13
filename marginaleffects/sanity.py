@@ -515,6 +515,20 @@ def get_categorical_combinations(
                     pad=uniqs,
                 )
                 out.append(hl)
+    elif combo == "all":
+        for i in range(len(uniqs)):
+            for j in range(len(uniqs)):
+                if i == j:
+                    continue
+                hl = HiLo(
+                    variable=variable,
+                    hi=clean([uniqs[j]]),
+                    lo=clean([uniqs[i]]),
+                    lab=lab.format(hi=uniqs[j], lo=uniqs[i]),
+                    comparison=comparison,
+                    pad=uniqs,
+                )
+                out.append(hl)
     elif combo == "revpairwise":
         for i in range(len(uniqs)):
             for j in range(i + 1, len(uniqs)):
@@ -529,7 +543,8 @@ def get_categorical_combinations(
                 out.append(hl)
     else:
         raise ValueError(
-            "The supported comparisons are: 'reference', 'revreference', 'sequential', 'revsequential', 'pairwise', and 'revpairwise'."
+            "The supported comparisons are: 'reference', 'revreference', 'sequential', "
+            "'revsequential', 'pairwise', 'revpairwise', and 'all'."
         )
 
     return out

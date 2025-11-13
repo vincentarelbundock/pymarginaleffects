@@ -1,3 +1,7 @@
+# Development
+
+* comparisons(model, variables={"x":"all"})` is now supported. Thanks to @tontier for report #230.
+
 # 0.2.2
 
 Improvements:

@@ -331,3 +331,32 @@ def test_callable_comparison():
     )
     assert isinstance(cmp_avg, MarginaleffectsResult)
     assert cmp_avg.shape[0] >= 1
+
+
+
+def test_issue230_variables_all():
+    dat = pl.read_csv("tests/data/mtcars.csv").with_columns(pl.col("gear").cast(pl.String))
+    model = smf.ols("mpg ~ C(gear)", data=dat.to_pandas()).fit()
+    grid = datagrid(newdata=dat, grid_type="mean_or_mode")
+    cmp_all = comparisons(model, variables={"gear": "all"}, newdata=grid).sort("contrast")
+    cmp_pairwise = comparisons(model, variables={"gear": "pairwise"}, newdata=grid).sort(
+        "contrast"
+    )
+
+    levels = sorted(dat["gear"].unique().to_list())
+    expected_all = sorted(
+        f"{hi} - {lo}" for lo in levels for hi in levels if hi != lo
+    )
+    expected_pairwise = sorted(
+        f"{hi} - {lo}" for lo in levels for hi in levels if hi > lo
+    )
+
+    n = len(levels)
+    assert cmp_all.shape[0] == n * (n - 1)
+    assert cmp_pairwise.shape[0] == len(expected_pairwise)
+    assert cmp_all.shape[0] == cmp_pairwise.shape[0] * 2
+
+    assert cmp_all["contrast"].to_list() == expected_all
+    assert cmp_pairwise["contrast"].to_list() == expected_pairwise
+
+    assert set(cmp_pairwise["contrast"]) < set(cmp_all["contrast"])
