@@ -11,6 +11,7 @@ def test_datagrid_NA():
 #    assert all(nd['mpg'].is_null()) # all false, Polars bug?    
 
 # should also be possible with datagrid(x=None) ?
+# Not possible in python since it is equivalent to not passing argument
 
 
 '''

@@ -42,3 +42,9 @@ def assert_image(fig, label, folder, tolerance=5):
     out = compare_images(known, unknown, tol=tolerance)
     # os.remove(unknown)
     return out
+
+# for polars
+def cast_to_categorical(df,col):
+    df=df.with_columns(pl.col('cyl').cast(pl.String))
+    df=df.with_columns(pl.col('cyl').cast(pl.Enum(df['cyl'].unique())))
+    return(df)
