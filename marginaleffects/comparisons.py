@@ -94,6 +94,7 @@ def comparisons(
         eps=eps,
         by=by,
         wts=wts,
+        cross=cross,
     )
 
     # We create two versions of the `newdata` data frame: one where the
@@ -134,31 +135,81 @@ def comparisons(
             )
 
     else:
-        hi.append(newdata)
-        lo.append(newdata)
-        nd.append(newdata)
-        for i, v in enumerate(variables):
-            if callable(v.comparison):
-                vcomp = "custom"
-            else:
-                vcomp = v.comparison
-            nd[0] = nd[0].with_columns(
-                pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                pl.lit(vcomp).alias("marginaleffects_comparison"),
-            )
-            hi[0] = hi[0].with_columns(
-                pl.lit(v.hi).alias(v.variable),
-                pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                pl.lit(vcomp).alias("marginaleffects_comparison"),
-            )
-            lo[0] = lo[0].with_columns(
-                pl.lit(v.lo).alias(v.variable),
-                pl.lit(v.variable).alias("term"),
-                pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                pl.lit(vcomp).alias("marginaleffects_comparison"),
-            )
+        # Check if we have factorial grid HiLo objects (variable is a tuple)
+        if variables and isinstance(variables[0].variable, tuple):
+            # Factorial grid comparisons - process each HiLo independently
+            for v in variables:
+                if callable(v.comparison):
+                    vcomp = "custom"
+                else:
+                    vcomp = v.comparison
+
+                var_names = v.variable  # Tuple of variable names
+                nd_row = newdata.clone()
+                hi_row = newdata.clone()
+                lo_row = newdata.clone()
+
+                # Set all variables from hi/lo (which contain list of values)
+                for k, var_name in enumerate(var_names):
+                    hi_row = hi_row.with_columns(pl.lit(v.hi[k]).alias(var_name))
+                    lo_row = lo_row.with_columns(pl.lit(v.lo[k]).alias(var_name))
+
+                    # Create contrast labels for each variable
+                    contrast_label = f"{v.hi[k]} - {v.lo[k]}"
+                    nd_row = nd_row.with_columns(
+                        pl.lit(contrast_label).alias(f"contrast_{var_name}")
+                    )
+                    hi_row = hi_row.with_columns(
+                        pl.lit(contrast_label).alias(f"contrast_{var_name}")
+                    )
+                    lo_row = lo_row.with_columns(
+                        pl.lit(contrast_label).alias(f"contrast_{var_name}")
+                    )
+
+                # Add metadata
+                nd_row = nd_row.with_columns(
+                    pl.lit(var_names[0]).alias("term"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+                hi_row = hi_row.with_columns(
+                    pl.lit(var_names[0]).alias("term"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+                lo_row = lo_row.with_columns(
+                    pl.lit(var_names[0]).alias("term"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+
+                nd.append(nd_row)
+                hi.append(hi_row)
+                lo.append(lo_row)
+        else:
+            # Original cross logic for simple cases
+            hi.append(newdata)
+            lo.append(newdata)
+            nd.append(newdata)
+            for i, v in enumerate(variables):
+                if callable(v.comparison):
+                    vcomp = "custom"
+                else:
+                    vcomp = v.comparison
+                nd[0] = nd[0].with_columns(
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias(f"contrast_{v.variable}"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+                hi[0] = hi[0].with_columns(
+                    pl.lit(v.hi).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias(f"contrast_{v.variable}"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+                lo[0] = lo[0].with_columns(
+                    pl.lit(v.lo).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias(f"contrast_{v.variable}"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
 
     # Hack: We run into Patsy-related issues unless we "pad" the
     # character/categorical variables to include all unique levels. We add them

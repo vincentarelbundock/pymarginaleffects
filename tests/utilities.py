@@ -3,6 +3,7 @@ import re
 from matplotlib.testing.compare import compare_images
 from plotnine import ggsave
 import warnings
+import polars as pl
 
 
 def compare_r_to_py(r_obj, py_obj, tolr=1e-3, tola=1e-3, msg=""):
@@ -43,8 +44,9 @@ def assert_image(fig, label, folder, tolerance=5):
     # os.remove(unknown)
     return out
 
+
 # for polars
-def cast_to_categorical(df,col):
-    df=df.with_columns(pl.col('cyl').cast(pl.String))
-    df=df.with_columns(pl.col('cyl').cast(pl.Enum(df['cyl'].unique())))
-    return(df)
+def cast_to_categorical(df, col):
+    df = df.with_columns(pl.col("cyl").cast(pl.String))
+    df = df.with_columns(pl.col("cyl").cast(pl.Enum(df["cyl"].unique())))
+    return df
