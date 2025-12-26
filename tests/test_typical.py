@@ -1,20 +1,23 @@
-#source("helpers.R")
-#using("marginaleffects")
-# includes?
+import polars as pl
+from marginaleffects import *
+from tests.helpers import mtcars
+
 
 # datagrid(x = NA)
 def test_datagrid_NA():
-    nd=datagrid(newdata = mtcars, mpg = pl.Null(), hp = range(1,5)))
-    nd <- datagrid(newdata = mtcars, mpg = NA, hp = 1:4)
-    assert nd.shape[0]==4
-    assert all([ e==pl.Null() for e in nd['mpg'] ])
-#    assert all(nd['mpg'].is_null()) # all false, Polars bug?    
+    nd = datagrid(newdata=mtcars, mpg=pl.Null(), hp=range(1, 5))
+    # nd <- datagrid(newdata = mtcars, mpg = NA, hp = 1:4)
+    assert nd.shape[0] == 4
+    assert all([e == pl.Null() for e in nd["mpg"]])
+
+
+#    assert all(nd['mpg'].is_null()) # all false, Polars bug?
 
 # should also be possible with datagrid(x=None) ?
 # Not possible in python since it is equivalent to not passing argument
 
 
-'''
+"""
 # factor
 tmp <- mtcars
 tmp$gear <- factor(tmp$gear)
@@ -72,4 +75,4 @@ expect_error(datagrid(), pattern = "One of")
 mod <- lm(hp ~ factor(cyl), dat)
 expect_inherits(datagrid(model = mod, cyl = "4"), "data.frame")
 expect_error(datagrid(model = mod, cyl = "2"), pattern = "must be one of the factor levels")
-'''
+"""

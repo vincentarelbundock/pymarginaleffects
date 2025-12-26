@@ -76,6 +76,12 @@ def comparisons(
     modeldata = model.get_modeldata()
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
+    # Validate cross parameter
+    if cross and variables is None:
+        raise ValueError(
+            "The `variables` argument must be specified when `cross=True`."
+        )
+
     # For each variable in `variables`, this will return two values that we want
     # to compare in the contrast. For example, if there's a variable called
     # "treatment", `sanitize_variables()` may return two values: "lo" vs. "hi", or 0 vs. 1.
