@@ -10,11 +10,25 @@ from .utils import validate_types, ingest
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model, vault={}):
         # cache is useful because it obviates the need to call methods many times
+
+        # Store pandas categorical orders before ingesting to preserve them
+        pandas_categorical_orders = {}
+        if hasattr(model.model.data, "frame"):
+            for col in model.model.data.frame.columns:
+                if (
+                    hasattr(model.model.data.frame[col].dtype, "name")
+                    and model.model.data.frame[col].dtype.name == "category"
+                ):
+                    pandas_categorical_orders[col] = model.model.data.frame[
+                        col
+                    ].cat.categories.tolist()
+
         cache = {
             "coef": np.array(model.params),  # multinomial models are 2d
             "coefnames": np.array(model.params.index.to_numpy()),
             "formula": model.model.formula,
             "modeldata": ingest(model.model.data.frame),
+            "pandas_categorical_orders": pandas_categorical_orders,
         }
         cache["variable_names"] = [
             model.model.endog_names

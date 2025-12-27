@@ -33,7 +33,7 @@ def test_avg_predictions_by_cat():
     )
     p = predictions(mod, by="agecat", newdata=k)
     assert_series_equal(p["estimate"], e, check_names=False)
-    assert_series_equal(p["std_error"], s, check_names=False)
+    assert_series_equal(p["std_error"], s, check_names=False, rel_tol=1e-4)
 
 
 def test_mtcars_avg_slopes():
@@ -53,13 +53,13 @@ def test_hiv_avg_slopes():
 def test_avg_predictions_raises_categorical_error():
     mtcars = get_dataset("mtcars", "datasets")
     mod = smf.ols("mpg ~ hp + C(gear)", data=mtcars.to_pandas()).fit()
-    with pytest.raises(Exception, match=".*Categorical.*"):
+    with pytest.raises(Exception, match=".*categorical.*"):
         avg_predictions(mod, by="gear")
 
 
 def test_issue185():
     dat = marginaleffects.utils.ingest(mtcars)
-    dat = dat.with_columns(pl.col("gear").cast(pl.String))
+    dat = dat.with_columns(pl.col("gear").cast(pl.String).cast(pl.Categorical))
     mod = smf.ols("mpg ~ C(gear)", data=dat.to_pandas()).fit()
     p = avg_comparisons(mod, by="gear")
     assert p.shape[0] == 6

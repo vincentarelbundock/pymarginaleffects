@@ -130,8 +130,13 @@ def fit_sklearn(formula, data: pl.DataFrame, engine) -> ModelSklearn:
             y = d[response_var]
         y = np.ravel(y)
 
+        # Store the model_spec to preserve categorical variable ordering
+        # This is crucial for sklearn models where feature names must match exactly
+        model_spec = getattr(X, "model_spec", None)
+
     elif callable(formula):
         y, X = formula(d)
+        model_spec = None
 
     else:
         raise ValueError("The formula must be a string or a callable function.")
@@ -144,6 +149,7 @@ def fit_sklearn(formula, data: pl.DataFrame, engine) -> ModelSklearn:
         "package": "sklearn",
         "engine_running": engine_running,
         "original_columns": original_columns,  # Store for index restoration
+        "model_spec": model_spec,  # Store for categorical ordering
     }
     return ModelSklearn(engine_running, vault)
 

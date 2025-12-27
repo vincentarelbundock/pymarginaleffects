@@ -22,13 +22,13 @@ mod = smf.probit("bin ~ Petal_Length * Petal_Width", data=dat.to_pandas()).fit()
 def test_predictions_01():
     unknown = predictions(mod)
     known = pl.read_csv("tests/r/test_statsmodels_probit_predictions_01.csv")
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-4)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-4)
 
 
 def test_predictions_02():
     unknown = predictions(mod, by="Species")
     known = pl.read_csv("tests/r/test_statsmodels_probit_predictions_02.csv")
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-4)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-4)
 
 
 def test_comparisons_01():
@@ -36,7 +36,7 @@ def test_comparisons_01():
     known = pl.read_csv("tests/r/test_statsmodels_probit_comparisons_01.csv").sort(
         ["term"]
     )
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-3)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-3)
 
 
 def test_comparisons_02():
@@ -44,4 +44,4 @@ def test_comparisons_02():
     known = pl.read_csv("tests/r/test_statsmodels_probit_comparisons_02.csv").sort(
         ["term", "Species"]
     )
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-4)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-4)

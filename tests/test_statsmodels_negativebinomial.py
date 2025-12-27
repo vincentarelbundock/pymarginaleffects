@@ -3,9 +3,12 @@ import statsmodels.formula.api as smf
 from pytest import approx
 from tests.helpers import quine
 from marginaleffects import *
+from tests.utilities import sort_categories_pandas
 
 dat = quine
-mod = smf.negativebinomial("Days ~ Sex/(Age + Eth*Lrn)", data=dat.to_pandas()).fit()
+mod = smf.negativebinomial(
+    "Days ~ Sex/(Age + Eth*Lrn)", data=sort_categories_pandas(dat.to_pandas())
+).fit()
 
 
 def test_predictions_01():

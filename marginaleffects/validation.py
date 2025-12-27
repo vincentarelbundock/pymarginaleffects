@@ -70,23 +70,90 @@ class ModelValidation:
         if modeldata.shape[0] != original_row_count:
             warnings.warn("Dropping rows with missing observations.", UserWarning)
 
-        # categorical variables must be encoded as such
+        # Check for String columns in formula variables ONLY
+        # Get all variables used in the formula
+        formula_vars = fml.parse_variables(self.get_formula())
+
+        for c in formula_vars:
+            # Skip metadata columns
+            if c in ["index", "rownames"]:
+                continue
+
+            # Skip if column not in modeldata (e.g., response variable)
+            if c not in modeldata.columns:
+                continue
+
+            if modeldata[c].dtype in [pl.Utf8, pl.String]:
+                msg = (
+                    f"Column '{c}' has String type and is used in the model formula. "
+                    f"String columns are not allowed in formulas. "
+                    f"Please convert to Categorical or Enum before fitting the model.\n\n"
+                    f"For Polars DataFrames:\n"
+                    f"  # Option 1: Cast to Categorical\n"
+                    f"  df = df.with_columns(pl.col('{c}').cast(pl.Categorical))\n\n"
+                    f"  # Option 2: Cast to Enum with explicit categories\n"
+                    f"  categories = df['{c}'].unique().sort()\n"
+                    f"  df = df.with_columns(pl.col('{c}').cast(pl.Enum(categories)))\n\n"
+                    f"For pandas DataFrames:\n"
+                    f"  df['{c}'] = df['{c}'].astype('category')"
+                )
+                raise TypeError(msg)
+
+        # Check C() formula variables are already categorical
         catvars = fml.parse_variables_categorical(self.get_formula())
         for c in catvars:
             if modeldata[c].dtype not in [pl.Enum, pl.Categorical]:
                 if modeldata[c].dtype.is_numeric():
-                    msg = f"Variable {c} is numeric. It should be String, Categorical, or Enum."
-                    raise ValueError(msg)
-                catvals = modeldata[c].unique().sort().drop_nulls()
-                modeldata = modeldata.with_columns(pl.col(c).cast(pl.Categorical))
-                modeldata = modeldata.with_columns(pl.col(c).cast(pl.Enum(catvals)))
+                    msg = (
+                        f"Variable '{c}' is wrapped in C() but has numeric type. "
+                        f"C() should only be used with categorical variables."
+                    )
+                    raise TypeError(msg)
+                else:
+                    msg = (
+                        f"Variable '{c}' is wrapped in C() but has unsupported type {modeldata[c].dtype}. "
+                        f"Please convert to Categorical or Enum first."
+                    )
+                    raise TypeError(msg)
 
+        # Convert Categorical → Enum for internal consistency (ONLY conversion that remains)
+        # IMPORTANT: Use unique() not cat.get_categories() to avoid Polars global string cache
+        # which would include categories from all datasets loaded in the session
+
+        # Get category orders from model metadata to preserve them
+        # For sklearn models with formulaic
+        model_spec = self.vault.get("model_spec")
+        formulaic_categories = {}
+        if model_spec and hasattr(model_spec, "encoder_state"):
+            for var_name, (kind, state) in model_spec.encoder_state.items():
+                if "categories" in state:
+                    # Extract the actual variable name (remove C() wrapper if present)
+                    actual_var = var_name.replace("C(", "").replace(")", "")
+                    formulaic_categories[actual_var] = state["categories"]
+
+        # For statsmodels/patsy models, use pandas categorical orders
+        pandas_categorical_orders = self.vault.get("pandas_categorical_orders", {})
+
+        # Convert Categorical to Enum with appropriate ordering
         for c in modeldata.columns:
-            if modeldata[c].dtype in [pl.Utf8, pl.String]:
-                catvals = modeldata[c].unique().sort().drop_nulls()
-                modeldata = modeldata.with_columns(pl.col(c).cast(pl.Enum(catvals)))
-            elif modeldata[c].dtype in [pl.Categorical]:
-                catvals = modeldata[c].cat.get_categories().drop_nulls()
+            if modeldata[c].dtype == pl.Categorical:
+                # Priority 1: Use formulaic categories if available (sklearn models)
+                if c in formulaic_categories:
+                    catvals = formulaic_categories[c]
+                # Priority 2: Use pandas categorical orders if available (statsmodels)
+                elif c in pandas_categorical_orders:
+                    catvals = pandas_categorical_orders[c]
+                else:
+                    # Default: sort lexically for consistency with R behavior
+                    catvals = (
+                        modeldata[c]
+                        .unique()
+                        .cast(pl.String)
+                        .sort()
+                        .drop_nulls()
+                        .to_list()
+                    )
+
                 modeldata = modeldata.with_columns(pl.col(c).cast(pl.Enum(catvals)))
 
         self.vault.update(modeldata=modeldata)

@@ -4,10 +4,13 @@ from polars.testing import assert_series_equal
 
 from marginaleffects import *
 from tests.helpers import mtcars
+from tests.utilities import sort_categories_pandas
 
 
-dat = mtcars.with_columns(pl.col("cyl").cast(pl.Utf8))
-mod = smf.ols("mpg ~ qsec * wt + cyl", data=dat.to_pandas()).fit()
+dat = mtcars.with_columns(pl.col("cyl").cast(pl.String).cast(pl.Categorical))
+mod = smf.ols(
+    "mpg ~ qsec * wt + cyl", data=sort_categories_pandas(dat.to_pandas())
+).fit()
 
 
 def test_predictions_01():
@@ -47,10 +50,10 @@ def test_slopes_01():
     known = pl.read_csv("tests/r/test_statsmodels_ols_slopes_01.csv")
     unknown = unknown.sort(["term", "contrast", "rowid"])
     known = known.sort(["term", "contrast", "rowid"])
-    assert_series_equal(unknown["estimate"], known["estimate"], rtol=1e-4)
+    assert_series_equal(unknown["estimate"], known["estimate"], rel_tol=1e-4)
     # TODO: bad tolerance
     assert_series_equal(
-        unknown["std_error"], known["std.error"], check_names=False, rtol=1e-1
+        unknown["std_error"], known["std.error"], check_names=False, rel_tol=1e-1
     )
 
 
@@ -61,5 +64,5 @@ def test_slopes_02():
     )
     assert_series_equal(unknown["estimate"], known["estimate"])
     assert_series_equal(
-        unknown["std_error"], known["std.error"], check_names=False, rtol=1e-2
+        unknown["std_error"], known["std.error"], check_names=False, rel_tol=1e-2
     )

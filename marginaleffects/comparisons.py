@@ -21,7 +21,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, upcast
+from .utils import get_pad, sort_columns, upcast, validate_string_columns
 from .model_pyfixest import ModelPyfixest
 from .model_sklearn import ModelSklearn
 from .model_linearmodels import ModelLinearmodels
@@ -81,6 +81,10 @@ def comparisons(
         raise ValueError(
             "The `variables` argument must be specified when `cross=True`."
         )
+
+    # Validate that columns used in by and variables are not String type
+    validate_string_columns(by, modeldata, context="the 'by' parameter")
+    validate_string_columns(variables, modeldata, context="the 'variables' parameter")
 
     # For each variable in `variables`, this will return two values that we want
     # to compare in the contrast. For example, if there's a variable called

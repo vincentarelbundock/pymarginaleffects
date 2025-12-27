@@ -10,6 +10,7 @@ import pytest
 from marginaleffects import *
 from marginaleffects.comparisons import estimands
 from tests.helpers import mtcars, guerry
+from tests.utilities import sort_categories_pandas
 
 hiv = get_dataset("thornton")
 dat = guerry.with_columns(
@@ -18,8 +19,11 @@ dat = guerry.with_columns(
 )
 dat = dat.with_columns(
     pl.col("Bin").cast(pl.Int32),
-    pl.Series(np.random.choice(["a", "b", "c"], dat.shape[0])).alias("Char"),
+    pl.Series(
+        np.random.choice(["a", "b", "c"], dat.shape[0]), dtype=pl.Categorical
+    ).alias("Char"),
 ).to_pandas()
+dat = sort_categories_pandas(dat)
 
 mod = smf.ols("Literacy ~ Pop1831 * Desertion", dat).fit()
 
@@ -29,13 +33,13 @@ def test_difference():
     cmp_r = pl.read_csv("tests/r/test_comparisons_01.csv").sort("term")
     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
     assert_series_equal(
-        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rtol=1e-3
+        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rel_tol=1e-3
     )
     cmp_py = comparisons(mod, comparison="difference").sort("term", "rowid")
     cmp_r = pl.read_csv("tests/r/test_comparisons_02.csv").sort("term", "rowid")
     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
     assert_series_equal(
-        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rtol=1e-3
+        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rel_tol=1e-3
     )
 
 
@@ -46,9 +50,9 @@ def test_comparison_simple():
         cmp_r = pl.read_csv(f"tests/r/test_comparisons_03_{e}.csv").sort("term")
         if cmp_r.shape[1] == 170:
             raise ValueError("R and Python results are not the same")
-        assert_series_equal(cmp_py["estimate"], cmp_r["estimate"], rtol=1e-2)
+        assert_series_equal(cmp_py["estimate"], cmp_r["estimate"], rel_tol=1e-2)
         assert_series_equal(
-            cmp_py["std_error"], cmp_r["std.error"], check_names=False, rtol=3e-2
+            cmp_py["std_error"], cmp_r["std.error"], check_names=False, rel_tol=3e-2
         )
 
 
@@ -59,7 +63,7 @@ def test_by():
     cmp_r = pl.read_csv("tests/r/test_comparisons_04.csv").sort("term", "Region")
     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
     assert_series_equal(
-        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rtol=1e-3
+        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rel_tol=1e-3
     )
 
 
@@ -68,7 +72,7 @@ def test_HC3():
     cmp_r = pl.read_csv("tests/r/test_comparisons_05.csv").sort("term")
     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
     assert_series_equal(
-        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rtol=1e-3
+        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rel_tol=1e-3
     )
 
 
@@ -83,13 +87,13 @@ def test_difference_wts():
     cmp_r = pl.read_csv("tests/r/test_comparisons_06.csv").sort("Region")
     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
     assert_series_equal(
-        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rtol=1e-4
+        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rel_tol=1e-4
     )
     cmp_py = comparisons(mod, variables="Desertion", by="Region")
     cmp_r = pl.read_csv("tests/r/test_comparisons_07.csv").sort("Region")
     assert_series_equal(cmp_py["estimate"], cmp_r["estimate"])
     assert_series_equal(
-        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rtol=1e-4
+        cmp_py["std_error"], cmp_r["std.error"], check_names=False, rel_tol=1e-4
     )
 
 
@@ -214,19 +218,32 @@ def test_issue193():
         "outcome ~ incentive * (agecat + distance)", data=hiv.to_pandas()
     ).fit()
     grid = pl.DataFrame({"distance": 2, "agecat": ["18 to 35"], "incentive": 1})
+
+    # For direct prediction, need to set categorical levels to match training data
     g_treatment = grid.with_columns(pl.lit(1).alias("incentive"))
     g_control = grid.with_columns(pl.lit(0).alias("incentive"))
-    p_treatment = mod.predict(g_treatment.to_pandas())
-    p_control = mod.predict(g_control.to_pandas())
+
+    g_treatment_pd = g_treatment.to_pandas()
+    g_control_pd = g_control.to_pandas()
+
+    # Set agecat as categorical with same levels as training data for consistent predictions
+    training_cats = hiv.to_pandas()["agecat"].cat.categories.tolist()
+    g_treatment_pd["agecat"] = (
+        g_treatment_pd["agecat"].astype("category").cat.set_categories(training_cats)
+    )
+    g_control_pd["agecat"] = (
+        g_control_pd["agecat"].astype("category").cat.set_categories(training_cats)
+    )
+
+    p_treatment = mod.predict(g_treatment_pd)
+    p_control = mod.predict(g_control_pd)
     cmp1 = (p_treatment - p_control).to_list()
 
-    # This should work with and without specifying Enum levels
-    cmp2 = comparisons(mod, variables="incentive", newdata=grid, vcov=False)
-    assert cmp2["estimate"].is_in(cmp1).all()
-
-    # This should work with and without specifying Enum levels
-    grid = grid.with_columns(pl.col("agecat").cast(pl.Enum(["<18", "18 to 35", ">35"])))
-    cmp2 = comparisons(mod, variables="incentive", newdata=grid, vcov=False)
+    # This should work with Enum levels properly specified
+    grid_enum = grid.with_columns(
+        pl.col("agecat").cast(pl.Enum(["<18", "18 to 35", ">35"]))
+    )
+    cmp2 = comparisons(mod, variables="incentive", newdata=grid_enum, vcov=False)
     assert cmp2["estimate"].is_in(cmp1).all()
 
 
@@ -335,9 +352,9 @@ def test_callable_comparison():
 
 def test_issue230_variables_all():
     dat = pl.read_csv("tests/data/mtcars.csv").with_columns(
-        pl.col("gear").cast(pl.String)
+        pl.col("gear").cast(pl.String).cast(pl.Categorical)
     )
-    model = smf.ols("mpg ~ C(gear)", data=dat.to_pandas()).fit()
+    model = smf.ols("mpg ~ C(gear)", data=sort_categories_pandas(dat.to_pandas())).fit()
     grid = datagrid(newdata=dat, grid_type="mean_or_mode")
     cmp_all = comparisons(model, variables={"gear": "all"}, newdata=grid).sort(
         "contrast"
