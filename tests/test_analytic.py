@@ -27,7 +27,7 @@ def test_linear_quadratic():
     nd = datagrid(newdata=dat, x=range(-2, 3))
     res = slopes(mod, newdata=nd)
     res = res.with_columns(truth=truth(pl.col("x")).cast(pl.Float64))
-    assert_series_equal(res["estimate"], res["truth"], check_names=False, atol=0.01)
+    assert_series_equal(res["estimate"], res["truth"], check_names=False, abs_tol=0.01)
 
 
 def test_linear_log():
@@ -44,7 +44,7 @@ def test_linear_log():
     nd = datagrid(newdata=dat, x=range(1, 5))
     res = slopes(mod, newdata=nd)
     res = res.with_columns(truth=truth(pl.col("x")).cast(pl.Float64))
-    assert_series_equal(res["estimate"], res["truth"], check_names=False, atol=0.02)
+    assert_series_equal(res["estimate"], res["truth"], check_names=False, abs_tol=0.02)
 
 
 def test_logit():
@@ -65,7 +65,7 @@ def test_logit():
     res = slopes(mod, newdata=nd)
     tru = truth(res["x"])
     res = res.with_columns(truth=tru)
-    assert_series_equal(res["estimate"], res["truth"], check_names=False, atol=0.01)
+    assert_series_equal(res["estimate"], res["truth"], check_names=False, abs_tol=0.01)
 
 
 ############################################################################
@@ -117,13 +117,16 @@ def test_golder():
         + 2 * dat["z"] * vcov.at["x", "x:z"]
     )
     assert_series_equal(
-        res.filter(pl.col("term") == "x")["estimate"], dydx, check_names=False, atol=tol
+        res.filter(pl.col("term") == "x")["estimate"],
+        dydx,
+        check_names=False,
+        abs_tol=tol,
     )
     assert_series_equal(
         res.filter(pl.col("term") == "x")["std_error"],
         sedydx,
         check_names=False,
-        atol=tol_se,
+        abs_tol=tol_se,
     )
 
     # Golder Interaction Case 2 correct
@@ -138,13 +141,16 @@ def test_golder():
         + 2 * dat["z"] * vcov.at["x", "x:z"]
     )
     assert_series_equal(
-        res.filter(pl.col("term") == "x")["estimate"], dydx, check_names=False, atol=tol
+        res.filter(pl.col("term") == "x")["estimate"],
+        dydx,
+        check_names=False,
+        abs_tol=tol,
     )
     assert_series_equal(
         res.filter(pl.col("term") == "x")["std_error"],
         sedydx,
         check_names=False,
-        atol=tol_se,
+        abs_tol=tol_se,
     )
 
     # Golder Interaction Case 3 correct
@@ -171,13 +177,16 @@ def test_golder():
         + 2 * dat["z"] * dat["w"] ** 2 * vcov.at["x:w", "x:z:w"]
     )
     assert_series_equal(
-        res.filter(pl.col("term") == "x")["estimate"], dydx, check_names=False, atol=tol
+        res.filter(pl.col("term") == "x")["estimate"],
+        dydx,
+        check_names=False,
+        abs_tol=tol,
     )
     assert_series_equal(
         res.filter(pl.col("term") == "x")["std_error"],
         sedydx,
         check_names=False,
-        atol=tol_se,
+        abs_tol=tol_se,
     )
 
     # Golder Quadratic Case 1 correct
@@ -192,13 +201,16 @@ def test_golder():
         + 4 * dat["x"] * vcov.at["x", "I(x ** 2)"]
     )
     assert_series_equal(
-        res.filter(pl.col("term") == "x")["estimate"], dydx, check_names=False, atol=tol
+        res.filter(pl.col("term") == "x")["estimate"],
+        dydx,
+        check_names=False,
+        abs_tol=tol,
     )
     assert_series_equal(
         res.filter(pl.col("term") == "x")["std_error"],
         sedydx,
         check_names=False,
-        atol=tol_se,
+        abs_tol=tol_se,
     )
 
     # Golder Quadratic Case 2 correct
@@ -213,13 +225,16 @@ def test_golder():
         + 4 * dat["x"] * vcov.at["x", "I(x ** 2)"]
     )
     assert_series_equal(
-        res.filter(pl.col("term") == "x")["estimate"], dydx, check_names=False, atol=tol
+        res.filter(pl.col("term") == "x")["estimate"],
+        dydx,
+        check_names=False,
+        abs_tol=tol,
     )
     assert_series_equal(
         res.filter(pl.col("term") == "x")["std_error"],
         sedydx,
         check_names=False,
-        atol=tol_se,
+        abs_tol=tol_se,
     )
 
     # Golder Quadratic Case 3a/3b correct
@@ -243,13 +258,16 @@ def test_golder():
         + 4 * dat["x"] * dat["z"] * vcov.at["I(x ** 2)", "x:z"]
     )
     assert_series_equal(
-        res.filter(pl.col("term") == "x")["estimate"], dydx, check_names=False, atol=tol
+        res.filter(pl.col("term") == "x")["estimate"],
+        dydx,
+        check_names=False,
+        abs_tol=tol,
     )
     assert_series_equal(
         res.filter(pl.col("term") == "x")["std_error"],
         sedydx,
         check_names=False,
-        atol=tol_se,
+        abs_tol=tol_se,
     )
 
     # ME with respect to z
@@ -260,13 +278,16 @@ def test_golder():
         + 2 * dat["x"] * vcov.at["z", "x:z"]
     )
     assert_series_equal(
-        res.filter(pl.col("term") == "z")["estimate"], dydz, check_names=False, atol=tol
+        res.filter(pl.col("term") == "z")["estimate"],
+        dydz,
+        check_names=False,
+        abs_tol=tol,
     )
     assert_series_equal(
         res.filter(pl.col("term") == "z")["std_error"],
         sedydz,
         check_names=False,
-        atol=tol_se,
+        abs_tol=tol_se,
     )
 
     # Golder Quadratic Case 4a/4b correct
@@ -301,13 +322,16 @@ def test_golder():
         + 4 * dat["x"] * dat["z"] ** 2 * vcov.at["x:z", "I(x ** 2):z"]
     )
     assert_series_equal(
-        res.filter(pl.col("term") == "x")["estimate"], dydx, check_names=False, atol=tol
+        res.filter(pl.col("term") == "x")["estimate"],
+        dydx,
+        check_names=False,
+        abs_tol=tol,
     )
     assert_series_equal(
         res.filter(pl.col("term") == "x")["std_error"],
         sedydx,
         check_names=False,
-        atol=tol_se,
+        abs_tol=tol_se,
     )
 
     # ME with respect to z
@@ -325,11 +349,14 @@ def test_golder():
         + 2 * dat["x"] ** 3 * vcov.at["x:z", "I(x ** 2):z"]
     )
     assert_series_equal(
-        res.filter(pl.col("term") == "z")["estimate"], dydz, check_names=False, atol=tol
+        res.filter(pl.col("term") == "z")["estimate"],
+        dydz,
+        check_names=False,
+        abs_tol=tol,
     )
     assert_series_equal(
         res.filter(pl.col("term") == "z")["std_error"],
         sedydz,
         check_names=False,
-        atol=tol_se,
+        abs_tol=tol_se,
     )

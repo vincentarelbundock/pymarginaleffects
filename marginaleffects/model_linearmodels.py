@@ -277,7 +277,26 @@ This function streamlines the process of fitting linearmodels panel models by:
     - FixedEffects: Alias for EntityEffects
 - Example: `"y ~ x1 + x2 + EntityEffects"`
 
-`data` : (pandas.DataFrame) Panel data with MultiIndex (entity, time) or regular DataFrame with entity and time columns.
+`data` : (pandas.DataFrame or polars.DataFrame) Panel data with MultiIndex (entity, time) or regular DataFrame with entity and time columns.
+
+**Important:** All categorical variables must be explicitly converted to `Categorical` or `Enum` dtype before fitting. String columns are not accepted in model formulas.
+
+For Polars DataFrames:
+```python
+import polars as pl
+
+# Option 1: Cast to Categorical (simplest)
+df = df.with_columns(pl.col("region").cast(pl.Categorical))
+
+# Option 2: Cast to Enum with explicit category order (recommended for control)
+categories = ["<18", "18 to 35", ">35"]
+df = df.with_columns(pl.col("age_group").cast(pl.Enum(categories)))
+```
+
+For pandas DataFrames:
+```python
+df["region"] = df["region"].astype("category")
+```
 
 `engine`: (callable) linearmodels model class (e.g., PanelOLS, BetweenOLS, FirstDifferenceOLS)
 

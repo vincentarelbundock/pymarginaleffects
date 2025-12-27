@@ -10,11 +10,25 @@ from .utils import validate_types, ingest
 class ModelStatsmodels(ModelAbstract):
     def __init__(self, model, vault={}):
         # cache is useful because it obviates the need to call methods many times
+
+        # Store pandas categorical orders before ingesting to preserve them
+        pandas_categorical_orders = {}
+        if hasattr(model.model.data, "frame"):
+            for col in model.model.data.frame.columns:
+                if (
+                    hasattr(model.model.data.frame[col].dtype, "name")
+                    and model.model.data.frame[col].dtype.name == "category"
+                ):
+                    pandas_categorical_orders[col] = model.model.data.frame[
+                        col
+                    ].cat.categories.tolist()
+
         cache = {
             "coef": np.array(model.params),  # multinomial models are 2d
             "coefnames": np.array(model.params.index.to_numpy()),
             "formula": model.model.formula,
             "modeldata": ingest(model.model.data.frame),
+            "pandas_categorical_orders": pandas_categorical_orders,
         }
         cache["variable_names"] = [
             model.model.endog_names
@@ -125,7 +139,26 @@ This function streamlines the process of fitting statsmodels models by:
 """
     + DocsModels.docstring_formula
     + """
-`data`: (pandas.DataFrame) Dataframe with the response variable and predictors.
+`data`: (pandas.DataFrame or polars.DataFrame) Dataframe with the response variable and predictors.
+
+**Important:** All categorical variables must be explicitly converted to `Categorical` or `Enum` dtype before fitting. String columns are not accepted in model formulas.
+
+For Polars DataFrames:
+```python
+import polars as pl
+
+# Option 1: Cast to Categorical (simplest)
+df = df.with_columns(pl.col("region").cast(pl.Categorical))
+
+# Option 2: Cast to Enum with explicit category order (recommended for control)
+categories = ["<18", "18 to 35", ">35"]
+df = df.with_columns(pl.col("age_group").cast(pl.Enum(categories)))
+```
+
+For pandas DataFrames:
+```python
+df["region"] = df["region"].astype("category")
+```
 
 `engine`: (callable) statsmodels model class (e.g., OLS, Logit)
 """

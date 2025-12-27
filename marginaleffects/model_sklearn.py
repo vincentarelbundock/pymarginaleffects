@@ -130,8 +130,13 @@ def fit_sklearn(formula, data: pl.DataFrame, engine) -> ModelSklearn:
             y = d[response_var]
         y = np.ravel(y)
 
+        # Store the model_spec to preserve categorical variable ordering
+        # This is crucial for sklearn models where feature names must match exactly
+        model_spec = getattr(X, "model_spec", None)
+
     elif callable(formula):
         y, X = formula(d)
+        model_spec = None
 
     else:
         raise ValueError("The formula must be a string or a callable function.")
@@ -144,6 +149,7 @@ def fit_sklearn(formula, data: pl.DataFrame, engine) -> ModelSklearn:
         "package": "sklearn",
         "engine_running": engine_running,
         "original_columns": original_columns,  # Store for index restoration
+        "model_spec": model_spec,  # Store for categorical ordering
     }
     return ModelSklearn(engine_running, vault)
 
@@ -165,7 +171,26 @@ This function streamlines the process of fitting sklearn models by:
 """
     + DocsModels.docstring_formula
     + """
-`data`: (pandas.DataFrame) Dataframe with the response variable and predictors.
+`data`: (pandas.DataFrame or polars.DataFrame) Dataframe with the response variable and predictors.
+
+**Important:** All categorical variables must be explicitly converted to `Categorical` or `Enum` dtype before fitting. String columns are not accepted in model formulas.
+
+For Polars DataFrames:
+```python
+import polars as pl
+
+# Option 1: Cast to Categorical (simplest)
+df = df.with_columns(pl.col("region").cast(pl.Categorical))
+
+# Option 2: Cast to Enum with explicit category order (recommended for control)
+categories = ["<18", "18 to 35", ">35"]
+df = df.with_columns(pl.col("age_group").cast(pl.Enum(categories)))
+```
+
+For pandas DataFrames:
+```python
+df["region"] = df["region"].astype("category")
+```
 
 `engine`: (callable) sklearn model class (e.g., LinearRegression, LogisticRegression)
 """
@@ -179,6 +204,7 @@ This function streamlines the process of fitting sklearn models by:
 ```{python}
 from marginaleffects import *
 from statsmodels.formula.api import ols
+import polars as pl
 import polars.selectors as cs
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
@@ -190,6 +216,11 @@ from xgboost import XGBRegressor
 
 # Linear regression: Scikit-learn
 military = get_dataset("military")
+
+# Convert categorical variables to proper dtypes
+military = military.with_columns(
+    pl.col("branch").cast(pl.Categorical)
+)
 
 mod_sk = fit_sklearn(
     "rank ~ officer + hisp + branch",
@@ -205,10 +236,13 @@ avg_predictions(mod_sm, by="branch")
 # XGBoost: Scikit-learn
 airbnb = get_dataset("airbnb")
 
-train, test = train_test_split(airbnb)
-
+# Convert categorical variables to proper dtypes
 catvar = airbnb.select(~cs.numeric()).columns
+airbnb = airbnb.with_columns(
+    [pl.col(c).cast(pl.Categorical) for c in catvar]
+)
 
+train, test = train_test_split(airbnb)
 
 def selector(data):
     y = data.select(cs.by_name("price", require_all=False))

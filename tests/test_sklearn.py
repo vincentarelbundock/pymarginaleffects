@@ -107,7 +107,9 @@ def test_issue_221_long_column_names():
 
 def test_categorical_formula_equivalence():
     """Test that C(branch) and branch produce equivalent estimates in avg_predictions."""
-    military = me.get_dataset("military")
+    military = me.get_dataset("military").with_columns(
+        pl.col("branch").cast(pl.Categorical)
+    )
 
     # Fit model with C(branch) - categorical treatment
     mod_categorical = me.fit_sklearn(

@@ -38,10 +38,58 @@ def ingest(df: ArrowStreamExportable):
 
         if isinstance(df, pd.DataFrame):
             df = df.reset_index()
+            # Note: String column validation happens later in validation.py
+            # only for columns used in the model formula
+
     except ImportError:
         raise ValueError("Please install pandas to handle Pandas DataFrame as input.")
 
     return nw.from_arrow(df, backend=pl).to_native()
+
+
+def validate_string_columns(columns, modeldata, context=""):
+    """
+    Validate that specified columns are not String type.
+
+    Parameters
+    ----------
+    columns : list[str] or str or dict or bool
+        Column name(s) to validate
+    modeldata : pl.DataFrame
+        The model data containing the columns
+    context : str
+        Description of where validation is happening (for error messages)
+    """
+    # Handle different input types
+    if columns is None or columns is False:
+        return
+
+    if isinstance(columns, str):
+        columns = [columns]
+    elif isinstance(columns, dict):
+        columns = list(columns.keys())
+    elif isinstance(columns, bool):
+        return  # by=False or by=True shouldn't validate
+
+    # Validate each column
+    for col in columns:
+        if col in ["index", "rownames"]:
+            continue
+
+        if col not in modeldata.columns:
+            continue
+
+        if modeldata[col].dtype in [pl.Utf8, pl.String]:
+            msg = (
+                f"Column '{col}' has String type and is used in {context}. "
+                f"String columns are not allowed. "
+                f"Please convert to Categorical or Enum.\n\n"
+                f"For Polars DataFrames:\n"
+                f"  df = df.with_columns(pl.col('{col}').cast(pl.Categorical))\n\n"
+                f"For pandas DataFrames:\n"
+                f"  df['{col}'] = df['{col}'].astype('category')"
+            )
+            raise TypeError(msg)
 
 
 def sort_columns(df, by=None, newdata=None):

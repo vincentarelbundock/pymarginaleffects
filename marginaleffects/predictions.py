@@ -14,7 +14,7 @@ from .sanity import (
 )
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import sort_columns
+from .utils import sort_columns, validate_string_columns
 from .model_pyfixest import ModelPyfixest
 from .model_linearmodels import ModelLinearmodels
 from .formulaic_utils import model_matrices
@@ -96,6 +96,9 @@ def predictions(
     hypothesis_null = sanitize_hypothesis_null(hypothesis)
 
     modeldata = model.get_modeldata()
+
+    # Validate that columns used in by are not String type
+    validate_string_columns(by, modeldata, context="the 'by' parameter")
 
     if variables:
         # convert to dictionary

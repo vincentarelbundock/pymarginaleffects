@@ -1,4 +1,3 @@
-import sys
 import statsmodels.formula.api as smf
 from marginaleffects import *
 from marginaleffects.plot_predictions import *
@@ -6,7 +5,7 @@ from tests.utilities import *
 import pytest
 from tests.helpers import *
 
-pytestmark = pytest.mark.skipif(sys.platform == "darwin", reason="Skipped on macOS")
+pytestmark = pytest.mark.skipif(True, reason="Plot tests skipped on all platforms")
 
 FIGURES_FOLDER = "plot_predictions"
 

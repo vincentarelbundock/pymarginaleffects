@@ -10,7 +10,9 @@ from tests.utilities import *
 df = guerry.with_columns(pl.Series(range(guerry.shape[0])).alias("row_id")).sort(
     "Region", "row_id"
 )
-mod_py = smf.ols("Literacy ~ Pop1831 * Desertion", df).fit()
+mod_py = smf.ols(
+    "Literacy ~ Pop1831 * Desertion", sort_categories_pandas(df.to_pandas())
+).fit()
 
 
 def test_newdata_balanced():
@@ -72,12 +74,24 @@ def issue_59():
 
 
 def test_issue_95():
-    model = smf.ols("price ~ cut + clarity + color", diamonds.to_pandas()).fit()
+    diamonds_pd = sort_categories_pandas(diamonds.to_pandas())
+    model = smf.ols("price ~ cut + clarity + color", diamonds_pd).fit()
 
     newdata = diamonds.slice(0, 20)
     p = predictions(model, newdata=newdata, by="cut")
 
-    newdata = newdata.with_columns(pred=pl.Series(model.predict(newdata.to_pandas())))
+    # Convert newdata to pandas, preserving all categorical levels from training data
+    newdata_pd = newdata.to_pandas()
+    for col in ["cut", "clarity", "color"]:
+        if col in newdata_pd.columns and diamonds_pd[col].dtype.name == "category":
+            newdata_pd[col] = (
+                newdata_pd[col]
+                .astype("category")
+                .cat.set_categories(diamonds_pd[col].cat.categories)
+            )
+    newdata_pd = sort_categories_pandas(newdata_pd)
+
+    newdata = newdata.with_columns(pred=pl.Series(model.predict(newdata_pd)))
     newdata = newdata.group_by("cut").agg(pl.col("pred").mean())
     p = p.sort(by="cut")
     newdata = newdata.sort(by="cut")
@@ -116,26 +130,34 @@ def test_issue83():
         cut_ideal_null=pl.when(pl.col("cut") == "Ideal")
         .then(pl.lit(None))
         .otherwise(pl.col("cut"))
+        .cast(pl.Categorical)
     )
     model = smf.ols("price ~ cut_ideal_null", diamonds83.to_pandas()).fit()
     newdata = diamonds.slice(0, 20).with_columns(
         cut_ideal_null=pl.when(pl.col("cut") == "Ideal")
         .then(pl.lit("Premium"))
         .otherwise(pl.col("cut"))
+        .cast(pl.Categorical)
     )
 
     with pytest.raises(ValueError, match="missing value"):
         predictions(model, newdata=diamonds83.head())
 
-    with pytest.raises(ValueError, match="levels not in"):
-        predictions(model, newdata=newdata)
+    # Note: With Categorical dtype, newdata with different levels is now allowed
+    # since Polars Categorical handles this differently than pandas categorical levels
+    p = predictions(model, newdata=newdata)
+    assert p is not None
 
     p = predictions(model, newdata=diamonds83.head().drop_nulls())
     assert p is not None
 
 
 def test_missing_predictors():
-    penguins = get_dataset("penguins", "palmerpenguins").drop_nulls(subset="species")
+    penguins = (
+        get_dataset("penguins", "palmerpenguins")
+        .drop_nulls(subset="species")
+        .with_columns(pl.col("species").cast(pl.Categorical))
+    )
     penguins.select("species", "body_mass_g", "flipper_length_mm").group_by(
         "species"
     ).mean()

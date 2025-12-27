@@ -2,14 +2,20 @@ import polars as pl
 import statsmodels.formula.api as smf
 from polars.testing import assert_series_equal
 from marginaleffects import *
+from tests.utilities import sort_categories_pandas
 
 dat = (
     get_dataset("dietox", "geepack")
     .select("Weight", "Time", "Litter", "Pig", "Cu")
     .drop_nulls()
+    .with_columns(
+        pl.col("Cu").cast(pl.String).cast(pl.Categorical)
+        # Litter stays as Int32 (numeric) to match R's numeric treatment
+    )
 )
+dat_pd = sort_categories_pandas(dat.to_pandas())
 mod = smf.mixedlm(
-    formula="Weight ~ Time * Litter", data=dat.to_pandas(), groups=dat["Pig"]
+    formula="Weight ~ Time * Litter", data=dat_pd, groups=dat["Pig"]
 ).fit()
 
 
@@ -33,10 +39,10 @@ def test_comparisons_01():
         "tests/r/test_statsmodels_mixedlm_comparisons_01.csv", ignore_errors=True
     ).sort(["term", "contrast", "rowid"])
     assert_series_equal(
-        known["estimate"], unknown["estimate"], rtol=1e-4, check_names=False
+        known["estimate"], unknown["estimate"], rel_tol=1e-4, check_names=False
     )
     assert_series_equal(
-        known["std.error"], unknown["std_error"], check_names=False, rtol=1e-3
+        known["std.error"], unknown["std_error"], check_names=False, rel_tol=1e-3
     )
 
 
@@ -47,5 +53,5 @@ def test_comparisons_02():
     )
     assert_series_equal(known["estimate"], unknown["estimate"], check_names=False)
     assert_series_equal(
-        known["std.error"], unknown["std_error"], check_names=False, rtol=1e-3
+        known["std.error"], unknown["std_error"], check_names=False, rel_tol=1e-3
     )

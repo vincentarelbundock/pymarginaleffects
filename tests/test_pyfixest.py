@@ -1,10 +1,23 @@
-from pyfixest.estimation import feols, fepois
-from pyfixest.utils import ssc
+import pytest
+
+# Try to import pyfixest - skip all tests in this module if it fails
+try:
+    from pyfixest.estimation import feols, fepois
+    from pyfixest.utils import ssc
+
+    PYFIXEST_AVAILABLE = True
+except ImportError:
+    PYFIXEST_AVAILABLE = False
+
 import polars as pl
 from polars.testing import assert_series_equal
 import numpy as np
 from marginaleffects import *
-import pytest
+
+pytestmark = pytest.mark.skipif(
+    not PYFIXEST_AVAILABLE,
+    reason="pyfixest not available (may require compatible numba/numpy versions)",
+)
 
 rtol = 1e-4
 
@@ -51,11 +64,11 @@ def test_bare_minimum():
 
     p = avg_predictions(fit, vcov=False)
     assert_series_equal(
-        p["estimate"], pl.Series([0.010447]), check_names=False, rtol=rtol
+        p["estimate"], pl.Series([0.010447]), check_names=False, rel_tol=rtol
     )
     s = avg_slopes(fit, vcov=False)
     known = pl.Series([0.010960664156094414, -0.02592049598947146, 0.08384415120847774])
-    assert_series_equal(s["estimate"], known, check_names=False, rtol=rtol)
+    assert_series_equal(s["estimate"], known, check_names=False, rel_tol=rtol)
 
     c = comparisons(fit, newdata=datagrid(X1=[2, 4], model=fit), vcov=False)
     known = pl.Series(
@@ -68,7 +81,7 @@ def test_bare_minimum():
             -0.2807823993887409,
         ]
     )
-    assert_series_equal(c["estimate"], known, check_names=False, rtol=rtol)
+    assert_series_equal(c["estimate"], known, check_names=False, rel_tol=rtol)
 
     # test 2: fixed effects
     fit2 = feols("Y ~ X1 * X2 * Z1 | f1", data=data)
@@ -85,12 +98,12 @@ def test_bare_minimum():
 
     p2 = avg_predictions(fit2, vcov=False)
     assert_series_equal(
-        p["estimate"], pl.Series([0.0104466614683]), check_names=False, rtol=rtol
+        p["estimate"], pl.Series([0.0104466614683]), check_names=False, rel_tol=rtol
     )
 
     s2 = avg_slopes(fit2, vcov=False)
     known = pl.Series([0.0109451775035, -0.0218987575428, 0.0811949147670])
-    assert_series_equal(s2["estimate"], known, check_names=False, rtol=rtol)
+    assert_series_equal(s2["estimate"], known, check_names=False, rel_tol=rtol)
 
     comp2 = comparisons(fit2)
     assert "std_error" in comp2.columns
@@ -108,7 +121,7 @@ def test_bare_minimum():
             -0.2903009296021,
         ]
     )
-    assert_series_equal(c2["estimate"], known, check_names=False, rtol=rtol)
+    assert_series_equal(c2["estimate"], known, check_names=False, rel_tol=rtol)
 
     # dontrun as bug in pyfixest with ^ interaction for fixed effects and predict()
     # test 3: special syntax - interacted fixed effects
@@ -118,12 +131,12 @@ def test_bare_minimum():
     #
     # p3 = avg_predictions(fit3)
     # assert_series_equal(
-    #     p3["estimate"], pl.Series([0.01044666147]), check_names=False, rtol=rtol
+    #     p3["estimate"], pl.Series([0.01044666147]), check_names=False, rel_tol=rtol
     # )
     #
     # s3 = avg_slopes(fit3)
     # known = pl.Series([-0.002662644695, -0.012290790756, 0.090667738344])
-    # assert_series_equal(s3["estimate"], known, check_names=False, rtol=rtol)
+    # assert_series_equal(s3["estimate"], known, check_names=False, rel_tol=rtol)
     #
     # c3 = comparisons(fit3, newdata=datagrid(X1=[2, 4], model=fit3))
     # known = pl.Series(
@@ -136,7 +149,7 @@ def test_bare_minimum():
     #         -0.26667151028,
     #     ]
     # )
-    # assert_series_equal(c3["estimate"], known, check_names=False, rtol=rtol)
+    # assert_series_equal(c3["estimate"], known, check_names=False, rel_tol=rtol)
     #
 
 

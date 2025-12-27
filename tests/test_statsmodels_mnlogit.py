@@ -19,10 +19,10 @@ def test_avg_predictions_01():
     unknown = avg_predictions(mod)
     unknown = unknown.with_columns(pl.col("group").replace_strict(dict))
     assert_series_equal(
-        known["estimate"], unknown["estimate"], rtol=1e-2, check_names=False
+        known["estimate"], unknown["estimate"], rel_tol=1e-2, check_names=False
     )
     assert_series_equal(
-        known["std.error"], unknown["std_error"], rtol=1e-2, check_names=False
+        known["std.error"], unknown["std_error"], rel_tol=1e-2, check_names=False
     )
 
 
@@ -40,7 +40,7 @@ def test_avg_predictions_01():
 #     r = r2pl(r_code)
 #     dict = {"0": "Biscoe", "1": "Dream", "2": "Torgersen"}
 #     py = avg_comparisons(mod)#.with_columns(pl.col("group").replace_strict(dict))
-#     assert_series_equal(r["estimate"], py["estimate"], rtol=1e-2, check_names=False)
+#     assert_series_equal(r["estimate"], py["estimate"], rel_tol=1e-2, check_names=False)
 
 # pytest.skip(reason="Skipping tests in this file", allow_module_level=True)
 
@@ -59,17 +59,17 @@ def test_avg_predictions_01():
 #     compare.select("std.error", "std_error").head()
 #     compare.select("estimate", "estimate_py").tail()
 #     assert_series_equal(
-#         compare["estimate"], compare["estimate_py"], rtol=1e-2, check_names=False
+#         compare["estimate"], compare["estimate_py"], rel_tol=1e-2, check_names=False
 #     )
 #     assert_series_equal(
-#         compare["std.error"], compare["std_error"], rtol=1e-1, check_names=False
+#         compare["std.error"], compare["std_error"], rel_tol=1e-1, check_names=False
 #     )
 
 
 # def test_predictions_02():
 #     unknown = predictions(mod, by="species")
 #     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_predictions_02.csv")
-#     assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+#     assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-2)
 
 
 # def test_comparisons_01():
@@ -81,11 +81,11 @@ def test_avg_predictions_01():
 #     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_01.csv").sort(
 #         ["term", "group"]
 #     )
-#     assert_series_equal(known["estimate"].head(), unknown["estimate"].head(), rtol=1e-1)
+#     assert_series_equal(known["estimate"].head(), unknown["estimate"].head(), rel_tol=1e-1)
 
 #     unknown = comparisons(mod)
 #     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_01.csv")
-#     assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+#     assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-2)
 
 
 # def test_comparisons_02():
@@ -97,4 +97,4 @@ def test_avg_predictions_01():
 #     known = pl.read_csv("tests/r/test_statsmodels_mnlogit_comparisons_02.csv").sort(
 #         ["term", "group", "species"]
 #     )
-#     assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+#     assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-2)

@@ -25,19 +25,19 @@ def test_predictions_01():
     known = pl.read_csv(
         "tests/r/test_statsmodels_wls_predictions_01.csv", ignore_errors=True
     )
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-4)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-4)
 
 
 def test_predictions_02():
     unknown = predictions(mod, by="Species")
     known = pl.read_csv("tests/r/test_statsmodels_wls_predictions_02.csv")
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-4)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-4)
 
 
 def test_comparisons_01():
     unknown = comparisons(mod).sort("term")
     known = pl.read_csv("tests/r/test_statsmodels_wls_comparisons_01.csv").sort("term")
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-4)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-4)
 
 
 def test_comparisons_02():
@@ -45,4 +45,4 @@ def test_comparisons_02():
     known = pl.read_csv("tests/r/test_statsmodels_wls_comparisons_02.csv").sort(
         ["term", "Species"]
     )
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-4)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-4)

@@ -26,14 +26,14 @@ def test_slopes():
 
 
 def test_slopes_padding():
-    dat = mtcars.with_columns(pl.col("cyl").cast(pl.Utf8))
+    dat = mtcars.with_columns(pl.col("cyl").cast(pl.String).cast(pl.Categorical))
     mod = smf.ols("mpg ~ cyl + hp", dat.to_pandas()).fit()
     s = slopes(mod, newdata="mean")
     assert s.shape[0] == 3
 
 
 def test_bug_newdata_variables():
-    dat = mtcars.with_columns(pl.col("cyl").cast(pl.Utf8))
+    dat = mtcars.with_columns(pl.col("cyl").cast(pl.String).cast(pl.Categorical))
     mod = smf.ols("mpg ~ cyl + hp", dat.to_pandas()).fit()
     s = slopes(mod, newdata="mean", variables="hp")
     assert s.shape[0] == 1

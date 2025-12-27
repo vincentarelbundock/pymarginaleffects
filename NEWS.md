@@ -1,5 +1,39 @@
 # Development
 
+Breaking changes:
+
+* **String columns are no longer accepted in model formulas.** All categorical variables must be explicitly converted to `Categorical` or `Enum` dtype before fitting models. This ensures consistent categorical level ordering and prevents silent errors where category reference levels could change between model fitting and prediction.
+
+  **What you need to do:** Convert string columns to categorical types before passing data to `fit_statsmodels()`, `fit_sklearn()`, `fit_linearmodels()`, or any other modeling function.
+
+  For Polars DataFrames:
+  ```python
+  # Option 1: Cast to Categorical (simplest)
+  df = df.with_columns(pl.col("region").cast(pl.Categorical))
+
+  # Option 2: Cast to Enum with explicit category order (recommended for control)
+  categories = ["<18", "18 to 35", ">35"]  # specify your desired order
+  df = df.with_columns(pl.col("age_group").cast(pl.Enum(categories)))
+  ```
+
+  For pandas DataFrames:
+  ```python
+  df["region"] = df["region"].astype("category")
+  ```
+
+  **Why this change?** Previously, string columns could be silently converted with unpredictable category ordering (e.g., `"<18"` sorting after `"18 to 35"` lexically), leading to incorrect reference levels and inconsistent results between model fitting and prediction. Explicit conversion ensures you control the category order and get reproducible results.
+
+  **Error message:** If you forget to convert, you'll see a clear error like:
+  ```
+  TypeError: Column 'region' has String type and is used in the model formula.
+  String columns are not allowed in formulas. Please convert to Categorical or Enum before fitting the model.
+  ```
+
+Improvements:
+
+* Categorical variable ordering is now preserved consistently across statsmodels and sklearn models. Category orders from pandas categorical columns (statsmodels) and formulaic encoders (sklearn) are respected throughout the prediction pipeline.
+* `datagrid()` now correctly preserves Enum and Categorical dtypes when creating reference grids, preventing shape mismatches in design matrices.
+
 * comparisons(model, variables={"x":"all"})` is now supported. Thanks to @tontier for report #230.
 
 # 0.2.2

@@ -244,9 +244,30 @@ The fitted model includes additional attributes:
 
     docstring_formula = """
 `formula`: (str)
-    Model formula 
+    Model formula
 
 * Example: "outcome ~ distance + incentive"
+"""
+
+    docstring_categorical_requirement = """
+**Important:** All categorical variables must be explicitly converted to `Categorical` or `Enum` dtype before fitting. String columns are not accepted in model formulas.
+
+For Polars DataFrames:
+```python
+import polars as pl
+
+# Option 1: Cast to Categorical (simplest)
+df = df.with_columns(pl.col("region").cast(pl.Categorical))
+
+# Option 2: Cast to Enum with explicit category order (recommended for control)
+categories = ["<18", "18 to 35", ">35"]
+df = df.with_columns(pl.col("age_group").cast(pl.Enum(categories)))
+```
+
+For pandas DataFrames:
+```python
+df["region"] = df["region"].astype("category")
+```
 """
     docstring_kwargs_engine = """
 `kwargs_engine`: (dict, default={}) Additional arguments passed to the model initialization.

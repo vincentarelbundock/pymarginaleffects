@@ -5,9 +5,10 @@ from polars.testing import assert_frame_equal, assert_series_equal
 
 from marginaleffects import *
 from marginaleffects.hypothesis import get_hypothesis
+from tests.utilities import sort_categories_pandas
 
 mtcars = get_dataset("mtcars", "datasets")
-mod = smf.ols("mpg ~ hp + cyl", data=mtcars.to_pandas()).fit()
+mod = smf.ols("mpg ~ hp + cyl", data=sort_categories_pandas(mtcars.to_pandas())).fit()
 p = predictions(mod, by="cyl")["estimate"]
 
 
@@ -71,8 +72,8 @@ def test_ratio_hypothesis_uses_null_one():
         out["statistic"],
         expected,
         check_names=False,
-        atol=1e-9,
-        rtol=1e-9,
+        abs_tol=1e-9,
+        rel_tol=1e-9,
     )
 
 
@@ -83,8 +84,8 @@ def test_ratio_hypothesis_sequence_uses_null_one():
         out["statistic"],
         expected,
         check_names=False,
-        atol=1e-9,
-        rtol=1e-9,
+        abs_tol=1e-9,
+        rel_tol=1e-9,
     )
 
 
@@ -92,7 +93,7 @@ def test_comparisons_by():
     mtcars = (
         get_dataset("mtcars", "datasets")
         .sort("cyl")
-        .with_columns(pl.col("cyl").cast(pl.String))
+        .with_columns(pl.col("cyl").cast(pl.String).cast(pl.Categorical))
         .to_pandas()
     )
     mod = smf.ols("mpg ~ hp * C(cyl)", data=mtcars).fit()
@@ -109,8 +110,10 @@ def test_comparisons_by():
 
 
 def test_hypothesis_by_01():
-    dat = mtcars.with_columns(pl.col("cyl").cast(pl.String))
-    mod = smf.ols("mpg ~ hp * C(cyl) * am", data=dat.to_pandas()).fit()
+    dat = mtcars.with_columns(pl.col("cyl").cast(pl.String).cast(pl.Categorical))
+    mod = smf.ols(
+        "mpg ~ hp * C(cyl) * am", data=sort_categories_pandas(dat.to_pandas())
+    ).fit()
     p = avg_predictions(mod, by=["am", "cyl"], hypothesis="~ reference | am")
     r_b = pl.Series([-3.775, -7.85, -7.50833333333336, -12.675])
     r_se = pl.Series(
@@ -143,9 +146,9 @@ def test_get_hypothesis_sequence_of_strings():
 
 def test_trash_example_matches_r_output():
     mtcars = pl.read_csv("tests/data/mtcars.csv").with_columns(
-        pl.col("cyl").cast(pl.Utf8)
+        pl.col("cyl").cast(pl.String).cast(pl.Categorical)
     )
-    mod = smf.ols("mpg ~ C(cyl)", data=mtcars.to_pandas()).fit()
+    mod = smf.ols("mpg ~ C(cyl)", data=sort_categories_pandas(mtcars.to_pandas())).fit()
 
     hypotheses = ["b1 - b0 = 0", "b2 - b0 = 0"]
     out = avg_predictions(mod, by="cyl", hypothesis=hypotheses)
@@ -157,13 +160,13 @@ def test_trash_example_matches_r_output():
         out["estimate"],
         r_estimate,
         check_names=False,
-        atol=1e-6,
-        rtol=1e-6,
+        abs_tol=1e-6,
+        rel_tol=1e-6,
     )
     assert_series_equal(
         out["std_error"],
         r_std_error,
         check_names=False,
-        atol=1e-6,
-        rtol=1e-6,
+        abs_tol=1e-6,
+        rel_tol=1e-6,
     )

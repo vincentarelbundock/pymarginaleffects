@@ -21,7 +21,9 @@ def test_predictions_mean():
 
 def test_predictions_padding():
     dat = pl.read_csv("tests/data/impartiality.csv").with_columns(
-        pl.col("impartial").cast(pl.Int32)
+        pl.col("impartial").cast(pl.Int32),
+        pl.col("democracy").cast(pl.Categorical),
+        pl.col("continent").cast(pl.Categorical),
     )
     m = smf.logit(
         "impartial ~ equal * democracy + continent", data=dat.to_pandas()

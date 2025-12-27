@@ -23,13 +23,13 @@ mod = smf.quantreg(
 def test_predictions_01():
     unknown = predictions(mod)
     known = pl.read_csv("tests/r/test_statsmodels_quantreg_predictions_01.csv")
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-2)
 
 
 def test_predictions_02():
     unknown = predictions(mod, by="Species")
     known = pl.read_csv("tests/r/test_statsmodels_quantreg_predictions_02.csv")
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-2)
 
 
 @pytest.mark.skip(reason="TODO: investigate")
@@ -63,7 +63,7 @@ def test_comparisons_01():
     )
     tmp = known.join(unknown, on=["rowid", "term", "contrast", "Species"], how="left")
     assert_series_equal(
-        tmp["estimate"], tmp["estimate_unknown"], rtol=1e-2, check_names=False
+        tmp["estimate"], tmp["estimate_unknown"], rel_tol=1e-2, check_names=False
     )
 
 
@@ -73,4 +73,4 @@ def test_comparisons_02():
     known = pl.read_csv("tests/r/test_statsmodels_quantreg_comparisons_02.csv").sort(
         ["term", "Species"]
     )
-    assert_series_equal(known["estimate"], unknown["estimate"], rtol=1e-2)
+    assert_series_equal(known["estimate"], unknown["estimate"], rel_tol=1e-2)

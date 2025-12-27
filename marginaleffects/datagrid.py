@@ -300,8 +300,28 @@ def _process_datagrid_group(
     for key, value in {**implicit_values, **explicit_values}.items():
         if not isinstance(value, list):
             value = [value]
-        # Create DataFrame - iterables should already be handled in explicit_values processing
-        all_values[key] = pl.DataFrame({key: value})
+        # Create DataFrame - preserve Enum/Categorical dtypes from original data
+        # This is crucial for patsy to create correct design matrices
+        if key in newdata.columns:
+            original_dtype = newdata[key].dtype
+            # Preserve Enum dtype with its categories
+            if isinstance(original_dtype, pl.Enum):
+                all_values[key] = pl.DataFrame(
+                    {key: pl.Series(value, dtype=original_dtype)}
+                )
+            # For Categorical, convert to Enum to preserve all categories
+            elif original_dtype == pl.Categorical:
+                # Get all unique categories from the original data
+                # Don't sort - preserve the order as it appears in the data
+                categories = newdata[key].unique().drop_nulls().to_list()
+                enum_dtype = pl.Enum(categories)
+                all_values[key] = pl.DataFrame(
+                    {key: pl.Series(value, dtype=enum_dtype)}
+                )
+            else:
+                all_values[key] = pl.DataFrame({key: value})
+        else:
+            all_values[key] = pl.DataFrame({key: value})
 
     # Create the grid based on grid_type
     if grid_type == "dataframe":

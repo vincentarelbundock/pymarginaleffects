@@ -17,17 +17,23 @@ def test_simple_equivalence():
         cmp_r["statistic.nonsup"],
         cmp_py["statistic_nonsup"],
         check_names=False,
-        rtol=1e-3,
+        rel_tol=1e-3,
     )
     assert_series_equal(
-        cmp_r["p.value.nonsup"], cmp_py["p_value_nonsup"], check_names=False, rtol=1e-4
+        cmp_r["p.value.nonsup"],
+        cmp_py["p_value_nonsup"],
+        check_names=False,
+        rel_tol=1e-4,
     )
     assert_series_equal(
         cmp_r["statistic.noninf"],
         cmp_py["statistic_noninf"],
         check_names=False,
-        rtol=1e-3,
+        rel_tol=1e-3,
     )
     assert_series_equal(
-        cmp_r["p.value.noninf"], cmp_py["p_value_noninf"], check_names=False, rtol=1e-4
+        cmp_r["p.value.noninf"],
+        cmp_py["p_value_noninf"],
+        check_names=False,
+        rel_tol=1e-4,
     )
