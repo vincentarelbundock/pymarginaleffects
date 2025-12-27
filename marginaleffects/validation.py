@@ -1,7 +1,7 @@
 import numpy as np
 import polars as pl
 import warnings
-from .utils import get_type_dictionary
+from .utils import get_type_dictionary, validate_string_columns
 from . import formulaic_utils as fml
 
 
@@ -71,33 +71,8 @@ class ModelValidation:
             warnings.warn("Dropping rows with missing observations.", UserWarning)
 
         # Check for String columns in formula variables ONLY
-        # Get all variables used in the formula
         formula_vars = fml.parse_variables(self.get_formula())
-
-        for c in formula_vars:
-            # Skip metadata columns
-            if c in ["index", "rownames"]:
-                continue
-
-            # Skip if column not in modeldata (e.g., response variable)
-            if c not in modeldata.columns:
-                continue
-
-            if modeldata[c].dtype in [pl.Utf8, pl.String]:
-                msg = (
-                    f"Column '{c}' has String type and is used in the model formula. "
-                    f"String columns are not allowed in formulas. "
-                    f"Please convert to Categorical or Enum before fitting the model.\n\n"
-                    f"For Polars DataFrames:\n"
-                    f"  # Option 1: Cast to Categorical\n"
-                    f"  df = df.with_columns(pl.col('{c}').cast(pl.Categorical))\n\n"
-                    f"  # Option 2: Cast to Enum with explicit categories\n"
-                    f"  categories = df['{c}'].unique().sort()\n"
-                    f"  df = df.with_columns(pl.col('{c}').cast(pl.Enum(categories)))\n\n"
-                    f"For pandas DataFrames:\n"
-                    f"  df['{c}'] = df['{c}'].astype('category')"
-                )
-                raise TypeError(msg)
+        validate_string_columns(formula_vars, modeldata, context="the model formula")
 
         # Check C() formula variables are already categorical
         catvars = fml.parse_variables_categorical(self.get_formula())
