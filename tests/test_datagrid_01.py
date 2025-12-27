@@ -14,6 +14,31 @@ def test_FUN_numeric():
     assert d["carb"][0] == mtcars["carb"].median()
 
 
+def test_none_values():
+    """Test that None creates null columns (similar to R's NA)"""
+    # Test with None and other explicit values
+    nd = datagrid(newdata=mtcars, mpg=None, hp=[1, 2, 3, 4])
+    assert nd.shape[0] == 4
+    assert nd["mpg"].is_null().all()
+    assert nd["hp"].to_list() == [1, 2, 3, 4]
+
+    # Test with None alone
+    nd2 = datagrid(newdata=mtcars, mpg=None)
+    assert nd2.shape[0] == 1
+    assert nd2["mpg"].is_null().all()
+
+    # Test with multiple None values
+    nd3 = datagrid(newdata=mtcars, mpg=None, hp=None)
+    assert nd3.shape[0] == 1
+    assert nd3["mpg"].is_null().all()
+    assert nd3["hp"].is_null().all()
+
+    # Test with counterfactual grid
+    nd4 = datagrid(newdata=mtcars, mpg=None, grid_type="counterfactual")
+    assert nd4.shape[0] == 32  # Same as number of rows in mtcars
+    assert nd4["mpg"].is_null().all()
+
+
 def test_simple_grid():
     d = datagrid(mpg=24, newdata=mtcars)
     assert d.shape == (1, 12)

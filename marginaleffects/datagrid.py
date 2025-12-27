@@ -198,45 +198,46 @@ def _process_datagrid_group(
     # Process explicit variables (from kwargs)
     explicit_values = {}
     for key, value in kwargs.items():
-        if value is not None:
-            if callable(value):
-                if key not in newdata.columns:
-                    print(f"Warning: The variable '{key}' is not in the newdata.")
-                    continue
-                result = value(newdata[key])
-                # Handle numpy arrays and similar
-                if hasattr(result, "__iter__") and not isinstance(result, str):
-                    explicit_values[key] = list(result)
-                else:
-                    explicit_values[key] = [result]
+        # Handle None specially to create null columns (similar to R's NA)
+        if value is None:
+            explicit_values[key] = [None]
+        elif callable(value):
+            if key not in newdata.columns:
+                print(f"Warning: The variable '{key}' is not in the newdata.")
+                continue
+            result = value(newdata[key])
+            # Handle numpy arrays and similar
+            if hasattr(result, "__iter__") and not isinstance(result, str):
+                explicit_values[key] = list(result)
             else:
-                # Handle Polars Series (e.g., from modeldata[col].unique())
-                if isinstance(value, pl.Series):
-                    explicit_values[key] = value.to_list()
-                # Handle iterables like range, but not strings
-                elif (
-                    hasattr(value, "__iter__")
-                    and not isinstance(value, (str, bytes))
-                    and not isinstance(value, list)
-                ):
-                    explicit_values[key] = list(value)
-                elif not isinstance(value, list):
-                    value = [value]
-                    explicit_values[key] = value
-                else:
-                    explicit_values[key] = value
+                explicit_values[key] = [result]
+        else:
+            # Handle Polars Series (e.g., from modeldata[col].unique())
+            if isinstance(value, pl.Series):
+                explicit_values[key] = value.to_list()
+            # Handle iterables like range, but not strings
+            elif (
+                hasattr(value, "__iter__")
+                and not isinstance(value, (str, bytes))
+                and not isinstance(value, list)
+            ):
+                explicit_values[key] = list(value)
+            elif not isinstance(value, list):
+                value = [value]
+                explicit_values[key] = value
+            else:
+                explicit_values[key] = value
 
-            # Validate factors - need to reconstruct variable_type for this column
-            if key in newdata.columns:
-                # For factor validation, we need the original variable_type dict
-                original_variable_type = (
-                    {key: type_mapping[key]["original_type"]}
-                    if key in type_mapping
-                    else {}
-                )
-                explicit_values[key] = ut.sanitize_datagrid_factor(
-                    explicit_values[key], newdata[key], original_variable_type, key
-                )
+        # Validate factors - need to reconstruct variable_type for this column
+        # Skip validation for None values as they don't need factor validation
+        if value is not None and key in newdata.columns:
+            # For factor validation, we need the original variable_type dict
+            original_variable_type = (
+                {key: type_mapping[key]["original_type"]} if key in type_mapping else {}
+            )
+            explicit_values[key] = ut.sanitize_datagrid_factor(
+                explicit_values[key], newdata[key], original_variable_type, key
+            )
 
     # Process implicit variables (not specified in kwargs)
     implicit_values = {}
@@ -473,11 +474,13 @@ def _datagridcf(model=None, newdata=None, by=None, **kwargs):
     # Create dataframe from kwargs
     dfs = []
     for key, value in kwargs.items():
-        if value is not None:
-            if callable(value):
-                dfs.append(pl.DataFrame({key: value(modeldata[key])}))
-            else:
-                dfs.append(pl.DataFrame({key: value}))
+        # Handle None specially to create null columns (similar to R's NA)
+        if value is None:
+            dfs.append(pl.DataFrame({key: [None]}))
+        elif callable(value):
+            dfs.append(pl.DataFrame({key: value(modeldata[key])}))
+        else:
+            dfs.append(pl.DataFrame({key: value}))
 
     # Perform cross join
     df_cross = reduce(lambda df1, df2: df1.join(df2, how="cross"), dfs)

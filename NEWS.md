@@ -33,7 +33,7 @@ Improvements:
 
 * Categorical variable ordering is now preserved consistently across statsmodels and sklearn models. Category orders from pandas categorical columns (statsmodels) and formulaic encoders (sklearn) are respected throughout the prediction pipeline.
 * `datagrid()` now correctly preserves Enum and Categorical dtypes when creating reference grids, preventing shape mismatches in design matrices.
-
+* `datagrid()` now supports `None` values to create null columns (similar to R's `NA`). Thanks to @tontief for reporting via email.
 * comparisons(model, variables={"x":"all"})` is now supported. Thanks to @tontier for report #230.
 
 # 0.2.2
