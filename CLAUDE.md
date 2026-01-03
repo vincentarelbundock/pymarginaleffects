@@ -2,116 +2,93 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Use this to run tests:
+## Quick Reference
 
-```sh
-make test
+```bash
+make test              # Run full test suite (parallel)
+make lint              # Run ruff check and format
+make install           # Install package with uv
 ```
 
 ## Development Commands
 
-### Setup and Installation
+### Setup
 ```bash
-# Create and activate virtual environment
 uv venv .venv
-source .venv/bin/activate.sh
-
-# Install project and dependencies
+source .venv/bin/activate
 uv pip install .
-# Or for development with all extras:
-make install
 ```
 
 ### Testing
 ```bash
-# Run full test suite
+# Full test suite (runs in parallel with -n auto)
 make test
-# Or directly:
-uv run --all-extras pytest
 
-# Run specific test file
+# Single test file
 uv run --all-extras pytest tests/test_predictions.py
 
-# Run with coverage
+# Single test function
+uv run --all-extras pytest tests/test_predictions.py::test_function_name -v
+
+# With coverage
 make coverage
 ```
 
 ### Code Quality
 ```bash
-# Run linting and formatting
-make lint
-# Or directly:
-uv run --all-extras ruff check marginaleffects
-uv run --all-extras ruff format marginaleffects
-
-# Run pre-commit hooks
-make precommit
+make lint              # ruff check + format
+make precommit         # pre-commit on all files
 ```
 
 ### Documentation
 ```bash
-# Extract docstrings into Quarto files
-make qmd
-# Inject documentation
-make inject_docs
-```
-
-### Build and Publish
-```bash
-# Build package
-make build
-# Publish (after build)
-make publish
+make qmd               # Extract docstrings into Quarto files
+make inject_docs       # Inject minimal docstrings into source files
 ```
 
 ## Architecture Overview
 
-This is a Python package for statistical marginal effects analysis, providing unified interfaces for predictions, comparisons (contrasts), and slopes across multiple statistical modeling frameworks.
+Python package for statistical marginal effects analysis. Provides unified interfaces for predictions, comparisons, and slopes across multiple modeling frameworks. Documentation: https://marginaleffects.com/
 
-### Core Components
+### Core API Functions
 
-**Main API Functions** (in `marginaleffects/__init__.py`):
-- `predictions()` / `avg_predictions()` - Generate predictions/fitted values
-- `comparisons()` / `avg_comparisons()` - Compute contrasts and differences  
-- `slopes()` / `avg_slopes()` - Calculate marginal effects/partial derivatives
-- `hypotheses()` - Hypothesis testing framework
-- `datagrid()` - Create reference grids for analysis
-- Plot functions: `plot_predictions()`, `plot_comparisons()`, `plot_slopes()`
+All exported from `marginaleffects/__init__.py`:
+- `predictions()` / `avg_predictions()` - Fitted values
+- `comparisons()` / `avg_comparisons()` - Contrasts and differences
+- `slopes()` / `avg_slopes()` - Marginal effects (partial derivatives)
+- `hypotheses()` - Hypothesis testing
+- `datagrid()` - Create reference grids
+- `plot_predictions()`, `plot_comparisons()`, `plot_slopes()` - Visualization
 
-**Model Adapters** (files starting with `model_`):
-- `model_statsmodels.py` - StatsModels integration via `fit_statsmodels()`
-- `model_sklearn.py` - Scikit-learn integration via `fit_sklearn()` 
-- `model_linearmodels.py` - LinearModels integration via `fit_linearmodels()`
+### Model Adapters
+
+Files prefixed with `model_` implement the adapter pattern for different modeling libraries:
+- `model_abstract.py` - Abstract base class defining the interface
+- `model_statsmodels.py` - StatsModels via `fit_statsmodels()`
+- `model_sklearn.py` - Scikit-learn via `fit_sklearn()`
+- `model_linearmodels.py` - LinearModels via `fit_linearmodels()`
 - `model_pyfixest.py` - PyFixest integration
-- `model_abstract.py` - Abstract base class defining model interface
 
-**Core Infrastructure**:
-- `classes.py` - `MarginaleffectsDataFrame` extends Polars DataFrame with metadata
-- `sanitize_model.py` - Model wrapper/adapter logic
-- `uncertainty.py` - Standard error calculations, jacobians, confidence intervals
-- `transform.py` - Transformations (log, logit, etc.)
-- `by.py` - Grouping/stratification logic
-- `validation.py` - Input validation and type checking
+To add support for a new modeling library, implement the abstract interface in `model_abstract.py`.
 
 ### Key Design Patterns
 
-1. **Adapter Pattern**: Model-specific adapters (`model_*.py`) provide unified interface across different modeling libraries (statsmodels, sklearn, etc.)
+1. **Adapter Pattern**: Model adapters provide unified interface across statsmodels, sklearn, etc.
 
-2. **Polars-Based Data Handling**: Uses Polars DataFrames throughout with custom `MarginaleffectsDataFrame` wrapper for metadata
+2. **Polars-Based**: Uses Polars DataFrames throughout. `MarginaleffectsDataFrame` (in `classes.py`) extends Polars DataFrame with metadata.
 
-3. **Functional Composition**: Core functions like `slopes()` compose `comparisons()` with different parameters rather than reimplementing logic
+3. **Functional Composition**: `slopes()` composes `comparisons()` with different parameters rather than reimplementing.
 
-4. **Extensible Model Support**: Adding new model types requires implementing the abstract interface in `model_abstract.py`
+### Core Infrastructure
 
-### Testing Strategy
+- `uncertainty.py` - Standard errors, jacobians, confidence intervals
+- `sanitize_model.py` - Model wrapper/adapter logic
+- `by.py` - Grouping/stratification logic
+- `transform.py` - Transformations (log, logit, etc.)
 
-- Comprehensive test suite in `tests/` with model-specific test files
-- Cross-validation against R implementation using reference data in `tests/r/`
-- Visual regression testing for plots with reference images in `tests/images/`
-- Uses pytest with optional extras for different modeling libraries
+### Testing
 
-### Dependencies
-
-- **Core**: polars, numpy, scipy, formulaic, patsy, plotnine, pydantic, pyarrow
-- **Testing**: statsmodels, sklearn, linearmodels, pyfixest (as optional test dependencies)
-- **Dev**: pytest, ruff, pre-commit, uv for dependency management
+- Test files in `tests/` mirror source structure
+- Reference data from R implementation in `tests/r/`
+- Plot regression images in `tests/images/`
+- Plot tests are marked slow: `@pytest.mark.plot`

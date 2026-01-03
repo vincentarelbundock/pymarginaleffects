@@ -22,9 +22,9 @@ from .sanity import (
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
 from .utils import get_pad, sort_columns, upcast, validate_string_columns
-from .model_pyfixest import ModelPyfixest
-from .model_sklearn import ModelSklearn
-from .model_linearmodels import ModelLinearmodels
+from .pyfixest import ModelPyfixest
+from .sklearn import ModelSklearn
+from .linearmodels import ModelLinearmodels
 
 from .docs import (
     DocsDetails,

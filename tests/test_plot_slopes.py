@@ -1,6 +1,6 @@
 import pytest
 from marginaleffects import *
-from marginaleffects.plot_slopes import *
+from marginaleffects.plot.slopes import *
 from tests.utilities import *
 from tests.helpers import *
 

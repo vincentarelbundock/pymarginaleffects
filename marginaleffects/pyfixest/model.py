@@ -1,8 +1,8 @@
 import re
 import numpy as np
 import polars as pl
-from .model_abstract import ModelAbstract
-from .utils import ingest
+from ..model_abstract import ModelAbstract
+from ..utils import ingest
 
 
 class ModelPyfixest(ModelAbstract):

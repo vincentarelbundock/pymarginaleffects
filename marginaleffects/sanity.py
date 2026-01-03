@@ -71,7 +71,7 @@ def handle_pyfixest_vcov_limitation(model, vcov, stacklevel=2):
         Modified vcov value if PyFixest limitation applies, otherwise unchanged
     """
     # Import here to avoid circular dependency
-    from .model_pyfixest import ModelPyfixest
+    from .pyfixest import ModelPyfixest
 
     if isinstance(model, ModelPyfixest) and vcov is not False:
         has_fixef = getattr(model.model, "_has_fixef", False)

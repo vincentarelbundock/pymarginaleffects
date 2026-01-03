@@ -1,6 +1,6 @@
 import statsmodels.formula.api as smf
 from marginaleffects import *
-from marginaleffects.plot_predictions import *
+from marginaleffects.plot.predictions import *
 from tests.utilities import *
 import pytest
 from tests.helpers import *

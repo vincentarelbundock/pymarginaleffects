@@ -1,10 +1,10 @@
 import numpy as np
 import warnings
 import polars as pl
-from .docs import DocsModels
-from .utils import ingest
-from .formulaic_utils import listwise_deletion, model_matrices
-from .model_abstract import ModelAbstract
+from ..docs import DocsModels
+from ..utils import ingest
+from ..formulaic_utils import listwise_deletion, model_matrices
+from ..model_abstract import ModelAbstract
 
 
 class ModelSklearn(ModelAbstract):

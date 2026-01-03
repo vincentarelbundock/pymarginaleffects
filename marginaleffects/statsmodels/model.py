@@ -1,10 +1,10 @@
 import numpy as np
 import polars as pl
 import patsy
-from .docs import DocsModels
-from .model_abstract import ModelAbstract
-from . import formulaic_utils as fml
-from .utils import validate_types, ingest
+from ..docs import DocsModels
+from ..model_abstract import ModelAbstract
+from .. import formulaic_utils as fml
+from ..utils import validate_types, ingest
 
 
 class ModelStatsmodels(ModelAbstract):
@@ -163,7 +163,7 @@ df["region"] = df["region"].astype("category")
 `engine`: (callable) statsmodels model class (e.g., OLS, Logit)
 """
     + DocsModels.docstring_kwargs_engine
-    + """  
+    + """
 `kwargs_fit`: (dict, default={}) Additional arguments passed to the model's fit method.
 
 * Example: `{'cov_type': 'HC3'}`

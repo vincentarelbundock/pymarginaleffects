@@ -4,11 +4,11 @@ import pandas as pd
 import narwhals as nw
 from typing import Any, Dict
 import polars as pl
-from .docs import DocsModels
-from .utils import ingest
+from ..docs import DocsModels
+from ..utils import ingest
 from formulaic.parser.algos.tokenize import tokenize
-from .model_abstract import ModelAbstract
-from .formulaic_utils import (
+from ..model_abstract import ModelAbstract
+from ..formulaic_utils import (
     listwise_deletion,
     model_matrices,
 )
@@ -269,7 +269,7 @@ This function streamlines the process of fitting linearmodels panel models by:
 
 ## Parameters
 
-`formula`: (str) Model formula with optional panel effects terms. 
+`formula`: (str) Model formula with optional panel effects terms.
 
 - Supported effects are:
     - EntityEffects: Entity-specific fixed effects
