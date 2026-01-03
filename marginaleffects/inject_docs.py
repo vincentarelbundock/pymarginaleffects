@@ -1,3 +1,4 @@
+import inspect
 import marginaleffects
 
 
@@ -85,6 +86,9 @@ def get_func_to_file():
     for func in marginaleffects.__all__:
         # get function from marginaleffects package
         func = getattr(marginaleffects, func)
+        # skip modules, classes, and non-function objects
+        if not inspect.isfunction(func):
+            continue
         func_to_file[func] = {
             "module_name": func.__module__ + "." + func.__name__,
             "docs": func.__doc__,

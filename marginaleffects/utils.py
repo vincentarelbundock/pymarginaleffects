@@ -218,6 +218,13 @@ def get_dataset(
     docs: bool = False,
     search: str = None,
 ):
+    """
+    Download and read a dataset as a Polars DataFrame from the `marginaleffects` or from the list at https://vincentarelbundock.github.io/Rdatasets/.
+
+    For more information, visit the website: https://marginaleffects.com/
+
+    Or type: `help(get_dataset)`
+    """
     if search:
         return get_dataset_search(search)
 

@@ -32,10 +32,10 @@ coverage:
 	pytest --cov=marginaleffects --cov-report=term-missing --cov-report=html tests/
 
 qmd_local:
-	uv pip install -e . && python marginaleffects/docs.py
+	uv pip install -e . && uv run marginaleffects/docs.py
 
 inject_docs:
-	python marginaleffects/inject_docs.py 
+	uv run marginaleffects/inject_docs.py 
 	make lint
 
 build:
