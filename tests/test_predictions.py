@@ -119,7 +119,8 @@ def test_issue161():
     p2 = avg_predictions(mod, variables="cyl")
     p3 = predictions(mod, variables="cyl")
     assert p2["estimate"][0] != p1["estimate"][0]
-    assert p2["estimate"][0] == p3["estimate"].mean()
+    # Use approximate equality for floating point comparison
+    assert p2["estimate"][0] == pytest.approx(p3["estimate"].mean())
 
 
 def test_issue83():

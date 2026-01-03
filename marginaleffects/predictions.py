@@ -174,39 +174,93 @@ def predictions(
                 f, newdata, formula_engine=model.get_formula_engine()
             )
 
-    # estimands
-    def inner(x):
-        out = model.get_predict(params=np.array(x), newdata=exog)
+    # === TRY JAX EARLY EXIT ===
+    from .jax_dispatch import try_jax_predictions
 
-        if out.shape[0] == newdata.shape[0]:
+    jax_result = try_jax_predictions(
+        model=model,
+        exog=exog,
+        vcov=V,
+        by=by,
+        wts=wts,
+        hypothesis=hypothesis,
+    )
+
+    if jax_result is not None:
+        # SUCCESS: Use JAX results, skip finite difference computation
+        J = jax_result["jacobian"]
+
+        # After sanitize_by(): False stays False, True becomes ['group']
+        is_by_true = isinstance(by, list) and by == ["group"]
+
+        if by is False:
+            # Row-level results
+            out = pl.DataFrame(
+                {
+                    "rowid": range(newdata.shape[0]),
+                    "estimate": jax_result["estimate"],
+                    "std_error": jax_result["std_error"],
+                }
+            )
+            # Add newdata columns
             cols = [x for x in newdata.columns if x not in out.columns]
             out = pl.concat([out, newdata.select(cols)], how="horizontal")
+        elif is_by_true:
+            # Averaged result (single row)
+            estimate = jax_result["estimate"]
+            std_error = jax_result["std_error"]
+            # Handle scalar vs array
+            if np.ndim(estimate) == 0:
+                estimate = [float(estimate)]
+                std_error = [float(std_error)]
+            out = pl.DataFrame(
+                {
+                    "estimate": estimate,
+                    "std_error": std_error,
+                }
+            )
 
-        # group
-        elif "group" in out.columns:
-            meta = newdata.join(out.select("group").unique(), how="cross")
-            cols = [x for x in meta.columns if x in out.columns]
-            out = meta.join(out, on=cols, how="left")
-
-        # not sure what happens here
-        else:
-            raise ValueError("Something went wrong")
-
-        out = get_by(model, out, newdata=newdata, by=by, wts=wts)
-        out = get_hypothesis(out, hypothesis=hypothesis, by=by)
-        return out
-
-    out = inner(model.get_coef())
-
-    if V is not None:
-        J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
-        se = get_se(J, V)
-        out = out.with_columns(pl.Series(se).alias("std_error"))
+        # Get confidence intervals
         out = get_z_p_ci(
             out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
         )
+
     else:
-        J = None
+        # FALLBACK: Use standard finite difference pipeline
+
+        # estimands
+        def inner(x):
+            out = model.get_predict(params=np.array(x), newdata=exog)
+
+            if out.shape[0] == newdata.shape[0]:
+                cols = [x for x in newdata.columns if x not in out.columns]
+                out = pl.concat([out, newdata.select(cols)], how="horizontal")
+
+            # group
+            elif "group" in out.columns:
+                meta = newdata.join(out.select("group").unique(), how="cross")
+                cols = [x for x in meta.columns if x in out.columns]
+                out = meta.join(out, on=cols, how="left")
+
+            # not sure what happens here
+            else:
+                raise ValueError("Something went wrong")
+
+            out = get_by(model, out, newdata=newdata, by=by, wts=wts)
+            out = get_hypothesis(out, hypothesis=hypothesis, by=by)
+            return out
+
+        out = inner(model.get_coef())
+
+        if V is not None:
+            J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
+            se = get_se(J, V)
+            out = out.with_columns(pl.Series(se).alias("std_error"))
+            out = get_z_p_ci(
+                out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
+            )
+        else:
+            J = None
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by, newdata=newdata)

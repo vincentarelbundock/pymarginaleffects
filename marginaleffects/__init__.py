@@ -9,6 +9,7 @@ from .predictions import avg_predictions, predictions
 from .slopes import avg_slopes, slopes
 from .utils import get_dataset
 from .result import MarginaleffectsResult
+from .settings import set_autodiff, get_autodiff
 
 # Conditionally import autodiff module if JAX is available
 try:
@@ -36,6 +37,8 @@ __all__ = [
     "fit_linearmodels",
     "get_dataset",
     "MarginaleffectsResult",
+    "set_autodiff",
+    "get_autodiff",
 ]
 
 if _AUTODIFF_AVAILABLE:
