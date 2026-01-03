@@ -25,8 +25,10 @@ def _comparison_core(
 def _comparison_byT(
     beta: jnp.ndarray, X_hi: jnp.ndarray, X_lo: jnp.ndarray, comparison_type: int
 ) -> jnp.ndarray:
-    comp = _comparison_core(beta, X_hi, X_lo, comparison_type)
-    return jnp.mean(comp)
+    """Averaged comparison: averages predictions first, then applies comparison."""
+    pred_hi = X_hi @ beta
+    pred_lo = X_lo @ beta
+    return _compute_comparison_scalar(comparison_type, pred_hi, pred_lo)
 
 
 def _comparison_byG(

@@ -1,5 +1,5 @@
 """
-Benchmark comparing autodiff (JAX) vs finite differences for predictions.
+Benchmark comparing autodiff (JAX) vs finite differences.
 
 Run with:
     uv run --all-extras python benchmarks/benchmark_autodiff.py
@@ -9,7 +9,13 @@ import time
 import numpy as np
 import polars as pl
 import statsmodels.api as sm
-from marginaleffects import predictions, avg_predictions, set_autodiff
+from marginaleffects import (
+    predictions,
+    avg_predictions,
+    comparisons,
+    avg_comparisons,
+    set_autodiff,
+)
 
 
 def generate_data(
@@ -26,28 +32,28 @@ def generate_data(
     return pl.DataFrame(data)
 
 
-def benchmark(func, model, n_runs: int = 10):
+def benchmark(func, model, n_runs: int = 10, **kwargs):
     """Benchmark a function with and without autodiff."""
     results = {"autodiff": [], "finite_diff": []}
 
     # Warm-up
     set_autodiff(True)
-    func(model)
+    func(model, **kwargs)
     set_autodiff(False)
-    func(model)
+    func(model, **kwargs)
 
     # Benchmark with autodiff
     set_autodiff(True)
     for _ in range(n_runs):
         start = time.perf_counter()
-        func(model)
+        func(model, **kwargs)
         results["autodiff"].append(time.perf_counter() - start)
 
     # Benchmark without autodiff
     set_autodiff(False)
     for _ in range(n_runs):
         start = time.perf_counter()
-        func(model)
+        func(model, **kwargs)
         results["finite_diff"].append(time.perf_counter() - start)
 
     set_autodiff(None)
@@ -59,7 +65,7 @@ def print_results(name: str, results: dict):
     ad_mean = np.mean(results["autodiff"]) * 1000
     fd_mean = np.mean(results["finite_diff"]) * 1000
     speedup = fd_mean / ad_mean
-    print(f"{name:25s}  {ad_mean:6.1f} ms  {fd_mean:6.1f} ms  {speedup:.2f}x")
+    print(f"{name:30s}  {ad_mean:6.1f} ms  {fd_mean:6.1f} ms  {speedup:.2f}x")
 
 
 if __name__ == "__main__":
@@ -75,9 +81,9 @@ if __name__ == "__main__":
         exit(1)
 
     print("Autodiff Benchmark (5000 obs, 50 predictors)")
-    print("=" * 60)
-    print(f"{'Function':25s}  {'JAX':>8s}  {'Finite':>8s}  Speedup")
-    print("-" * 60)
+    print("=" * 65)
+    print(f"{'Function':30s}  {'JAX':>8s}  {'Finite':>8s}  Speedup")
+    print("-" * 65)
 
     data = generate_data()
     formula = "y ~ " + " + ".join([f"x{i}" for i in range(50)])
@@ -86,6 +92,10 @@ if __name__ == "__main__":
     ols = sm.OLS.from_formula(formula, data.to_pandas()).fit()
     print_results("OLS predictions()", benchmark(predictions, ols))
     print_results("OLS avg_predictions()", benchmark(avg_predictions, ols))
+    print_results("OLS comparisons()", benchmark(comparisons, ols, variables="x0"))
+    print_results(
+        "OLS avg_comparisons()", benchmark(avg_comparisons, ols, variables="x0")
+    )
 
     # GLM
     glm = sm.GLM.from_formula(
@@ -93,5 +103,9 @@ if __name__ == "__main__":
     ).fit()
     print_results("GLM predictions()", benchmark(predictions, glm))
     print_results("GLM avg_predictions()", benchmark(avg_predictions, glm))
+    print_results("GLM comparisons()", benchmark(comparisons, glm, variables="x0"))
+    print_results(
+        "GLM avg_comparisons()", benchmark(avg_comparisons, glm, variables="x0")
+    )
 
-    print("=" * 60)
+    print("=" * 65)

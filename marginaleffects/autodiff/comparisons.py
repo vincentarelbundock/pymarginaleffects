@@ -37,14 +37,25 @@ def _compute_comparison_vector(
 def _compute_comparison_scalar(
     comparison_type: int, pred_hi: jnp.ndarray, pred_lo: jnp.ndarray
 ) -> jnp.ndarray:
-    """Apply comparison function with aggregation (returns scalar)."""
+    """Apply comparison function with aggregation (returns scalar).
+
+    For non-linear comparisons (ratio, lnratio, lnor, lift), this averages
+    the predictions first, then applies the comparison function.
+    This matches the behavior of the 'avg' estimands in estimands.py.
+    """
+    hi_mean = jnp.mean(pred_hi)
+    lo_mean = jnp.mean(pred_lo)
     return lax.switch(
         comparison_type,
         [
-            lambda hi, lo: jnp.mean(hi) - jnp.mean(lo),  # differenceavg
+            lambda hi, lo: hi - lo,  # difference (differenceavg)
+            lambda hi, lo: hi / lo,  # ratio (ratioavg)
+            lambda hi, lo: jnp.log(hi / lo),  # lnratio (lnratioavg)
+            lambda hi, lo: jnp.log((hi / (1 - hi)) / (lo / (1 - lo))),  # lnor (lnoravg)
+            lambda hi, lo: (hi - lo) / lo,  # lift (liftavg)
         ],
-        pred_hi,
-        pred_lo,
+        hi_mean,
+        lo_mean,
     )
 
 

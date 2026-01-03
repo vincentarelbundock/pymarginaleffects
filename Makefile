@@ -1,4 +1,4 @@
-.PHONY: readme test help install qmd
+.PHONY: readme test help install qmd benchmark
 
 help:  ## Display this help screen
 	@echo -e "\033[1mAvailable commands:\033[0m\n"
@@ -9,6 +9,9 @@ precommit: ## run pre-commit on all files
 
 test: install ## run pytest suite
 	uv run --all-extras pytest -n auto
+
+benchmark: install ## run autodiff benchmark
+	uv run --all-extras python benchmarks/benchmark_autodiff.py
 
 snapshot: ## snapshot test
 	R CMD BATCH tests/r/run.R

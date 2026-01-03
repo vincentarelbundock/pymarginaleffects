@@ -33,8 +33,10 @@ def _comparison_byT(
     family_type: int,
     link_type: int = None,
 ) -> jnp.ndarray:
-    comp = _comparison_core(beta, X_hi, X_lo, comparison_type, family_type, link_type)
-    return jnp.mean(comp)
+    """Averaged comparison: averages predictions first, then applies comparison."""
+    pred_hi = linkinv(link_type, X_hi @ beta)
+    pred_lo = linkinv(link_type, X_lo @ beta)
+    return _compute_comparison_scalar(comparison_type, pred_hi, pred_lo)
 
 
 def _comparison_byG(
