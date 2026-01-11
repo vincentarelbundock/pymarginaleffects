@@ -16,7 +16,7 @@ from marginaleffects import (
     avg_predictions,
     comparisons,
     avg_comparisons,
-    set_autodiff,
+    autodiff,
 )
 
 
@@ -125,6 +125,22 @@ def large_ols_model():
     return smf.ols(formula, data.to_pandas()).fit()
 
 
+@pytest.fixture
+def ols_model_with_group():
+    """OLS model with an extra grouping column for `by` tests."""
+    np.random.seed(42)
+    n = 400
+    x1 = np.random.randn(n)
+    x2 = np.random.randn(n)
+    x3 = np.random.randn(n)
+    group = np.where(x1 > 0, 1, 0).astype(int)
+    y = 0.5 + 0.3 * x1 - 0.2 * x2 + 0.1 * x3 + np.random.randn(n) * 0.5
+    data = pl.DataFrame(
+        {"y": y, "x1": x1, "x2": x2, "x3": x3, "grp": group}
+    ).with_columns(pl.col("grp").cast(pl.Categorical).alias("grp"))
+    return smf.ols("y ~ x1 + x2 + x3 + C(grp)", data.to_pandas()).fit()
+
+
 # =============================================================================
 # Helper function
 # =============================================================================
@@ -136,13 +152,13 @@ def compare_autodiff_vs_finite_diff(func, model, rtol=1e-4, atol=1e-6, **kwargs)
 
     Asserts that estimates and standard errors match within tolerance.
     """
-    set_autodiff(True)
+    autodiff(True)
     result_jax = func(model, **kwargs)
 
-    set_autodiff(False)
+    autodiff(False)
     result_fd = func(model, **kwargs)
 
-    set_autodiff(None)  # Reset to auto-detect
+    autodiff(None)  # Reset to auto-detect
 
     # Extract estimates and standard errors
     est_jax = result_jax["estimate"].to_numpy()
@@ -234,6 +250,13 @@ class TestPredictionsByTrue:
 
     def test_large_model_avg_predictions(self, large_ols_model):
         compare_autodiff_vs_finite_diff(avg_predictions, large_ols_model)
+
+
+class TestPredictionsGrouped:
+    """Test predictions with complex `by` groupings."""
+
+    def test_grouped_predictions(self, ols_model_with_group):
+        compare_autodiff_vs_finite_diff(predictions, ols_model_with_group, by="grp")
 
 
 # =============================================================================
@@ -435,6 +458,19 @@ class TestComparisonsByTrue:
     def test_large_model_avg_comparisons(self, large_ols_model):
         compare_autodiff_vs_finite_diff(
             avg_comparisons, large_ols_model, variables="x0", comparison="difference"
+        )
+
+
+class TestComparisonsGrouped:
+    """Test comparisons with complex `by` groupings."""
+
+    def test_grouped_comparisons(self, ols_model_with_group):
+        compare_autodiff_vs_finite_diff(
+            comparisons,
+            ols_model_with_group,
+            variables="x1",
+            comparison="difference",
+            by="grp",
         )
 
 

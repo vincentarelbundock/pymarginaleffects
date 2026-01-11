@@ -14,7 +14,7 @@ from marginaleffects import (
     avg_predictions,
     comparisons,
     avg_comparisons,
-    set_autodiff,
+    autodiff,
 )
 
 
@@ -37,26 +37,26 @@ def benchmark(func, model, n_runs: int = 10, **kwargs):
     results = {"autodiff": [], "finite_diff": []}
 
     # Warm-up
-    set_autodiff(True)
+    autodiff(True)
     func(model, **kwargs)
-    set_autodiff(False)
+    autodiff(False)
     func(model, **kwargs)
 
     # Benchmark with autodiff
-    set_autodiff(True)
+    autodiff(True)
     for _ in range(n_runs):
         start = time.perf_counter()
         func(model, **kwargs)
         results["autodiff"].append(time.perf_counter() - start)
 
     # Benchmark without autodiff
-    set_autodiff(False)
+    autodiff(False)
     for _ in range(n_runs):
         start = time.perf_counter()
         func(model, **kwargs)
         results["finite_diff"].append(time.perf_counter() - start)
 
-    set_autodiff(None)
+    autodiff(None)
     return results
 
 

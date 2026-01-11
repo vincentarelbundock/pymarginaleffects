@@ -384,63 +384,59 @@ def comparisons(
     )
 
     if jax_result is not None:
-        # SUCCESS: Use JAX results
-        J = jax_result["jacobian"]
+        try:
+            # SUCCESS: Use JAX results
+            J = jax_result["jacobian"]
 
-        # Ensure estimates are arrays
-        estimate = np.atleast_1d(jax_result["estimate"])
-        std_error = np.atleast_1d(jax_result["std_error"])
+            # Ensure estimates are arrays
+            estimate = np.atleast_1d(jax_result["estimate"])
+            std_error = np.atleast_1d(jax_result["std_error"])
+            metadata = jax_result.get("metadata")
 
-        # Check if by=True (sanitized to ['group'])
-        is_by_true = isinstance(by, list) and by == ["group"]
+            if metadata is not None:
+                out = metadata.with_columns(
+                    pl.Series(estimate).alias("estimate"),
+                    pl.Series(std_error).alias("std_error"),
+                )
+            else:
+                # Row-level results - need to add metadata from nd
+                out = pl.DataFrame(
+                    {
+                        "rowid": nd["rowid"].to_list(),
+                        "term": nd["term"].to_list(),
+                        "contrast": nd["contrast"].to_list(),
+                        "estimate": estimate,
+                        "std_error": std_error,
+                    }
+                )
+                # Add other columns from nd that aren't already in out
+                cols = [
+                    x
+                    for x in nd.columns
+                    if x not in out.columns and x != "marginaleffects_comparison"
+                ]
+                if cols:
+                    out = pl.concat([out, nd.select(cols)], how="horizontal")
 
-        if is_by_true:
-            # Averaged results - use terms/contrasts from JAX result
-            out = pl.DataFrame(
-                {
-                    "term": jax_result["terms"],
-                    "contrast": jax_result["contrasts"],
-                    "estimate": estimate,
-                    "std_error": std_error,
-                }
+            # Get confidence intervals
+            out = get_z_p_ci(
+                out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
             )
-        else:
-            # Row-level results - need to add metadata from nd
-            out = pl.DataFrame(
-                {
-                    "rowid": nd["rowid"].to_list(),
-                    "term": nd["term"].to_list(),
-                    "contrast": nd["contrast"].to_list(),
-                    "estimate": estimate,
-                    "std_error": std_error,
-                }
+
+            # Apply final operations
+            out = get_transform(out, transform=transform)
+            out = get_equivalence(out, equivalence=equivalence, df=np.inf)
+            out = sort_columns(out, by=by, newdata=newdata)
+
+            if cross:
+                out = out.with_columns(pl.lit("cross").alias("term"))
+
+            out = MarginaleffectsResult(
+                out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
             )
-            # Add other columns from nd that aren't already in out
-            cols = [
-                x
-                for x in nd.columns
-                if x not in out.columns and x != "marginaleffects_comparison"
-            ]
-            if cols:
-                out = pl.concat([out, nd.select(cols)], how="horizontal")
-
-        # Get confidence intervals
-        out = get_z_p_ci(
-            out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
-        )
-
-        # Apply final operations
-        out = get_transform(out, transform=transform)
-        out = get_equivalence(out, equivalence=equivalence, df=np.inf)
-        out = sort_columns(out, by=by, newdata=newdata)
-
-        if cross:
-            out = out.with_columns(pl.lit("cross").alias("term"))
-
-        out = MarginaleffectsResult(
-            out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
-        )
-        return out
+            return out
+        except Exception:
+            jax_result = None
 
     # === END JAX EARLY EXIT ===
 

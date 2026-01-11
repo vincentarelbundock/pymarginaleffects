@@ -10,6 +10,9 @@ precommit: ## run pre-commit on all files
 test: install ## run pytest suite
 	uv run --all-extras pytest -n auto
 
+test-autodiff: install ## run pytest suite with autodiff forced on
+	MARGINALEFFECTS_AUTODIFF=1 uv run --all-extras pytest -n auto
+
 benchmark: install ## run autodiff benchmark
 	uv run --all-extras python benchmarks/benchmark_autodiff.py
 

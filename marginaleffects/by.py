@@ -1,8 +1,42 @@
 import polars as pl
 import numpy as np
+from typing import List, Optional, Tuple
 
 
 def get_by(model, estimand, newdata, by=None, wts=None):
+    out, _ = _get_by_internal(
+        model=model,
+        estimand=estimand,
+        newdata=newdata,
+        by=by,
+        wts=wts,
+        return_groups=False,
+    )
+    return out
+
+
+def get_by_groups(model, estimand, newdata, by=None, wts=None):
+    """
+    Return grouped estimates plus the rowids contributing to each group.
+    """
+    return _get_by_internal(
+        model=model,
+        estimand=estimand,
+        newdata=newdata,
+        by=by,
+        wts=wts,
+        return_groups=True,
+    )
+
+
+def _get_by_internal(
+    model,
+    estimand,
+    newdata,
+    by=None,
+    wts=None,
+    return_groups: bool = False,
+) -> Tuple[pl.DataFrame, Optional[List[Tuple[int, ...]]]]:
     # for predictions
     if (
         isinstance(by, list)
@@ -12,10 +46,17 @@ def get_by(model, estimand, newdata, by=None, wts=None):
     ):
         by = True
 
+    row_groups: Optional[List[Tuple[int, ...]]] = None
+
     if by is True:
-        return estimand.select(["estimate"]).mean()
+        result = estimand.select(["estimate"]).mean()
+        if return_groups and "rowid" in estimand.columns:
+            row_groups = [tuple(int(x) for x in estimand["rowid"].to_list())]
+        return result, row_groups
     elif by is False:
-        return estimand
+        if return_groups and "rowid" in estimand.columns:
+            row_groups = [tuple([int(x)]) for x in estimand["rowid"].to_list()]
+        return estimand, row_groups
 
     if "group" in estimand.columns:
         by = ["group"] + by
@@ -29,14 +70,29 @@ def get_by(model, estimand, newdata, by=None, wts=None):
     by = np.unique(by)
 
     if isinstance(by, list) and len(by) == 0:
-        return out
+        if return_groups and "rowid" in out.columns:
+            row_groups = [tuple([int(x)]) for x in out["rowid"].to_list()]
+        return out, row_groups
 
+    agg_exprs: List[pl.Expr] = []
     if wts is None:
-        out = out.group_by(by, maintain_order=True).agg(pl.col("estimate").mean())
+        agg_exprs.append(pl.col("estimate").mean().alias("estimate"))
     else:
-        out = out.group_by(by, maintain_order=True).agg(
-            (pl.col("estimate") * pl.col(wts)).sum() / pl.col(wts).sum()
+        agg_exprs.append(
+            ((pl.col("estimate") * pl.col(wts)).sum() / pl.col(wts).sum()).alias(
+                "estimate"
+            )
         )
+    if return_groups and "rowid" in out.columns:
+        agg_exprs.append(pl.col("rowid").alias("_rowids"))
+
+    out = out.group_by(by, maintain_order=True).agg(agg_exprs)
+
+    if return_groups and "_rowids" in out.columns:
+        row_groups = [
+            tuple(int(r) for r in row_ids) for row_ids in out["_rowids"].to_list()
+        ]
+        out = out.drop("_rowids")
 
     # Sort by 'by' columns ONLY if they are Enum type to ensure consistent categorical ordering
     # For Enum columns, sort() respects the enum order (not lexical order)
@@ -52,4 +108,4 @@ def get_by(model, estimand, newdata, by=None, wts=None):
     if should_sort:
         out = out.sort(by)
 
-    return out
+    return out, row_groups

@@ -7,6 +7,7 @@ returning None if JAX cannot be used (triggering fallback to finite differences)
 
 from typing import Optional, Dict, Any
 import numpy as np
+import polars as pl
 
 # Mapping from comparison string to ComparisonType enum value
 # Only includes non-averaging comparisons supported by the autodiff module
@@ -61,11 +62,10 @@ def try_jax_predictions(
     if hypothesis is not None:
         return None  # Hypothesis testing uses different path
 
-    # Only support by=False or by=True (sanitized to ['group']) for now
-    # After sanitize_by(): False stays False, True becomes ['group']
+    # Only support False or sanitized list (any complexity handled upstream)
     is_by_false = by is False
-    is_by_true = isinstance(by, list) and by == ["group"]
-    if not is_by_false and not is_by_true:
+    is_by_list = isinstance(by, list)
+    if not is_by_false and not is_by_list:
         return None
 
     # Check model compatibility
@@ -85,42 +85,22 @@ def try_jax_predictions(
         if config["model_type"] == "linear":
             from .autodiff import linear as ad_module
 
-            if is_by_false:
-                # Row-level predictions
-                result = ad_module.predictions.predictions(
-                    beta=beta,
-                    X=X,
-                    vcov=V,
-                )
-            elif is_by_true:
-                # Average prediction (single value)
-                result = ad_module.predictions.predictions_byT(
-                    beta=beta,
-                    X=X,
-                    vcov=V,
-                )
+            result = ad_module.predictions.predictions(
+                beta=beta,
+                X=X,
+                vcov=V,
+            )
 
         elif config["model_type"] == "glm":
             from .autodiff import glm as ad_module
 
-            if is_by_false:
-                # Row-level predictions
-                result = ad_module.predictions.predictions(
-                    beta=beta,
-                    X=X,
-                    vcov=V,
-                    family_type=config["family_type"],
-                    link_type=config["link_type"],
-                )
-            elif is_by_true:
-                # Average prediction (single value)
-                result = ad_module.predictions.predictions_byT(
-                    beta=beta,
-                    X=X,
-                    vcov=V,
-                    family_type=config["family_type"],
-                    link_type=config["link_type"],
-                )
+            result = ad_module.predictions.predictions(
+                beta=beta,
+                X=X,
+                vcov=V,
+                family_type=config["family_type"],
+                link_type=config["link_type"],
+            )
         else:
             return None
 
@@ -198,8 +178,13 @@ def try_jax_comparisons(
 
     # Check by parameter
     is_by_false = by is False
-    is_by_true = isinstance(by, list) and by == ["group"]
-    if not is_by_false and not is_by_true:
+    is_by_list = isinstance(by, list)
+    is_by_true = is_by_list and by == ["group"]
+    is_by_complex = is_by_list and by != ["group"]
+    if not is_by_false and not is_by_list:
+        return None
+
+    if is_by_complex and nd is None:
         return None
 
     # For by=True, we need the nd DataFrame to get term groupings
@@ -255,35 +240,39 @@ def try_jax_comparisons(
                 "std_error": result["std_error"],
             }
 
-        elif is_by_true:
-            # Per-term aggregation
-            terms = nd["term"].to_numpy()
-            contrasts = nd["contrast"].to_numpy()
+        elif is_by_true or is_by_complex:
+            if nd is None:
+                return None
 
-            # Get unique term-contrast combinations (preserving order)
-            seen = {}
-            unique_pairs = []
-            for i, (t, c) in enumerate(zip(terms, contrasts)):
-                key = (t, c)
-                if key not in seen:
-                    seen[key] = len(unique_pairs)
-                    unique_pairs.append(key)
+            idx_series = pl.Series(range(nd.height), dtype=pl.Int64).alias("__idx__")
+            nd_with_idx = nd.with_columns(idx_series)
 
-            # Compute averaged comparison for each term-contrast pair
+            group_cols = ["term", "contrast"]
+            if is_by_complex:
+                group_cols.extend([col for col in by if col in nd.columns])
+            group_cols.extend(
+                [col for col in nd.columns if col.startswith("contrast_")]
+            )
+            seen_cols = set()
+            group_cols = [
+                col
+                for col in group_cols
+                if not (col in seen_cols or seen_cols.add(col))
+            ]
+
+            grouped = nd_with_idx.group_by(group_cols, maintain_order=True).agg(
+                pl.col("__idx__").alias("__idx__")
+            )
+
             estimates = []
             std_errors = []
             jacobians = []
 
-            for term_val, contrast_val in unique_pairs:
-                # Get indices for this term-contrast pair
-                mask = (terms == term_val) & (contrasts == contrast_val)
-                idx = np.where(mask)[0]
-
-                # Slice matrices for this group
+            for idx_list in grouped["__idx__"].to_list():
+                idx = np.asarray(idx_list, dtype=int)
                 X_hi_group = X_hi[idx]
                 X_lo_group = X_lo[idx]
 
-                # Compute averaged comparison for this group
                 if config["model_type"] == "linear":
                     result = ad_module.comparisons.comparisons_byT(
                         beta=beta,
@@ -307,12 +296,13 @@ def try_jax_comparisons(
                 std_errors.append(float(result["std_error"]))
                 jacobians.append(result["jacobian"])
 
+            metadata = grouped.drop("__idx__")
+
             return {
                 "estimate": np.array(estimates),
                 "jacobian": np.vstack(jacobians) if jacobians else np.array([]),
                 "std_error": np.array(std_errors),
-                "terms": [p[0] for p in unique_pairs],
-                "contrasts": [p[1] for p in unique_pairs],
+                "metadata": metadata,
             }
 
     except Exception:

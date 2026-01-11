@@ -1,7 +1,7 @@
 import numpy as np
 import polars as pl
 
-from .by import get_by
+from .by import get_by, get_by_groups
 from .result import MarginaleffectsResult
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
@@ -187,45 +187,51 @@ def predictions(
     )
 
     if jax_result is not None:
-        # SUCCESS: Use JAX results, skip finite difference computation
-        J = jax_result["jacobian"]
-
-        # After sanitize_by(): False stays False, True becomes ['group']
-        is_by_true = isinstance(by, list) and by == ["group"]
-
-        if by is False:
-            # Row-level results
-            out = pl.DataFrame(
+        try:
+            base = pl.DataFrame(
                 {
-                    "rowid": range(newdata.shape[0]),
+                    "rowid": newdata["rowid"],
                     "estimate": jax_result["estimate"],
-                    "std_error": jax_result["std_error"],
                 }
             )
-            # Add newdata columns
-            cols = [x for x in newdata.columns if x not in out.columns]
-            out = pl.concat([out, newdata.select(cols)], how="horizontal")
-        elif is_by_true:
-            # Averaged result (single row)
-            estimate = jax_result["estimate"]
-            std_error = jax_result["std_error"]
-            # Handle scalar vs array
-            if np.ndim(estimate) == 0:
-                estimate = [float(estimate)]
-                std_error = [float(std_error)]
-            out = pl.DataFrame(
-                {
-                    "estimate": estimate,
-                    "std_error": std_error,
+            cols = [x for x in newdata.columns if x not in base.columns]
+            base = pl.concat([base, newdata.select(cols)], how="horizontal")
+
+            if by is False:
+                J = jax_result["jacobian"]
+                out = base.with_columns(
+                    pl.Series(jax_result["std_error"]).alias("std_error")
+                )
+            else:
+                grouped, row_groups = get_by_groups(
+                    model, base, newdata=newdata, by=by, wts=wts
+                )
+                if row_groups is None or len(row_groups) == 0:
+                    raise ValueError("Failed to compute autodiff groups for `by`.")
+
+                rowid_lookup = {
+                    int(rid): idx for idx, rid in enumerate(base["rowid"].to_list())
                 }
+                jac_rows = []
+                for group in row_groups:
+                    idxs = [rowid_lookup[rid] for rid in group if rid in rowid_lookup]
+                    if not idxs:
+                        raise ValueError(
+                            "Mismatch between group rows and Jacobian rows."
+                        )
+                    jac_rows.append(np.mean(jax_result["jacobian"][idxs], axis=0))
+
+                J = np.vstack(jac_rows)
+                se = get_se(J, V)
+                out = grouped.with_columns(pl.Series(se).alias("std_error"))
+
+            out = get_z_p_ci(
+                out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
             )
+        except Exception:
+            jax_result = None
 
-        # Get confidence intervals
-        out = get_z_p_ci(
-            out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
-        )
-
-    else:
+    if jax_result is None:
         # FALLBACK: Use standard finite difference pipeline
 
         # estimands
