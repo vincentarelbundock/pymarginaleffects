@@ -133,12 +133,12 @@ def ols_model_with_group():
     x1 = np.random.randn(n)
     x2 = np.random.randn(n)
     x3 = np.random.randn(n)
-    group = np.where(x1 > 0, 1, 0).astype(int)
+    group = np.where(x1 > 0, "hi", "lo")
     y = 0.5 + 0.3 * x1 - 0.2 * x2 + 0.1 * x3 + np.random.randn(n) * 0.5
-    data = pl.DataFrame(
-        {"y": y, "x1": x1, "x2": x2, "x3": x3, "grp": group}
-    ).with_columns(pl.col("grp").cast(pl.Categorical).alias("grp"))
-    return smf.ols("y ~ x1 + x2 + x3 + C(grp)", data.to_pandas()).fit()
+    data = pl.DataFrame({"y": y, "x1": x1, "x2": x2, "x3": x3, "grp": group})
+    df = data.to_pandas()
+    df["grp"] = df["grp"].astype("category")
+    return smf.ols("y ~ x1 + x2 + x3 + C(grp)", df).fit()
 
 
 # =============================================================================

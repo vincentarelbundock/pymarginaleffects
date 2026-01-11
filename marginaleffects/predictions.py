@@ -5,19 +5,13 @@ from .by import get_by, get_by_groups
 from .result import MarginaleffectsResult
 from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
-from .sanitize_model import sanitize_model
-from .sanity import (
-    sanitize_by,
-    sanitize_hypothesis_null,
-    sanitize_newdata,
-    sanitize_vcov,
-)
 from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import sort_columns, validate_string_columns
+from .utils import sort_columns
 from .pyfixest import ModelPyfixest
 from .linearmodels import ModelLinearmodels
 from .formulaic_utils import model_matrices
+from ._input_utils import prepare_base_inputs
 from warnings import warn
 
 from .docs import (
@@ -27,81 +21,32 @@ from .docs import (
 )
 
 
-def predictions(
+def _prepare_predictions_inputs(
     model,
-    variables=None,
-    conf_level=0.95,
-    vcov=True,
-    by=False,
-    newdata=None,
-    hypothesis=None,
-    equivalence=None,
-    transform=None,
-    wts=None,
-    eps_vcov=None,
-    **kwargs,
+    variables,
+    vcov,
+    by,
+    newdata,
+    wts,
+    hypothesis,
 ):
-    """
-    `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
-
-    For more information, visit the website: https://marginaleffects.com/
-
-    Or type: `help(predictions)`
-    """
-    if "hypotheses" in kwargs:
-        if hypothesis is not None:
-            raise ValueError("Specify at most one of `hypothesis` or `hypotheses`.")
-        hypotheses = kwargs.pop("hypotheses")
-        warn(
-            "`hypotheses` is deprecated; use `hypothesis` instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        hypothesis = hypotheses
-    if kwargs:
-        unexpected = ", ".join(sorted(kwargs.keys()))
-        raise TypeError(
-            f"predictions() got unexpected keyword argument(s): {unexpected}"
-        )
-
-    if callable(newdata):
-        newdata = newdata(model)
-
-    # sanity checks
-    model = sanitize_model(model)
-
-    # For pyfixest models, automatically set vcov=False for predictions with warning
-    if isinstance(model, ModelPyfixest) and vcov is not False:
-        has_fixef = getattr(model.model, "_has_fixef", False)
-        if has_fixef:
-            warn(
-                "For this pyfixest model, marginaleffects cannot take into account the "
-                "uncertainty in fixed-effects parameters. Standard errors are disabled "
-                "and vcov=False is enforced.",
-                UserWarning,
-                stacklevel=2,
-            )
-        else:
-            warn(
-                "Standard errors are not available for predictions in pyfixest models. "
-                "Setting vcov=False automatically.",
-                UserWarning,
-                stacklevel=2,
-            )
-        vcov = False
-
-    by = sanitize_by(by)
-    V = sanitize_vcov(vcov, model)
-    newdata = sanitize_newdata(model, newdata, wts=wts, by=by)
-    hypothesis_null = sanitize_hypothesis_null(hypothesis)
-
-    modeldata = model.get_modeldata()
-
-    # Validate that columns used in by are not String type
-    validate_string_columns(by, modeldata, context="the 'by' parameter")
+    (
+        model,
+        by,
+        V,
+        newdata,
+        hypothesis_null,
+        modeldata,
+    ) = prepare_base_inputs(
+        model=model,
+        vcov=vcov,
+        by=by,
+        newdata=newdata,
+        wts=wts,
+        hypothesis=hypothesis,
+    )
 
     if variables:
-        # convert to dictionary
         if isinstance(variables, str):
             variables = {variables: None}
         elif isinstance(variables, list):
@@ -151,13 +96,8 @@ def predictions(
 
         newdata.datagrid_explicit = list(variables.keys())
 
-    # predictors
-    # we want this to be a model matrix to avoid converting data frames to
-    # matrices many times, which would be computationally wasteful. But in the
-    # case of PyFixest, the predict method only accepts a data frame.
     if isinstance(model, ModelPyfixest):
         exog = newdata.to_pandas()
-    # Linearmodels accepts polars dataframes and converts them to Pandas internally
     elif isinstance(model, ModelLinearmodels):
         exog = newdata
     else:
@@ -168,13 +108,25 @@ def predictions(
 
         if callable(f):
             endog, exog = f(newdata)
-
         else:
             endog, exog = model_matrices(
                 f, newdata, formula_engine=model.get_formula_engine()
             )
 
-    # === TRY JAX EARLY EXIT ===
+    return model, by, V, newdata, hypothesis_null, exog
+
+
+def _run_jax_predictions(
+    model,
+    exog,
+    newdata,
+    by,
+    wts,
+    hypothesis,
+    V,
+    conf_level,
+    hypothesis_null,
+):
     from .jax_dispatch import try_jax_predictions
 
     jax_result = try_jax_predictions(
@@ -186,95 +138,207 @@ def predictions(
         hypothesis=hypothesis,
     )
 
-    if jax_result is not None:
-        try:
-            base = pl.DataFrame(
-                {
-                    "rowid": newdata["rowid"],
-                    "estimate": jax_result["estimate"],
-                }
-            )
-            cols = [x for x in newdata.columns if x not in base.columns]
-            base = pl.concat([base, newdata.select(cols)], how="horizontal")
-
-            if by is False:
-                J = jax_result["jacobian"]
-                out = base.with_columns(
-                    pl.Series(jax_result["std_error"]).alias("std_error")
-                )
-            else:
-                grouped, row_groups = get_by_groups(
-                    model, base, newdata=newdata, by=by, wts=wts
-                )
-                if row_groups is None or len(row_groups) == 0:
-                    raise ValueError("Failed to compute autodiff groups for `by`.")
-
-                rowid_lookup = {
-                    int(rid): idx for idx, rid in enumerate(base["rowid"].to_list())
-                }
-                jac_rows = []
-                for group in row_groups:
-                    idxs = [rowid_lookup[rid] for rid in group if rid in rowid_lookup]
-                    if not idxs:
-                        raise ValueError(
-                            "Mismatch between group rows and Jacobian rows."
-                        )
-                    jac_rows.append(np.mean(jax_result["jacobian"][idxs], axis=0))
-
-                J = np.vstack(jac_rows)
-                se = get_se(J, V)
-                out = grouped.with_columns(pl.Series(se).alias("std_error"))
-
-            out = get_z_p_ci(
-                out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
-            )
-        except Exception:
-            jax_result = None
-
     if jax_result is None:
-        # FALLBACK: Use standard finite difference pipeline
+        return None, None
 
-        # estimands
-        def inner(x):
-            out = model.get_predict(params=np.array(x), newdata=exog)
+    try:
+        base = pl.DataFrame(
+            {
+                "rowid": newdata["rowid"],
+                "estimate": jax_result["estimate"],
+            }
+        )
+        cols = [x for x in newdata.columns if x not in base.columns]
+        base = pl.concat([base, newdata.select(cols)], how="horizontal")
 
-            if out.shape[0] == newdata.shape[0]:
-                cols = [x for x in newdata.columns if x not in out.columns]
-                out = pl.concat([out, newdata.select(cols)], how="horizontal")
-
-            # group
-            elif "group" in out.columns:
-                meta = newdata.join(out.select("group").unique(), how="cross")
-                cols = [x for x in meta.columns if x in out.columns]
-                out = meta.join(out, on=cols, how="left")
-
-            # not sure what happens here
-            else:
-                raise ValueError("Something went wrong")
-
-            out = get_by(model, out, newdata=newdata, by=by, wts=wts)
-            out = get_hypothesis(out, hypothesis=hypothesis, by=by)
-            return out
-
-        out = inner(model.get_coef())
-
-        if V is not None:
-            J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
-            se = get_se(J, V)
-            out = out.with_columns(pl.Series(se).alias("std_error"))
-            out = get_z_p_ci(
-                out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
+        if by is False:
+            J = jax_result["jacobian"]
+            out = base.with_columns(
+                pl.Series(jax_result["std_error"]).alias("std_error")
             )
         else:
-            J = None
+            grouped, row_groups = get_by_groups(
+                model, base, newdata=newdata, by=by, wts=wts
+            )
+            if not row_groups:
+                raise ValueError("Failed to compute autodiff groups for `by`.")
+
+            rowid_lookup = {
+                int(rid): idx for idx, rid in enumerate(base["rowid"].to_list())
+            }
+            jac_rows = []
+            for group in row_groups:
+                idxs = [rowid_lookup[rid] for rid in group if rid in rowid_lookup]
+                if not idxs:
+                    raise ValueError("Mismatch between group rows and Jacobian rows.")
+                jac_rows.append(np.mean(jax_result["jacobian"][idxs], axis=0))
+
+            J = np.vstack(jac_rows)
+            se = get_se(J, V)
+            out = grouped.with_columns(pl.Series(se).alias("std_error"))
+
+        out = get_z_p_ci(
+            out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
+        )
+        return out, J
+    except Exception:
+        return None, None
+
+
+def _finite_difference_predictions(
+    model,
+    exog,
+    newdata,
+    by,
+    wts,
+    hypothesis,
+    V,
+    eps_vcov,
+    conf_level,
+    hypothesis_null,
+):
+    def inner(x):
+        out = model.get_predict(params=np.array(x), newdata=exog)
+
+        if out.shape[0] == newdata.shape[0]:
+            cols = [x for x in newdata.columns if x not in out.columns]
+            out = pl.concat([out, newdata.select(cols)], how="horizontal")
+
+        elif "group" in out.columns:
+            meta = newdata.join(out.select("group").unique(), how="cross")
+            cols = [x for x in meta.columns if x in out.columns]
+            out = meta.join(out, on=cols, how="left")
+
+        else:
+            raise ValueError("Something went wrong")
+
+        out = get_by(model, out, newdata=newdata, by=by, wts=wts)
+        out = get_hypothesis(out, hypothesis=hypothesis, by=by)
+        return out
+
+    out = inner(model.get_coef())
+
+    if V is not None:
+        J = get_jacobian(inner, model.get_coef(), eps_vcov=eps_vcov)
+        se = get_se(J, V)
+        out = out.with_columns(pl.Series(se).alias("std_error"))
+        out = get_z_p_ci(
+            out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
+        )
+    else:
+        J = None
+
+    return out, J
+
+
+def _finalize_predictions_result(
+    out,
+    model,
+    by,
+    transform,
+    equivalence,
+    newdata,
+    conf_level,
+    J,
+):
     out = get_transform(out, transform=transform)
     out = get_equivalence(out, equivalence=equivalence)
     out = sort_columns(out, by=by, newdata=newdata)
 
-    out = MarginaleffectsResult(
+    return MarginaleffectsResult(
         out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
     )
-    return out
+
+
+def predictions(
+    model,
+    variables=None,
+    conf_level=0.95,
+    vcov=True,
+    by=False,
+    newdata=None,
+    hypothesis=None,
+    equivalence=None,
+    transform=None,
+    wts=None,
+    eps_vcov=None,
+    **kwargs,
+):
+    """
+    `predictions()` and `avg_predictions()` predict outcomes using a fitted model on a specified scale for given combinations of values of predictor variables, such as their observed values, means, or factor levels (reference grid).
+
+    For more information, visit the website: https://marginaleffects.com/
+
+    Or type: `help(predictions)`
+    """
+    if "hypotheses" in kwargs:
+        if hypothesis is not None:
+            raise ValueError("Specify at most one of `hypothesis` or `hypotheses`.")
+        hypotheses = kwargs.pop("hypotheses")
+        warn(
+            "`hypotheses` is deprecated; use `hypothesis` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        hypothesis = hypotheses
+    if kwargs:
+        unexpected = ", ".join(sorted(kwargs.keys()))
+        raise TypeError(
+            f"predictions() got unexpected keyword argument(s): {unexpected}"
+        )
+    (
+        model,
+        by,
+        V,
+        newdata,
+        hypothesis_null,
+        exog,
+    ) = _prepare_predictions_inputs(
+        model=model,
+        variables=variables,
+        vcov=vcov,
+        by=by,
+        newdata=newdata,
+        wts=wts,
+        hypothesis=hypothesis,
+    )
+
+    out, J = _run_jax_predictions(
+        model=model,
+        exog=exog,
+        newdata=newdata,
+        by=by,
+        wts=wts,
+        hypothesis=hypothesis,
+        V=V,
+        conf_level=conf_level,
+        hypothesis_null=hypothesis_null,
+    )
+
+    if out is None:
+        out, J = _finite_difference_predictions(
+            model=model,
+            exog=exog,
+            newdata=newdata,
+            by=by,
+            wts=wts,
+            hypothesis=hypothesis,
+            V=V,
+            eps_vcov=eps_vcov,
+            conf_level=conf_level,
+            hypothesis_null=hypothesis_null,
+        )
+
+    return _finalize_predictions_result(
+        out=out,
+        model=model,
+        by=by,
+        transform=transform,
+        equivalence=equivalence,
+        newdata=newdata,
+        conf_level=conf_level,
+        J=J,
+    )
 
 
 def avg_predictions(

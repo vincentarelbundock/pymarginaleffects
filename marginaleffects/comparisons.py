@@ -11,11 +11,7 @@ from .estimands import estimands
 from .hypothesis import get_hypothesis
 from .sanitize_model import sanitize_model
 from .sanity import (
-    sanitize_by,
-    sanitize_hypothesis_null,
-    sanitize_newdata,
     sanitize_variables,
-    sanitize_vcov,
     handle_deprecated_hypotheses_argument,
     handle_pyfixest_vcov_limitation,
 )
@@ -25,6 +21,7 @@ from .utils import get_pad, sort_columns, upcast, validate_string_columns
 from .pyfixest import ModelPyfixest
 from .sklearn import ModelSklearn
 from .linearmodels import ModelLinearmodels
+from ._input_utils import prepare_base_inputs
 
 from .docs import (
     DocsDetails,
@@ -70,11 +67,22 @@ def comparisons(
     model = sanitize_model(model)
     vcov = handle_pyfixest_vcov_limitation(model, vcov, stacklevel=2)
 
-    by = sanitize_by(by)
-    V = sanitize_vcov(vcov, model)
-    newdata = sanitize_newdata(model, newdata=newdata, wts=wts, by=by)
-    modeldata = model.get_modeldata()
-    hypothesis_null = sanitize_hypothesis_null(hypothesis)
+    (
+        model,
+        by,
+        V,
+        newdata,
+        hypothesis_null,
+        modeldata,
+    ) = prepare_base_inputs(
+        model=model,
+        vcov=vcov,
+        by=by,
+        newdata=newdata,
+        wts=wts,
+        hypothesis=hypothesis,
+        enforce_pyfixest_warning=False,
+    )
 
     # Validate cross parameter
     if cross and variables is None:
@@ -384,59 +392,50 @@ def comparisons(
     )
 
     if jax_result is not None:
-        try:
-            # SUCCESS: Use JAX results
-            J = jax_result["jacobian"]
+        # SUCCESS: Use JAX results
+        J = jax_result["jacobian"]
 
-            # Ensure estimates are arrays
-            estimate = np.atleast_1d(jax_result["estimate"])
-            std_error = np.atleast_1d(jax_result["std_error"])
-            metadata = jax_result.get("metadata")
+        estimate = np.atleast_1d(jax_result["estimate"])
+        std_error = np.atleast_1d(jax_result["std_error"])
+        metadata = jax_result.get("metadata")
 
-            if metadata is not None:
-                out = metadata.with_columns(
-                    pl.Series(estimate).alias("estimate"),
-                    pl.Series(std_error).alias("std_error"),
-                )
-            else:
-                # Row-level results - need to add metadata from nd
-                out = pl.DataFrame(
-                    {
-                        "rowid": nd["rowid"].to_list(),
-                        "term": nd["term"].to_list(),
-                        "contrast": nd["contrast"].to_list(),
-                        "estimate": estimate,
-                        "std_error": std_error,
-                    }
-                )
-                # Add other columns from nd that aren't already in out
-                cols = [
-                    x
-                    for x in nd.columns
-                    if x not in out.columns and x != "marginaleffects_comparison"
-                ]
-                if cols:
-                    out = pl.concat([out, nd.select(cols)], how="horizontal")
-
-            # Get confidence intervals
-            out = get_z_p_ci(
-                out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
+        if metadata is not None:
+            out = metadata.with_columns(
+                pl.Series(estimate).alias("estimate"),
+                pl.Series(std_error).alias("std_error"),
             )
-
-            # Apply final operations
-            out = get_transform(out, transform=transform)
-            out = get_equivalence(out, equivalence=equivalence, df=np.inf)
-            out = sort_columns(out, by=by, newdata=newdata)
-
-            if cross:
-                out = out.with_columns(pl.lit("cross").alias("term"))
-
-            out = MarginaleffectsResult(
-                out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
+        else:
+            out = pl.DataFrame(
+                {
+                    "rowid": nd["rowid"].to_list(),
+                    "term": nd["term"].to_list(),
+                    "contrast": nd["contrast"].to_list(),
+                    "estimate": estimate,
+                    "std_error": std_error,
+                }
             )
-            return out
-        except Exception:
-            jax_result = None
+            cols = [
+                x
+                for x in nd.columns
+                if x not in out.columns and x != "marginaleffects_comparison"
+            ]
+            if cols:
+                out = pl.concat([out, nd.select(cols)], how="horizontal")
+
+        out = get_z_p_ci(
+            out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
+        )
+        out = get_transform(out, transform=transform)
+        out = get_equivalence(out, equivalence=equivalence, df=np.inf)
+        out = sort_columns(out, by=by, newdata=newdata)
+
+        if cross:
+            out = out.with_columns(pl.lit("cross").alias("term"))
+
+        out = MarginaleffectsResult(
+            out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
+        )
+        return out
 
     # === END JAX EARLY EXIT ===
 
