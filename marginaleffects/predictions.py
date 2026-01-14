@@ -17,102 +17,79 @@ from .docs import (
 )
 
 
-def _prepare_predictions_inputs(
-    model,
-    variables,
-    vcov,
-    by,
-    newdata,
-    wts,
-    hypothesis,
-):
-    (
-        model,
-        by,
-        V,
-        newdata,
-        hypothesis_null,
-        modeldata,
-    ) = prepare_base_inputs(
-        model=model,
-        vcov=vcov,
-        by=by,
-        newdata=newdata,
-        wts=wts,
-        hypothesis=hypothesis,
-    )
+def _prepare_newdata(newdata, modeldata, variables):
+    if not variables:
+        return newdata, []
 
-    if variables:
-        if isinstance(variables, str):
-            variables = {variables: None}
-        elif isinstance(variables, list):
-            for v in variables:
-                if not isinstance(v, str):
-                    raise TypeError(
-                        "All entries in the `variables` list must be strings."
-                    )
-            variables = {v: None for v in variables}
-        elif not isinstance(variables, dict):
-            raise TypeError("`variables` argument must be a dictionary")
-
-        for variable, value in variables.items():
-            if callable(value):
-                val = value()
-            elif value is None:
-                val = modeldata[variable].unique()
-            elif value == "sd":
-                std = modeldata[variable].std()
-                mean = modeldata[variable].mean()
-                val = [mean - std / 2, mean + std / 2]
-            elif value == "2sd":
-                std = modeldata[variable].std()
-                mean = modeldata[variable].mean()
-                val = [mean - std, mean + std]
-            elif value == "iqr":
-                val = [
-                    np.percentile(newdata[variable], 75),
-                    np.percentile(newdata[variable], 25),
-                ]
-            elif value == "minmax":
-                val = [np.max(newdata[variable]), np.min(newdata[variable])]
-            elif value == "threenum":
-                std = modeldata[variable].std()
-                mean = modeldata[variable].mean()
-                val = [mean - std / 2, mean, mean + std / 2]
-            elif value == "fivenum":
-                val = np.percentile(
-                    modeldata[variable], [0, 25, 50, 75, 100], method="midpoint"
-                )
-            else:
-                val = value
-
-            newdata = newdata.drop(variable)
-            newdata = newdata.join(pl.DataFrame({variable: val}), how="cross")
-            newdata = newdata.sort(variable)
-
-        newdata.datagrid_explicit = list(variables.keys())
-
-    if isinstance(model, ModelPyfixest):
-        exog = newdata.to_pandas()
-    elif isinstance(model, ModelLinearmodels):
-        exog = newdata
+    if isinstance(variables, str):
+        normalized = {variables: None}
+    elif isinstance(variables, list):
+        for v in variables:
+            if not isinstance(v, str):
+                raise TypeError("All entries in the `variables` list must be strings.")
+        normalized = {v: None for v in variables}
+    elif isinstance(variables, dict):
+        normalized = variables
     else:
-        if hasattr(model, "design_info_patsy"):
-            f = model.design_info_patsy
-        else:
-            f = model.get_formula()
+        raise TypeError("`variables` argument must be a dictionary")
 
-        if callable(f):
-            endog, exog = f(newdata)
-        else:
-            endog, exog = model_matrices(
-                f, newdata, formula_engine=model.get_formula_engine()
+    for variable, spec in normalized.items():
+        if callable(spec):
+            val = spec()
+        elif spec is None:
+            val = modeldata[variable].unique()
+        elif spec == "sd":
+            std = modeldata[variable].std()
+            mean = modeldata[variable].mean()
+            val = [mean - std / 2, mean + std / 2]
+        elif spec == "2sd":
+            std = modeldata[variable].std()
+            mean = modeldata[variable].mean()
+            val = [mean - std, mean + std]
+        elif spec == "iqr":
+            val = [
+                np.percentile(newdata[variable], 75),
+                np.percentile(newdata[variable], 25),
+            ]
+        elif spec == "minmax":
+            val = [np.max(newdata[variable]), np.min(newdata[variable])]
+        elif spec == "threenum":
+            std = modeldata[variable].std()
+            mean = modeldata[variable].mean()
+            val = [mean - std / 2, mean, mean + std / 2]
+        elif spec == "fivenum":
+            val = np.percentile(
+                modeldata[variable], [0, 25, 50, 75, 100], method="midpoint"
             )
+        else:
+            val = spec
 
-    return model, by, V, newdata, hypothesis_null, exog
+        newdata = newdata.drop(variable)
+        newdata = newdata.join(pl.DataFrame({variable: val}), how="cross")
+        newdata = newdata.sort(variable)
+
+    return newdata, list(normalized.keys())
 
 
-def _run_jax_predictions(
+def _prepare_exog(model, newdata):
+    if isinstance(model, ModelPyfixest):
+        return newdata.to_pandas()
+    if isinstance(model, ModelLinearmodels):
+        return newdata
+    if hasattr(model, "design_info_patsy"):
+        f = model.design_info_patsy
+    else:
+        f = model.get_formula()
+
+    if callable(f):
+        _, exog = f(newdata)
+    else:
+        _, exog = model_matrices(f, newdata, formula_engine=model.get_formula_engine())
+
+    return exog
+
+
+def _predictions_jax(
     model,
     exog,
     newdata,
@@ -181,7 +158,7 @@ def _run_jax_predictions(
         return None, None
 
 
-def _finite_difference_predictions(
+def _predictions_fd(
     model,
     exog,
     newdata,
@@ -269,10 +246,9 @@ def predictions(
         V,
         newdata,
         hypothesis_null,
-        exog,
-    ) = _prepare_predictions_inputs(
+        modeldata,
+    ) = prepare_base_inputs(
         model=model,
-        variables=variables,
         vcov=vcov,
         by=by,
         newdata=newdata,
@@ -280,7 +256,13 @@ def predictions(
         hypothesis=hypothesis,
     )
 
-    out, J = _run_jax_predictions(
+    newdata, datagrid = _prepare_newdata(newdata, modeldata, variables)
+    if datagrid:
+        newdata.datagrid_explicit = datagrid
+
+    exog = _prepare_exog(model, newdata)
+
+    out, J = _predictions_jax(
         model=model,
         exog=exog,
         newdata=newdata,
@@ -293,7 +275,7 @@ def predictions(
     )
 
     if out is None:
-        out, J = _finite_difference_predictions(
+        out, J = _predictions_fd(
             model=model,
             exog=exog,
             newdata=newdata,

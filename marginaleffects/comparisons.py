@@ -32,6 +32,290 @@ from .docs import (
 )
 
 
+def _cross_postprocess(cross):
+    if not cross:
+        return None
+
+    def add_term(df):
+        return df.with_columns(pl.lit("cross").alias("term"))
+
+    return add_term
+
+
+def _prepare_counterfactual_frames(
+    model,
+    modeldata,
+    newdata,
+    variables,
+    comparison,
+    eps,
+    by,
+    wts,
+    cross,
+):
+    if cross and variables is None:
+        raise ValueError(
+            "The `variables` argument must be specified when `cross=True`."
+        )
+
+    variables = sanitize_variables(
+        variables=variables,
+        model=model,
+        newdata=newdata,
+        comparison=comparison,
+        eps=eps,
+        by=by,
+        wts=wts,
+        cross=cross,
+    )
+
+    nd_frames, hi_frames, lo_frames = _build_comparison_frames(
+        newdata, variables, cross
+    )
+    pad_frames = _build_padding_frames(model, modeldata, newdata)
+    nd, hi, lo, pad_rows = _finalize_counterfactual_frames(
+        nd_frames,
+        hi_frames,
+        lo_frames,
+        pad_frames,
+        modeldata,
+    )
+    return variables, nd, hi, lo, pad_rows
+
+
+def _build_comparison_frames(newdata, variables, cross):
+    hi = []
+    lo = []
+    nd = []
+    if not cross:
+        for v in variables:
+            vcomp = "custom" if callable(v.comparison) else v.comparison
+            nd.append(
+                newdata.with_columns(
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias("contrast"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+            )
+            hi.append(
+                newdata.with_columns(
+                    pl.lit(v.hi).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias("contrast"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+            )
+            lo.append(
+                newdata.with_columns(
+                    pl.lit(v.lo).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias("contrast"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+            )
+    else:
+        if variables and isinstance(variables[0].variable, tuple):
+            for v in variables:
+                vcomp = "custom" if callable(v.comparison) else v.comparison
+
+                var_names = v.variable
+                nd_row = newdata.clone()
+                hi_row = newdata.clone()
+                lo_row = newdata.clone()
+
+                for k, var_name in enumerate(var_names):
+                    hi_row = hi_row.with_columns(pl.lit(v.hi[k]).alias(var_name))
+                    lo_row = lo_row.with_columns(pl.lit(v.lo[k]).alias(var_name))
+                    contrast_label = f"{v.hi[k]} - {v.lo[k]}"
+                    nd_row = nd_row.with_columns(
+                        pl.lit(contrast_label).alias(f"contrast_{var_name}")
+                    )
+                    hi_row = hi_row.with_columns(
+                        pl.lit(contrast_label).alias(f"contrast_{var_name}")
+                    )
+                    lo_row = lo_row.with_columns(
+                        pl.lit(contrast_label).alias(f"contrast_{var_name}")
+                    )
+
+                nd_row = nd_row.with_columns(
+                    pl.lit(var_names[0]).alias("term"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+                hi_row = hi_row.with_columns(
+                    pl.lit(var_names[0]).alias("term"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+                lo_row = lo_row.with_columns(
+                    pl.lit(var_names[0]).alias("term"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+
+                nd.append(nd_row)
+                hi.append(hi_row)
+                lo.append(lo_row)
+        else:
+            hi.append(newdata)
+            lo.append(newdata)
+            nd.append(newdata)
+            for v in variables:
+                vcomp = "custom" if callable(v.comparison) else v.comparison
+                nd[0] = nd[0].with_columns(
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias(f"contrast_{v.variable}"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+                hi[0] = hi[0].with_columns(
+                    pl.lit(v.hi).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias(f"contrast_{v.variable}"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+                lo[0] = lo[0].with_columns(
+                    pl.lit(v.lo).alias(v.variable),
+                    pl.lit(v.variable).alias("term"),
+                    pl.lit(v.lab).alias(f"contrast_{v.variable}"),
+                    pl.lit(vcomp).alias("marginaleffects_comparison"),
+                )
+    return nd, hi, lo
+
+
+def _build_padding_frames(model, modeldata, newdata):
+    pads = []
+    vars = model.find_variables()
+    if vars is not None:
+        vars = [re.sub(r"\[.*", "", x) for x in vars]
+        vars = list(set(vars))
+        for v in vars:
+            if v in modeldata.columns:
+                if model.get_variable_type(v) not in ["numeric", "integer"]:
+                    pads.append(get_pad(newdata, v, modeldata[v].unique()))
+    return pads
+
+
+def _finalize_counterfactual_frames(
+    nd_frames, hi_frames, lo_frames, pad_frames, modeldata
+):
+    nd = pl.concat(nd_frames, how="vertical_relaxed")
+    hi = pl.concat(hi_frames, how="vertical_relaxed")
+    lo = pl.concat(lo_frames, how="vertical_relaxed")
+    pad_frames = [x for x in pad_frames if x is not None]
+    if len(pad_frames) == 0:
+        pad_df = pl.DataFrame()
+    else:
+        for i, v in enumerate(pad_frames):
+            pad_frames[i] = upcast(v, pad_frames[i - 1])
+        pad_df = pl.concat(pad_frames, how="diagonal").unique()
+        pad_df = pad_df.with_columns(pl.lit(-1).alias("rowid"))
+
+    lo = upcast(lo, modeldata)
+    hi = upcast(hi, modeldata)
+    pad_df = upcast(pad_df, modeldata)
+    nd = upcast(nd, modeldata)
+
+    pad_df = upcast(pad_df, hi)
+    nd = upcast(nd, hi)
+
+    dfs_to_align = [("nd", nd), ("hi", hi), ("lo", lo)]
+
+    for df_name, df in dfs_to_align:
+        common_cols = set(pad_df.columns) & set(df.columns)
+        for col in common_cols:
+            pad_dtype = str(pad_df[col].dtype)
+            df_dtype = str(df[col].dtype)
+            if pad_dtype != df_dtype:
+                if pad_dtype.startswith("List(") and df_dtype.startswith("List("):
+                    try:
+                        if col in pad_df.columns:
+                            pad_df = pad_df.with_columns(
+                                pad_df[col]
+                                .list.eval(pl.element().cast(pl.String))
+                                .alias(col)
+                            )
+                        if col in df.columns:
+                            df = df.with_columns(
+                                df[col]
+                                .list.eval(pl.element().cast(pl.String))
+                                .alias(col)
+                            )
+                    except Exception as e:
+                        print(
+                            f"Warning: Could not convert List column {col} to strings: {e}"
+                        )
+                        try:
+                            if col in pad_df.columns and pad_df.height > 0:
+                                pad_df = pad_df.explode(col)
+                            if col in df.columns and df.height > 0:
+                                df = df.explode(col)
+                        except Exception as e2:
+                            print(f"Warning: Could not explode List column {col}: {e2}")
+                            if col in pad_df.columns:
+                                pad_df = pad_df.with_columns(
+                                    pad_df[col].cast(pl.String).alias(col)
+                                )
+                            if col in df.columns:
+                                df = df.with_columns(df[col].cast(pl.String).alias(col))
+
+        if df_name == "nd":
+            nd = df
+        elif df_name == "hi":
+            hi = df
+        elif df_name == "lo":
+            lo = df
+
+    nd = pl.concat([pad_df, nd], how="diagonal")
+    hi = pl.concat([pad_df, hi], how="diagonal")
+    lo = pl.concat([pad_df, lo], how="diagonal")
+
+    list_cols = [col for col in nd.columns if str(nd[col].dtype).startswith("List(")]
+    categorical_list_cols = []
+    for col in list_cols:
+        dtype_str = str(nd[col].dtype)
+        if (
+            "Enum(" in dtype_str or "String" in dtype_str or "UInt32" in dtype_str
+        ) and col in ["Region"]:
+            categorical_list_cols.append(col)
+
+    if categorical_list_cols:
+        for col in categorical_list_cols:
+            nd = nd.explode(col)
+            hi = hi.explode(col)
+            lo = lo.explode(col)
+
+    pad_rows = pad_df.shape[0]
+    return nd, hi, lo, pad_rows
+
+
+def _prepare_design_matrices(model, nd, hi, lo, pad_rows):
+    if isinstance(model, (ModelPyfixest, ModelLinearmodels, ModelSklearn)):
+        hi_X = hi
+        lo_X = lo
+        nd_X = nd
+    else:
+        fml = re.sub(r".*~", "", model.get_formula())
+        hi_X = patsy.dmatrix(fml, hi.to_pandas())
+        lo_X = patsy.dmatrix(fml, lo.to_pandas())
+        nd_X = patsy.dmatrix(fml, nd.to_pandas())
+
+    if pad_rows >= 0:
+        nd_X = nd_X[pad_rows:]
+        hi_X = hi_X[pad_rows:]
+        lo_X = lo_X[pad_rows:]
+        nd = nd[pad_rows:]
+        hi = hi[pad_rows:]
+        lo = lo[pad_rows:]
+
+    return nd, hi, lo, nd_X, hi_X, lo_X
+
+
+def _collect_comparison_functions(variables):
+    comparison_functions = {}
+    for v in variables:
+        if callable(v.comparison):
+            key = f"{v.variable}_{v.lab}"
+            comparison_functions[key] = v.comparison
+    return comparison_functions
+
+
 def comparisons(
     model,
     variables=None,
@@ -86,29 +370,23 @@ def comparisons(
         enforce_pyfixest_warning=False,
     )
 
-    # Validate cross parameter
-    if cross and variables is None:
-        raise ValueError(
-            "The `variables` argument must be specified when `cross=True`."
-        )
+    postprocess_cross = _cross_postprocess(cross)
 
     # Validate that columns used in by and variables are not String type
     validate_string_columns(by, modeldata, context="the 'by' parameter")
     validate_string_columns(variables, modeldata, context="the 'variables' parameter")
 
-    def _maybe_add_cross_term(df):
-        if not cross:
-            return df
-        return df.with_columns(pl.lit("cross").alias("term"))
-
-    # For each variable in `variables`, this will return two values that we want
-    # to compare in the contrast. For example, if there's a variable called
-    # "treatment", `sanitize_variables()` may return two values: "lo" vs. "hi", or 0 vs. 1.
-    # Important: place after sanitize_newdata()
-    variables = sanitize_variables(
-        variables=variables,
+    (
+        variables,
+        nd,
+        hi,
+        lo,
+        pad_rows,
+    ) = _prepare_counterfactual_frames(
         model=model,
+        modeldata=modeldata,
         newdata=newdata,
+        variables=variables,
         comparison=comparison,
         eps=eps,
         by=by,
@@ -116,270 +394,9 @@ def comparisons(
         cross=cross,
     )
 
-    # We create two versions of the `newdata` data frame: one where the
-    # treatment variable is set to a `hi` value, and one where the treatment is
-    # set to a `lo` value.
-    pad = []
-    hi = []
-    lo = []
-    nd = []
-    if not cross:
-        for v in variables:
-            if callable(v.comparison):
-                vcomp = "custom"
-            else:
-                vcomp = v.comparison
-            nd.append(
-                newdata.with_columns(
-                    pl.lit(v.variable).alias("term"),
-                    pl.lit(v.lab).alias("contrast"),
-                    pl.lit(vcomp).alias("marginaleffects_comparison"),
-                )
-            )
-            hi.append(
-                newdata.with_columns(
-                    pl.lit(v.hi).alias(v.variable),
-                    pl.lit(v.variable).alias("term"),
-                    pl.lit(v.lab).alias("contrast"),
-                    pl.lit(vcomp).alias("marginaleffects_comparison"),
-                )
-            )
-            lo.append(
-                newdata.with_columns(
-                    pl.lit(v.lo).alias(v.variable),
-                    pl.lit(v.variable).alias("term"),
-                    pl.lit(v.lab).alias("contrast"),
-                    pl.lit(vcomp).alias("marginaleffects_comparison"),
-                )
-            )
+    nd, hi, lo, nd_X, hi_X, lo_X = _prepare_design_matrices(model, nd, hi, lo, pad_rows)
 
-    else:
-        # Check if we have factorial grid HiLo objects (variable is a tuple)
-        if variables and isinstance(variables[0].variable, tuple):
-            # Factorial grid comparisons - process each HiLo independently
-            for v in variables:
-                if callable(v.comparison):
-                    vcomp = "custom"
-                else:
-                    vcomp = v.comparison
-
-                var_names = v.variable  # Tuple of variable names
-                nd_row = newdata.clone()
-                hi_row = newdata.clone()
-                lo_row = newdata.clone()
-
-                # Set all variables from hi/lo (which contain list of values)
-                for k, var_name in enumerate(var_names):
-                    hi_row = hi_row.with_columns(pl.lit(v.hi[k]).alias(var_name))
-                    lo_row = lo_row.with_columns(pl.lit(v.lo[k]).alias(var_name))
-
-                    # Create contrast labels for each variable
-                    contrast_label = f"{v.hi[k]} - {v.lo[k]}"
-                    nd_row = nd_row.with_columns(
-                        pl.lit(contrast_label).alias(f"contrast_{var_name}")
-                    )
-                    hi_row = hi_row.with_columns(
-                        pl.lit(contrast_label).alias(f"contrast_{var_name}")
-                    )
-                    lo_row = lo_row.with_columns(
-                        pl.lit(contrast_label).alias(f"contrast_{var_name}")
-                    )
-
-                # Add metadata
-                nd_row = nd_row.with_columns(
-                    pl.lit(var_names[0]).alias("term"),
-                    pl.lit(vcomp).alias("marginaleffects_comparison"),
-                )
-                hi_row = hi_row.with_columns(
-                    pl.lit(var_names[0]).alias("term"),
-                    pl.lit(vcomp).alias("marginaleffects_comparison"),
-                )
-                lo_row = lo_row.with_columns(
-                    pl.lit(var_names[0]).alias("term"),
-                    pl.lit(vcomp).alias("marginaleffects_comparison"),
-                )
-
-                nd.append(nd_row)
-                hi.append(hi_row)
-                lo.append(lo_row)
-        else:
-            # Original cross logic for simple cases
-            hi.append(newdata)
-            lo.append(newdata)
-            nd.append(newdata)
-            for i, v in enumerate(variables):
-                if callable(v.comparison):
-                    vcomp = "custom"
-                else:
-                    vcomp = v.comparison
-                nd[0] = nd[0].with_columns(
-                    pl.lit(v.variable).alias("term"),
-                    pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                    pl.lit(vcomp).alias("marginaleffects_comparison"),
-                )
-                hi[0] = hi[0].with_columns(
-                    pl.lit(v.hi).alias(v.variable),
-                    pl.lit(v.variable).alias("term"),
-                    pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                    pl.lit(vcomp).alias("marginaleffects_comparison"),
-                )
-                lo[0] = lo[0].with_columns(
-                    pl.lit(v.lo).alias(v.variable),
-                    pl.lit(v.variable).alias("term"),
-                    pl.lit(v.lab).alias(f"contrast_{v.variable}"),
-                    pl.lit(vcomp).alias("marginaleffects_comparison"),
-                )
-
-    # Hack: We run into Patsy-related issues unless we "pad" the
-    # character/categorical variables to include all unique levels. We add them
-    # here but drop them after creating the design matrices.
-    vars = model.find_variables()
-    if vars is not None:
-        vars = [re.sub(r"\[.*", "", x) for x in vars]
-        vars = list(set(vars))
-        for v in vars:
-            if v in modeldata.columns:
-                if model.get_variable_type(v) not in ["numeric", "integer"]:
-                    pad.append(get_pad(newdata, v, modeldata[v].unique()))
-
-    # nd, hi, and lo are lists of data frames, since the user could have
-    # requested many contrasts at the same time using the `variables` argument.
-    # We could make predictions on each of them separately, but it's more
-    # efficient to combine the data frames and call `predict()` method only
-    # once.
-    nd = pl.concat(nd, how="vertical_relaxed")
-    hi = pl.concat(hi, how="vertical_relaxed")
-    lo = pl.concat(lo, how="vertical_relaxed")
-    pad = [x for x in pad if x is not None]
-    if len(pad) == 0:
-        pad = pl.DataFrame()
-    else:
-        for i, v in enumerate(pad):
-            pad[i] = upcast(v, pad[i - 1])
-        pad = pl.concat(pad, how="diagonal").unique()
-        pad = pad.with_columns(pl.lit(-1).alias("rowid"))
-
-    # manipulated data must have at least the same precision as the modeldata
-    lo = upcast(lo, modeldata)
-    hi = upcast(hi, modeldata)
-    pad = upcast(pad, modeldata)
-    nd = upcast(nd, modeldata)
-
-    # non-manipulated data must have at least the smae precision as manipulated data
-    # ex: int + 0.0001 for slopes
-    pad = upcast(pad, hi)
-    nd = upcast(nd, hi)
-
-    # Handle schema alignment for List columns before concat
-    dfs_to_align = [("nd", nd), ("hi", hi), ("lo", lo)]
-
-    for df_name, df in dfs_to_align:
-        common_cols = set(pad.columns) & set(df.columns)
-        for col in common_cols:
-            pad_dtype = str(pad[col].dtype)
-            df_dtype = str(df[col].dtype)
-            if pad_dtype != df_dtype:
-                # Handle List type mismatches
-                if pad_dtype.startswith("List(") and df_dtype.startswith("List("):
-                    # Both are List types but with different inner types
-                    # Convert both to simple string lists to ensure compatibility
-                    try:
-                        if col in pad.columns:
-                            pad = pad.with_columns(
-                                pad[col]
-                                .list.eval(pl.element().cast(pl.String))
-                                .alias(col)
-                            )
-                        if col in df.columns:
-                            df = df.with_columns(
-                                df[col]
-                                .list.eval(pl.element().cast(pl.String))
-                                .alias(col)
-                            )
-                    except Exception as e:
-                        print(
-                            f"Warning: Could not convert List column {col} to strings: {e}"
-                        )
-                        # Fallback: try to explode List columns to regular columns
-                        try:
-                            if col in pad.columns and pad.height > 0:
-                                pad = pad.explode(col)
-                            if col in df.columns and df.height > 0:
-                                df = df.explode(col)
-                        except Exception as e2:
-                            print(f"Warning: Could not explode List column {col}: {e2}")
-                            # Last resort: convert to string representation
-                            if col in pad.columns:
-                                pad = pad.with_columns(
-                                    pad[col].cast(pl.String).alias(col)
-                                )
-                            if col in df.columns:
-                                df = df.with_columns(df[col].cast(pl.String).alias(col))
-
-        # Update the variable with the aligned DataFrame
-        if df_name == "nd":
-            nd = df
-        elif df_name == "hi":
-            hi = df
-        elif df_name == "lo":
-            lo = df
-
-    nd = pl.concat([pad, nd], how="diagonal")
-    hi = pl.concat([pad, hi], how="diagonal")
-    lo = pl.concat([pad, lo], how="diagonal")
-
-    # Explode any remaining List columns to avoid issues with pandas/patsy
-    # Only explode if we have categorical/string List columns that need to be handled
-    list_cols = [col for col in nd.columns if str(nd[col].dtype).startswith("List(")]
-    categorical_list_cols = []
-    for col in list_cols:
-        dtype_str = str(nd[col].dtype)
-        # Only explode List columns that contain categorical/string data
-        if (
-            "Enum(" in dtype_str or "String" in dtype_str or "UInt32" in dtype_str
-        ) and col in ["Region"]:
-            categorical_list_cols.append(col)
-
-    if categorical_list_cols:
-        for col in categorical_list_cols:
-            nd = nd.explode(col)
-            hi = hi.explode(col)
-            lo = lo.explode(col)
-
-    # response cannot be NULL
-
-    # Use the `nd`, `lo`, and `hi` to make counterfactual predictions.
-    # data frame -> Patsy -> design matrix -> predict()
-    # It is expensive to convert data frames to design matrices, so we do it
-    # only once and re-use the design matrices. Unfortunately, this is not
-    # possible for PyFixest, since the `.predict()` method it supplies does not
-    # accept matrices. So we special-case PyFixest.`
-    if isinstance(model, (ModelPyfixest, ModelLinearmodels, ModelSklearn)):
-        hi_X = hi
-        lo_X = lo
-        nd_X = nd
-    else:
-        fml = re.sub(r".*~", "", model.get_formula())
-        hi_X = patsy.dmatrix(fml, hi.to_pandas())
-        lo_X = patsy.dmatrix(fml, lo.to_pandas())
-        nd_X = patsy.dmatrix(fml, nd.to_pandas())
-
-    # unpad
-    if pad.shape[0] >= 0:
-        nd_X = nd_X[pad.shape[0] :]
-        hi_X = hi_X[pad.shape[0] :]
-        lo_X = lo_X[pad.shape[0] :]
-        nd = nd[pad.shape[0] :]
-        hi = hi[pad.shape[0] :]
-        lo = lo[pad.shape[0] :]
-
-    # Create a mapping of comparison labels to their actual functions (for callable comparisons)
-    comparison_functions = {}
-    for v in variables:
-        if callable(v.comparison):
-            # Store the callable function for later use, keyed by its index or variable+lab combo
-            key = f"{v.variable}_{v.lab}"
-            comparison_functions[key] = v.comparison
+    comparison_functions = _collect_comparison_functions(variables)
 
     # === TRY JAX EARLY EXIT ===
     # Only attempt JAX if all contrasts use the same comparison type
@@ -442,7 +459,7 @@ def comparisons(
             conf_level=conf_level,
             J=J,
             equivalence_df=np.inf,
-            postprocess=_maybe_add_cross_term,
+            postprocess=postprocess_cross,
         )
 
     # === END JAX EARLY EXIT ===
@@ -578,7 +595,7 @@ def comparisons(
         conf_level=conf_level,
         J=J,
         equivalence_df=np.inf,
-        postprocess=_maybe_add_cross_term,
+        postprocess=postprocess_cross,
     )
 
 
