@@ -2,18 +2,14 @@ import numpy as np
 import polars as pl
 
 from .by import get_by, get_by_groups
-from .result import MarginaleffectsResult
-from .equivalence import get_equivalence
 from .hypothesis import get_hypothesis
-from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import sort_columns
 from .pyfixest import ModelPyfixest
 from .linearmodels import ModelLinearmodels
 from .formulaic_utils import model_matrices
 from ._input_utils import prepare_base_inputs
+from .utils import finalize_result, call_avg
 from warnings import warn
-
 from .docs import (
     DocsDetails,
     DocsParameters,
@@ -231,25 +227,6 @@ def _finite_difference_predictions(
     return out, J
 
 
-def _finalize_predictions_result(
-    out,
-    model,
-    by,
-    transform,
-    equivalence,
-    newdata,
-    conf_level,
-    J,
-):
-    out = get_transform(out, transform=transform)
-    out = get_equivalence(out, equivalence=equivalence)
-    out = sort_columns(out, by=by, newdata=newdata)
-
-    return MarginaleffectsResult(
-        out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
-    )
-
-
 def predictions(
     model,
     variables=None,
@@ -329,8 +306,8 @@ def predictions(
             hypothesis_null=hypothesis_null,
         )
 
-    return _finalize_predictions_result(
-        out=out,
+    return finalize_result(
+        out,
         model=model,
         by=by,
         transform=transform,
@@ -361,24 +338,20 @@ def avg_predictions(
 
     Or type: `help(avg_predictions)`
     """
-    if callable(newdata):
-        newdata = newdata(model)
-
-    out = predictions(
+    return call_avg(
+        predictions,
         model=model,
+        newdata=newdata,
         variables=variables,
         conf_level=conf_level,
         vcov=vcov,
         by=by,
-        newdata=newdata,
         hypothesis=hypothesis,
         equivalence=equivalence,
         transform=transform,
         wts=wts,
         **kwargs,
     )
-
-    return out
 
 
 docs_predictions = (

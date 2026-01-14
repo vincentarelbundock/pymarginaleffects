@@ -1,10 +1,13 @@
 import narwhals as nw
 import numpy as np
 import polars as pl
-from typing import Protocol, runtime_checkable, Union, List
+from typing import Callable, Optional, Protocol, runtime_checkable, Union, List
 from pydantic import ConfigDict, validate_call
 from functools import wraps
 import marginaleffects.formulaic_utils as fml
+from .equivalence import get_equivalence
+from .result import MarginaleffectsResult
+from .transform import get_transform
 # from narwhals.typing import IntoFrame
 
 
@@ -497,6 +500,44 @@ def sanitize_datagrid_factor(
             return values
 
     return values
+
+
+def finalize_result(
+    out,
+    *,
+    model,
+    by,
+    transform,
+    equivalence,
+    newdata,
+    conf_level,
+    J,
+    equivalence_df: Optional[float] = None,
+    postprocess: Optional[Callable] = None,
+):
+    """
+    Shared helper to apply final transforms and wrap a MarginaleffectsResult.
+    """
+    out = get_transform(out, transform=transform)
+    if equivalence_df is None:
+        out = get_equivalence(out, equivalence=equivalence)
+    else:
+        out = get_equivalence(out, equivalence=equivalence, df=equivalence_df)
+    out = sort_columns(out, by=by, newdata=newdata)
+    if postprocess is not None:
+        out = postprocess(out)
+    return MarginaleffectsResult(
+        out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
+    )
+
+
+def call_avg(func, *, model, newdata=None, **kwargs):
+    """
+    Shared wrapper for avg_* helpers resolving callable newdata hooks.
+    """
+    if callable(newdata):
+        newdata = newdata(model)
+    return func(model=model, newdata=newdata, **kwargs)
 
 
 get_dataset.__doc__ = """

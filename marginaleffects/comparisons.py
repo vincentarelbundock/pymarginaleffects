@@ -5,8 +5,6 @@ import numpy as np
 import patsy
 import polars as pl
 
-from .result import MarginaleffectsResult
-from .equivalence import get_equivalence
 from .estimands import estimands
 from .hypothesis import get_hypothesis
 from .sanitize_model import sanitize_model
@@ -15,14 +13,18 @@ from .sanity import (
     handle_deprecated_hypotheses_argument,
     handle_pyfixest_vcov_limitation,
 )
-from .transform import get_transform
 from .uncertainty import get_jacobian, get_se, get_z_p_ci
-from .utils import get_pad, sort_columns, upcast, validate_string_columns
+from .utils import (
+    get_pad,
+    upcast,
+    validate_string_columns,
+    finalize_result,
+    call_avg,
+)
 from .pyfixest import ModelPyfixest
 from .sklearn import ModelSklearn
 from .linearmodels import ModelLinearmodels
 from ._input_utils import prepare_base_inputs
-
 from .docs import (
     DocsDetails,
     DocsParameters,
@@ -93,6 +95,11 @@ def comparisons(
     # Validate that columns used in by and variables are not String type
     validate_string_columns(by, modeldata, context="the 'by' parameter")
     validate_string_columns(variables, modeldata, context="the 'variables' parameter")
+
+    def _maybe_add_cross_term(df):
+        if not cross:
+            return df
+        return df.with_columns(pl.lit("cross").alias("term"))
 
     # For each variable in `variables`, this will return two values that we want
     # to compare in the contrast. For example, if there's a variable called
@@ -425,17 +432,18 @@ def comparisons(
         out = get_z_p_ci(
             out, model, conf_level=conf_level, hypothesis_null=hypothesis_null
         )
-        out = get_transform(out, transform=transform)
-        out = get_equivalence(out, equivalence=equivalence, df=np.inf)
-        out = sort_columns(out, by=by, newdata=newdata)
-
-        if cross:
-            out = out.with_columns(pl.lit("cross").alias("term"))
-
-        out = MarginaleffectsResult(
-            out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
+        return finalize_result(
+            out,
+            model=model,
+            by=by,
+            transform=transform,
+            equivalence=equivalence,
+            newdata=newdata,
+            conf_level=conf_level,
+            J=J,
+            equivalence_df=np.inf,
+            postprocess=_maybe_add_cross_term,
         )
-        return out
 
     # === END JAX EARLY EXIT ===
 
@@ -560,21 +568,18 @@ def comparisons(
     else:
         J = None
 
-    # Apply a few final operations
-    out = get_transform(out, transform=transform)
-    out = get_equivalence(out, equivalence=equivalence, df=np.inf)
-    out = sort_columns(out, by=by, newdata=newdata)
-
-    # not sure why we can't do this earlier. Might be related to this bug report
-    # https://github.com/pola-rs/polars/issues/14401
-    if cross:
-        out = out.with_columns(pl.lit("cross").alias("term"))
-
-    # Wrap things up in a nice class
-    out = MarginaleffectsResult(
-        out, by=by, conf_level=conf_level, jacobian=J, newdata=newdata
+    return finalize_result(
+        out,
+        model=model,
+        by=by,
+        transform=transform,
+        equivalence=equivalence,
+        newdata=newdata,
+        conf_level=conf_level,
+        J=J,
+        equivalence_df=np.inf,
+        postprocess=_maybe_add_cross_term,
     )
-    return out
 
 
 def avg_comparisons(
@@ -600,13 +605,11 @@ def avg_comparisons(
 
     Or type: `help(avg_comparisons)`
     """
-    if callable(newdata):
-        newdata = newdata(model)
-
-    out = comparisons(
+    return call_avg(
+        comparisons,
         model=model,
-        variables=variables,
         newdata=newdata,
+        variables=variables,
         comparison=comparison,
         vcov=vcov,
         conf_level=conf_level,
@@ -619,8 +622,6 @@ def avg_comparisons(
         eps=eps,
         **kwargs,
     )
-
-    return out
 
 
 docs_comparisons = (
