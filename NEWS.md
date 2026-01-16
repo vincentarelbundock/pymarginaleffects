@@ -1,3 +1,25 @@
+# 0.3.0
+
+New:
+
+* **Autodiff support for `predictions()` and `comparisons()`**: JAX-based automatic differentiation now extends to `predictions()` and `comparisons()`. When JAX is installed, standard errors are computed using analytical gradients instead of finite differences, improving both speed and numerical accuracy.
+
+* **Global autodiff configuration**: New `marginaleffects.autodiff()` function to control JAX usage:
+  ```python
+  import marginaleffects as me
+  me.autodiff(False)   # Disable JAX, use finite differences
+  me.autodiff(True)    # Force JAX (error if not installed)
+  me.autodiff(None)    # Auto-detect (default)
+  me.autodiff()        # Inspect current state
+  ```
+  Can also be set via environment variable `MARGINALEFFECTS_AUTODIFF`.
+
+Internal:
+
+* Model adapters reorganized into package-specific submodules (e.g., `marginaleffects.statsmodels`, `marginaleffects.sklearn`).
+* Plot functions moved to `marginaleffects.plot` submodule.
+* Refactored `predictions.py` and `comparisons.py` for better code reuse.
+
 # 0.2.3
 
 Breaking changes:
