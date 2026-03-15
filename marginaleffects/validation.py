@@ -74,22 +74,14 @@ class ModelValidation:
         formula_vars = fml.parse_variables(self.get_formula())
         validate_string_columns(formula_vars, modeldata, context="the model formula")
 
-        # Check C() formula variables are already categorical
+        # Ensure C() formula variables are categorical
         catvars = fml.parse_variables_categorical(self.get_formula())
         for c in catvars:
             if modeldata[c].dtype not in [pl.Enum, pl.Categorical]:
-                if modeldata[c].dtype.is_numeric():
-                    msg = (
-                        f"Variable '{c}' is wrapped in C() but has numeric type. "
-                        f"C() should only be used with categorical variables."
-                    )
-                    raise TypeError(msg)
-                else:
-                    msg = (
-                        f"Variable '{c}' is wrapped in C() but has unsupported type {modeldata[c].dtype}. "
-                        f"Please convert to Categorical or Enum first."
-                    )
-                    raise TypeError(msg)
+                # Cast numeric or other types to String, then to Categorical
+                modeldata = modeldata.with_columns(
+                    pl.col(c).cast(pl.String).cast(pl.Categorical)
+                )
 
         # Convert Categorical → Enum for internal consistency (ONLY conversion that remains)
         # IMPORTANT: Use unique() not cat.get_categories() to avoid Polars global string cache
